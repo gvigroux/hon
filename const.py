@@ -21,57 +21,67 @@ STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 1
 
 
-CONF_ID_TOKEN       = "token"
-CONF_COGNITO_TOKEN  = "cognito_token"
-CONF_REFRESH_TOKEN  = "refresh_token"
-CONF_FRAMEWORK      = "framework"
+CONF_ID_TOKEN = "token"
+CONF_COGNITO_TOKEN = "cognito_token"
+CONF_REFRESH_TOKEN = "refresh_token"
+CONF_FRAMEWORK = "framework"
 
 PLATFORMS = [
     "climate",
+    "sensor",
 ]
 
+
 class ClimateFanMode(IntEnum):
-    HON_FAN_OFF         = 0
-    HON_FAN_AUTO        = 5
-    HON_FAN_LOW         = 3
-    HON_FAN_MEDIUM      = 2
-    HON_FAN_HIGH        = 1
-        
+    HON_FAN_OFF = 0
+    HON_FAN_AUTO = 5
+    HON_FAN_LOW = 3
+    HON_FAN_MEDIUM = 2
+    HON_FAN_HIGH = 1
+
+
 class ClimateHvacMode(IntEnum):
-    HON_HVAC_AUTO       = 0
-    HON_HVAC_COOL       = 1
-    HON_HVAC_HEAT       = 4
-    HON_HVAC_FAN_ONLY   = 6
+    HON_HVAC_AUTO = 0
+    HON_HVAC_COOL = 1
+    HON_HVAC_HEAT = 4
+    HON_HVAC_FAN_ONLY = 6
 
 
 class ClimateSwingVertical(IntEnum):
-    AUTO        = 8
-    VERY_LOW    = 2
-    LOW         = 2
-    MEDIUM      = 4
-    HIGH        = 5
-    VERY_HIGH   = 6
+    AUTO = 8
+    VERY_LOW = 2
+    LOW = 2
+    MEDIUM = 4
+    HIGH = 5
+    VERY_HIGH = 6
+
 
 class ClimateSwingHorizontal(IntEnum):
-    AUTO        = 7
-    VERY_LOW    = 0
-    LOW         = 3
-    MEDIUM      = 4
-    HIGH        = 5
-    VERY_HIGH   = 6
+    AUTO = 7
+    VERY_LOW = 0
+    LOW = 3
+    MEDIUM = 4
+    HIGH = 5
+    VERY_HIGH = 6
 
-CLIMATE_FAN_MODE = {FAN_LOW:    ClimateFanMode.HON_FAN_LOW.value, 
-                    FAN_MEDIUM: ClimateFanMode.HON_FAN_MEDIUM.value, 
-                    FAN_HIGH:   ClimateFanMode.HON_FAN_HIGH.value, 
-                    FAN_AUTO:   ClimateFanMode.HON_FAN_AUTO.value }
 
-CLIMATE_HVAC_MODE = {   HVACMode.AUTO :     ClimateHvacMode.HON_HVAC_AUTO,
-                        HVACMode.COOL :     ClimateHvacMode.HON_HVAC_COOL,
-                        HVACMode.HEAT :     ClimateHvacMode.HON_HVAC_HEAT,
-                        HVACMode.FAN_ONLY:  ClimateHvacMode.HON_HVAC_FAN_ONLY}
+CLIMATE_FAN_MODE = {
+    FAN_LOW: ClimateFanMode.HON_FAN_LOW.value,
+    FAN_MEDIUM: ClimateFanMode.HON_FAN_MEDIUM.value,
+    FAN_HIGH: ClimateFanMode.HON_FAN_HIGH.value,
+    FAN_AUTO: ClimateFanMode.HON_FAN_AUTO.value,
+}
 
-CLIMATE_SWING_MODE_HORIZONTAL  = {  SWING_OFF:          ClimateSwingHorizontal.MEDIUM,
-                                    SWING_BOTH:         ClimateSwingHorizontal.AUTO,
-                                    SWING_HORIZONTAL:   ClimateSwingHorizontal.AUTO,
-                                    SWING_VERTICAL:     ClimateSwingHorizontal.MEDIUM}
+CLIMATE_HVAC_MODE = {
+    HVACMode.AUTO: ClimateHvacMode.HON_HVAC_AUTO,
+    HVACMode.COOL: ClimateHvacMode.HON_HVAC_COOL,
+    HVACMode.HEAT: ClimateHvacMode.HON_HVAC_HEAT,
+    HVACMode.FAN_ONLY: ClimateHvacMode.HON_HVAC_FAN_ONLY,
+}
 
+CLIMATE_SWING_MODE_HORIZONTAL = {
+    SWING_OFF: ClimateSwingHorizontal.MEDIUM,
+    SWING_BOTH: ClimateSwingHorizontal.AUTO,
+    SWING_HORIZONTAL: ClimateSwingHorizontal.AUTO,
+    SWING_VERTICAL: ClimateSwingHorizontal.MEDIUM,
+}
