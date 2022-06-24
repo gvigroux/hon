@@ -60,10 +60,8 @@ class HonOvenEntity(CoordinatorEntity):
                 # Serial numbers are unique identifiers within a specific domain
                 (DOMAIN, self._mac)
             },
-            "mac": self._mac,
             "name": self._name,
             "manufacturer": self._brand,
             "model": self._model,
             "sw_version": self._fw_version,
-            "hw_version": self._mac,
         }

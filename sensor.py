@@ -37,6 +37,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if appliance["applianceTypeId"] == 4:
             coordinator = HonOvenCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
+
             appliances.extend(
                 [
                     HonOvenTemperature(hass, coordinator, entry, appliance),
@@ -49,6 +50,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonOvenProgram(hass, coordinator, entry, appliance),
                 ]
             )
+            await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
 

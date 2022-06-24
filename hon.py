@@ -11,6 +11,8 @@ _LOGGER = logging.getLogger(__name__)
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
+from homeassistant.helpers import device_registry as dr
+
 
 from .const import (
     DOMAIN,
@@ -280,3 +282,10 @@ class HonConnection:
             # _LOGGER.error("SEND Command response with code: " + str(resp.status) + " and text[" + text + "] after command: " + json.dumps(data))
 
         return False
+
+
+def get_hOn_mac(device_id, hass):
+     device_registry = dr.async_get(hass)
+     device = device_registry.async_get(device_id)
+     return next(iter(device.identifiers))[1]
+
