@@ -21,7 +21,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.core import callback
 
 
-from .const import DOMAIN
+from .const import DOMAIN, OVEN_PROGRAMS
 
 from .oven import HonOvenEntity, HonOvenCoordinator
 
@@ -46,6 +46,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonOvenPreheating(hass, coordinator, entry, appliance),
                     HonOvenRemoteControl(hass, coordinator, entry, appliance),
                     HonOvenOnOff(hass, coordinator, entry, appliance),
+                    HonOvenProgram(hass, coordinator, entry, appliance),
                 ]
             )
 
@@ -171,6 +172,35 @@ class HonOvenRemaining(SensorEntity, HonOvenEntity):
             return
 
         self._attr_native_value = json["remainingTimeMM"]["parNewVal"]
+        self.async_write_ha_state()
+
+
+class HonOvenProgram(SensorEntity, HonOvenEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_program"
+        self._attr_name = f"{self._name} Program"
+        self._attr_icon = "mdi:chef-hat"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        program = self._attr_is_on = json["prCode"]["parNewVal"]
+
+        if program in OVEN_PROGRAMS:
+            self._attr_native_value = OVEN_PROGRAMS[program]
+        else:
+            self._attr_native_value = f"Unkwon program {program}"
+
         self.async_write_ha_state()
 
 

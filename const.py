@@ -85,3 +85,14 @@ CLIMATE_SWING_MODE_HORIZONTAL = {
     SWING_HORIZONTAL: ClimateSwingHorizontal.AUTO,
     SWING_VERTICAL: ClimateSwingHorizontal.MEDIUM,
 }
+
+
+OVEN_PROGRAMS = {
+    "3": "Botton",
+    "4": "Bottom + fan",
+    "6": "Convection + fan",
+    "5": "Convectional",
+    "10": "Taylor Bake",
+    "23": "Multi-level",
+    "54": "Soft+",
+}
