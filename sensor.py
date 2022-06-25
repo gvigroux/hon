@@ -1,7 +1,8 @@
 import logging
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from dateutil.tz import gettz
 from typing import Optional
 from enum import IntEnum
 
@@ -48,6 +49,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonOvenRemoteControl(hass, coordinator, entry, appliance),
                     HonOvenOnOff(hass, coordinator, entry, appliance),
                     HonOvenProgram(hass, coordinator, entry, appliance),
+                    HonOvenEnd(hass, coordinator, entry, appliance),
+                    HonOvenStart(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
@@ -173,7 +176,72 @@ class HonOvenRemaining(SensorEntity, HonOvenEntity):
         if json is False:
             return
 
-        self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"])
+        self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) + int(
+            json["delayTime"]["parNewVal"]
+        )
+        self.async_write_ha_state()
+
+
+class HonOvenEnd(SensorEntity, HonOvenEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_end"
+        self._attr_name = f"{self._name} End Time"
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
+        self._attr_icon = "mdi:clock-end"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        delay = int(json["delayTime"]["parNewVal"])
+        duration = int(json["prTime"]["parNewVal"])
+
+        if duration == 0:
+            self._attr_native_value = None
+            return
+
+        self._attr_native_value = datetime.now(timezone.utc) + timedelta(
+            minutes=delay + duration
+        )
+        self.async_write_ha_state()
+
+
+class HonOvenStart(SensorEntity, HonOvenEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_start"
+        self._attr_name = f"{self._name} Start Time"
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
+        self._attr_icon = "mdi:clock-start"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        delay = int(json["delayTime"]["parNewVal"])
+
+        if delay == 0:
+            self._attr_native_value = None
+            return
+
+        self._attr_native_value = datetime.now(timezone.utc) + timedelta(minutes=delay)
         self.async_write_ha_state()
 
 
