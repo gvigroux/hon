@@ -173,7 +173,7 @@ class HonOvenRemaining(SensorEntity, HonOvenEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["remainingTimeMM"]["parNewVal"]
+        self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"])
         self.async_write_ha_state()
 
 

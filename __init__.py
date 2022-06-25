@@ -1,4 +1,5 @@
 import asyncio
+import imp
 import logging
 import voluptuous as vol
 import aiohttp
@@ -6,6 +7,8 @@ import asyncio
 import json
 import urllib.parse
 
+from datetime import datetime
+from dateutil.tz import gettz
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv, device_registry as dr
@@ -46,8 +49,20 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     async def handle_oven_start(call):
 
+        delay_time = 0
+        tz = gettz(hass.config.time_zone)
+
+        if "start" in call.data:
+            date = datetime.strptime(call.data.get("start"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
+            delay_time = int((date - datetime.now(tz)).seconds / 60)
+
+        if "end" in call.data and "duration" in call.data:
+            date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
+            duration = call.data.get("duration")
+            delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
+
         paramaters = {
-            "delayTime": "0",
+            "delayTime": delay_time,
             "onOffStatus": "1",
             "prCode": call.data.get("program"),
             "prPosition": "1",
