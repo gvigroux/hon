@@ -88,7 +88,7 @@ turn_on_oven:
 
 
 
-oven_turn_off:
+turn_off_oven:
   name: Turn off the oven
   description: Turn off the oven
   fields:

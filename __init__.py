@@ -79,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     async def handle_oven_stop(call):
 
-        paramters = {"onOffStatus": "1"}
+        paramters = {"onOffStatus": "0"}
 
         mac = get_hOn_mac(call.data.get("device"), hass)
 
