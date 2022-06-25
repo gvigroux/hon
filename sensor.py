@@ -6,6 +6,8 @@ from dateutil.tz import gettz
 from typing import Optional
 from enum import IntEnum
 
+from sqlalchemy import null
+
 from homeassistant.const import TEMP_CELSIUS, TIME_MINUTES
 
 from homeassistant.components.sensor import (
@@ -203,15 +205,17 @@ class HonOvenEnd(SensorEntity, HonOvenEntity):
             return
 
         delay = int(json["delayTime"]["parNewVal"])
-        duration = int(json["prTime"]["parNewVal"])
+        remaining = int(json["remainingTimeMM"]["parNewVal"])
 
-        if duration == 0:
+        if remaining == 0:
             self._attr_native_value = None
+            self.async_write_ha_state()
             return
 
-        self._attr_native_value = datetime.now(timezone.utc) + timedelta(
-            minutes=delay + duration
-        )
+        self._attr_available = True
+        self._attr_native_value = datetime.now(timezone.utc).replace(
+            second=0
+        ) + timedelta(minutes=delay + remaining)
         self.async_write_ha_state()
 
 
@@ -224,6 +228,7 @@ class HonOvenStart(SensorEntity, HonOvenEntity):
         self._attr_name = f"{self._name} Start Time"
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_icon = "mdi:clock-start"
+        self._on = False
 
     @callback
     def _handle_coordinator_update(self):
@@ -235,13 +240,23 @@ class HonOvenStart(SensorEntity, HonOvenEntity):
         if json is False:
             return
 
+        previous = self._on
+        self._on = json["onOffStatus"]["parNewVal"] == "1"
+
         delay = int(json["delayTime"]["parNewVal"])
 
         if delay == 0:
-            self._attr_native_value = None
-            return
+            if self._on is True and previous is False:
+                self._attr_native_value = datetime.now(timezone.utc).replace(second=0)
+            elif self._on is False:
+                self._attr_native_value = None
 
-        self._attr_native_value = datetime.now(timezone.utc) + timedelta(minutes=delay)
+        else:
+            self._attr_native_value = datetime.now(timezone.utc).replace(
+                second=0
+            ) + timedelta(minutes=delay)
+
+
         self.async_write_ha_state()
 
 
@@ -264,7 +279,7 @@ class HonOvenProgram(SensorEntity, HonOvenEntity):
         if json is False:
             return
 
-        program = self._attr_is_on = json["prCode"]["parNewVal"]
+        program = json["prCode"]["parNewVal"]
 
         if program in OVEN_PROGRAMS:
             self._attr_native_value = OVEN_PROGRAMS[program]
