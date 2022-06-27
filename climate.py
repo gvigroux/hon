@@ -146,6 +146,8 @@ class HonClimate(ClimateEntity):
     def get_command(self, parameters = {}):
         command = self._default_command
         command['operationName']    = 'grSetDAC'
+        command['onOffStatus']      = '1'
+        
         for key, val in parameters.items():
             if isinstance(val, IntEnum):
                 command[key] = val.value

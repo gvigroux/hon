@@ -285,7 +285,7 @@ class HonConnection:
 
 
 def get_hOn_mac(device_id, hass):
-     device_registry = dr.async_get(hass)
-     device = device_registry.async_get(device_id)
-     return next(iter(device.identifiers))[1]
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get(device_id)
+    return next(iter(device.identifiers))[1]
 
