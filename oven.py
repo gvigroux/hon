@@ -42,7 +42,7 @@ class HonOvenEntity(CoordinatorEntity):
         if "nickName" in appliance:
             self._name = appliance["nickName"]
         else:
-            self._name = appliance["Oven"]
+            self._name = "Oven"
 
         self._mac = appliance["macAddress"]
         self._connectivity = appliance["connectivity"]

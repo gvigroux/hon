@@ -1,0 +1,102 @@
+turn_on_oven:
+  name: Turn on the oven
+  description: Start a oven program
+
+  fields:
+    device:
+      name: Oven
+      description: Haier Oven
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
+
+
+    temperature:
+      name: Temperature
+      description: Temperature for the program
+      required: true
+      advanced: false
+      selector:
+        number:
+          min: 50
+          max: 240
+          step: 1
+          unit_of_measurement: "ºC"
+          mode: slider
+
+    preheat:
+      name: Preheat
+      description: Preheat the oven before start
+      required: false
+      advanced: false
+      selector:
+        boolean:
+
+    program:
+      name: Program
+      description: Program mode for oven
+      required: true
+      selector:
+        select:
+          options:
+            - label: Convectional
+              value: 5
+            - label: Taylor Bake
+              value: 10
+            - label: Bottom + fan
+              value: 4
+            - label: Botton
+              value: 3
+            - label: Convection + fan
+              value: 6
+            - label: Soft+
+              value: 54
+            - label: Multi-level
+              value: 23
+
+
+
+    duration:
+      name: Program duration
+      description: Duration, in minutes, of program
+      required: false
+      advanced: false
+      selector:
+        number:
+          min: 0
+          max: 600
+          step: 1
+          unit_of_measurement: "min"
+          mode: slider
+
+    start:
+       name: Start time
+       description: Time when the program will start.
+       required: false
+       selector:
+         datetime:
+
+    end:
+       name: End time
+       description: Time when the program will be finish. You need set duration too
+       required: false
+       selector:
+         datetime:
+
+
+
+
+turn_off_oven:
+  name: Turn off the oven
+  description: Turn off the oven
+  fields:
+    device:
+      name: Oven
+      description: Haier Oven
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
