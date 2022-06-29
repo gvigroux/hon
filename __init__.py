@@ -39,6 +39,10 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hon = HonConnection(hass, entry)
     await hon.async_authorize()
 
+    # Log all appliances
+    _LOGGER.info(hon.appliances)
+    _LOGGER.warning(hon.appliances)
+
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
 
@@ -79,13 +83,13 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     async def handle_oven_stop(call):
 
-        paramters = {"onOffStatus": "0"}
+        parameters = {"onOffStatus": "0"}
 
         mac = get_hOn_mac(call.data.get("device"), hass)
 
-        return await hon.async_set(mac, "OV", paramters)
+        return await hon.async_set(mac, "OV", parameters)
 
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
-
+    
     return True

@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import json
+import voluptuous as vol
 from datetime import datetime, timedelta
 from typing import Optional
 from enum import IntEnum
@@ -44,6 +45,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher   import async_dispatcher_connect
 from homeassistant.helpers.event        import async_track_time_interval
+from homeassistant.helpers              import config_validation as cv, entity_platform
 from .const import(
     DOMAIN, 
     CLIMATE_FAN_MODE,
@@ -68,7 +70,33 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     async_add_entities(appliances, update_before_add=True)
 
+    platform = entity_platform.async_get_current_platform()
 
+    platform.async_register_entity_service(
+        "climate_set_sleep_mode",
+        {
+            vol.Required('sleep_mode'): cv.boolean,
+        },
+        "async_set_sleep_mode",
+    )
+
+    platform.async_register_entity_service(
+        "climate_set_screen_display",
+        {
+            vol.Required('screen_display'): cv.boolean,
+        },
+        "async_set_screen_display",
+    )
+
+    platform.async_register_entity_service(
+        "climate_set_echo_mode",
+        {
+            vol.Required('echo_mode'): cv.boolean,
+        },
+        "async_set_echo_mode",
+    )
+
+    
 
 # function to return key for any value
 def get_key(dictionnary,val,default):
@@ -108,6 +136,22 @@ class HonClimate(ClimateEntity):
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
         self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
         
+    async def async_set_sleep_mode(self, sleep_mode=False):
+        parameters = {"silentSleepStatus": "1" if sleep_mode else "0"}
+        self._sleep_mode = sleep_mode
+        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+
+    async def async_set_screen_display(self, screen_display=True):
+        self._screen_display = screen_display
+        parameters = {"screenDisplayStatus": "1" if screen_display else "0"}
+        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+
+    async def async_set_echo_mode(self, echo_mode=False):
+        self._echo_mode = echo_mode
+        parameters = {"echoStatus": "0" if echo_mode else "1"}
+        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+
+
 
     def start_watcher(self, timedelta=timedelta(seconds=1)):
         self._watcher = async_track_time_interval(self._hass, self.async_update_after_state_change, timedelta)
@@ -140,6 +184,10 @@ class HonClimate(ClimateEntity):
         self.update_swing_mode(self.get_int_state(json,'windDirectionHorizontal'), self.get_int_state(json,'windDirectionVertical'))
         self.update_fan_mode(self.get_int_state(json,'windSpeed'))
 
+        self._sleep_mode    = True if self.get_int_state(json,'silentSleepStatus') == 1 else False
+        self._echo_mode     = True if self.get_int_state(json,'echoStatus') == 0 else False
+        self._screen_display= True if self.get_int_state(json,'screenDisplayStatus') == 1 else False
+        
     def get_int_state(self, json, val):
         return int(json[val]['parNewVal'])
 
@@ -198,8 +246,18 @@ class HonClimate(ClimateEntity):
             "name": self._name,
             "manufacturer": self._brand,
             "model": self._model,
-            "sw_version": self._fwVersion,
+            "sw_version": self._fwVersion
         }
+
+    @property
+    def state_attributes(self):
+        """Return the climate state attributes."""
+        attr = super().state_attributes
+        attr["sleep_mode"]      = self._sleep_mode
+        attr["echo_mode"]       = self._echo_mode
+        attr["screen_display"]  = self._screen_display
+        return attr
+
 
     #https://github.com/home-assistant/core/blob/dev/homeassistant/components/mill/climate.py
     async def async_set_temperature(self, **kwargs):

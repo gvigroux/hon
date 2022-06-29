@@ -135,7 +135,11 @@ class HonConnection:
             text = await resp.text()
             array = text.split("'", 2)
             params = urllib.parse.parse_qs(array[1])
-            self._id_token = params["id_token"][0]
+            try:
+                self._id_token = params["id_token"][0]
+            except:
+                _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
+                return False
 
         post_headers = {"Content-Type": "application/json", "id-token": self._id_token}
         data = '{"appVersion": "1.39.2","mobileId": "xxxxxxxxxxxxxxxxxx","osVersion": 30,"os": "android","deviceModel": "goldfish_x86"}'
@@ -214,7 +218,8 @@ class HonConnection:
                     + "]"
                 )
                 return False
-            # _LOGGER.warning(text)
+            #_LOGGER.warning(text)
+            _LOGGER.info(text)
 
             json_data = json.loads(text)["payload"]["shadow"]["parameters"]
             return json_data
@@ -247,7 +252,7 @@ class HonConnection:
         data["timestamp"] = timestamp
         data["transactionId"] = mac + "_" + data["timestamp"]
 
-        # _LOGGER.warning(data)
+        #_LOGGER.warning(data)
         async with self._session.post(
             "https://api-iot.he.services/commands/v1/send",
             headers=post_headers,
@@ -255,7 +260,7 @@ class HonConnection:
         ) as resp:
             # _LOGGER.warning(resp.status)
             text = await resp.text()
-            # _LOGGER.warning(text)
+            #_LOGGER.warning(text)
             try:
                 json_data = json.loads(text)
             except:
@@ -278,9 +283,6 @@ class HonConnection:
                 + str(data)
                 + "]"
             )
-            # _LOGGER.warning(text)
-            # _LOGGER.error("SEND Command response with code: " + str(resp.status) + " and text[" + text + "] after command: " + json.dumps(data))
-
         return False
 
 
@@ -288,4 +290,3 @@ def get_hOn_mac(device_id, hass):
     device_registry = dr.async_get(hass)
     device = device_registry.async_get(device_id)
     return next(iter(device.identifiers))[1]
-

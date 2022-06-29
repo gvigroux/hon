@@ -12,7 +12,6 @@ turn_on_oven:
         device:
           manufacturer: haier
 
-
     temperature:
       name: Temperature
       description: Temperature for the program
@@ -56,8 +55,6 @@ turn_on_oven:
             - label: Multi-level
               value: 23
 
-
-
     duration:
       name: Program duration
       description: Duration, in minutes, of program
@@ -72,21 +69,18 @@ turn_on_oven:
           mode: slider
 
     start:
-       name: Start time
-       description: Time when the program will start.
-       required: false
-       selector:
-         datetime:
+      name: Start time
+      description: Time when the program will start.
+      required: false
+      selector:
+        datetime:
 
     end:
-       name: End time
-       description: Time when the program will be finish. You need set duration too
-       required: false
-       selector:
-         datetime:
-
-
-
+      name: End time
+      description: Time when the program will be finish. You need set duration too
+      required: false
+      selector:
+        datetime:
 
 turn_off_oven:
   name: Turn off the oven
@@ -100,3 +94,48 @@ turn_off_oven:
       selector:
         device:
           manufacturer: haier
+
+climate_set_sleep_mode:
+  name: Set climate sleep mode
+  description: Set climate sleep mode
+  target:
+    entity:
+      domain: climate
+  fields:
+    sleep_mode:
+      name: Sleep Mode
+      description: Sleep Mode value
+      required: true
+      advanced: false
+      selector:
+        boolean:
+
+climate_set_echo_mode:
+  name: Set climate echo mode
+  description: Do you want your unit to do BIP at each command ?
+  target:
+    entity:
+      domain: climate
+  fields:
+    echo_mode:
+      name: Echo Mode
+      description: True means BIP, False is silent
+      required: true
+      advanced: false
+      selector:
+        boolean:
+
+climate_set_screen_display:
+  name: Set climate screen display
+  description: Do you want your unit to display current temperature all the time?
+  target:
+    entity:
+      domain: climate
+  fields:
+    screen_display:
+      name: Screen display
+      description: True means visible, False is hidden
+      required: true
+      advanced: false
+      selector:
+        boolean:
