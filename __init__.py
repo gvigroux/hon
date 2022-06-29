@@ -41,7 +41,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     # Log all appliances
     _LOGGER.info(hon.appliances)
-    _LOGGER.warning(hon.appliances)
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
