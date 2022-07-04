@@ -1,0 +1,14 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "hOn",
+                "description": "Voer uw hOn inloggegevens in",
+                "data": {
+                    "email": "E-mailadres",
+                    "password": "Wachtwoord"
+                }
+            }
+        }
+    }
+}
