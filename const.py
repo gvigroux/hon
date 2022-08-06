@@ -98,3 +98,9 @@ OVEN_PROGRAMS = {
     "23": "Multi-level",
     "54": "Soft+",
 }
+
+WASHING_MACHINE_MODE = {
+    "1": "Ready",
+    "2": "Running",
+    "7": "Finished"
+}
