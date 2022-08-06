@@ -14,6 +14,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
+    SensorEntityDescription,
 )
 
 from homeassistant.components.binary_sensor import (
@@ -28,8 +29,15 @@ from .const import DOMAIN, OVEN_PROGRAMS
 
 from .oven import HonOvenEntity, HonOvenCoordinator
 
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
+
 from homeassistant.config_entries import ConfigEntry
 
+from .hon import HonCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
 
@@ -56,8 +64,67 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 ]
             )
             await coordinator.async_request_refresh()
+        if appliance["applianceTypeId"] == 11:
+            coordinator = await hon.async_get_coordinator(appliance)
+            await coordinator.async_config_entry_first_refresh()
+            
+            appliances.extend(
+                [
+                    HonClimateOutdoorTemperature(hass, coordinator, entry, appliance) 
+                ])
 
     async_add_entities(appliances)
+
+
+
+class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator)
+
+        self._mac           = appliance["macAddress"]
+        self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
+        self._model         = appliance['modelName']
+        self._fwVersion     = appliance['fwVersion']
+        self._brand         = appliance['brand']
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_temperature_Outdoor"
+        self._attr_name = f"{self._name} Temperature Outdoor"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_icon = "mdi:thermometer"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+        self._attr_native_value = self._coordinator.data["tempOutdoor"]["parNewVal"]
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            _LOGGER.warning("Unable to update Sensor value: no Data")
+            return
+
+        self._attr_native_value = json["tempOutdoor"]["parNewVal"]
+        self.async_write_ha_state()
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self._mac)
+            },
+            "name": self._name,
+            "manufacturer": self._brand,
+            "model": self._model,
+            "sw_version": self._fwVersion
+        }
+
+
 
 
 class HonOvenTemperature(SensorEntity, HonOvenEntity):

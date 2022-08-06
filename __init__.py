@@ -50,6 +50,16 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
 
+    # Log details on unknown devices
+    for appliance in hon.appliances:
+        if appliance['applianceTypeId'] not in [4, 11]:
+            try:
+                status = await hon.async_get_state(appliance["macAddress"], appliance["applianceTypeName"], True)
+            except:
+                status = "Unable to get latest status"
+            _LOGGER.warning("Unknown device detected [%s] with latest status [%s]", appliance, status)
+
+
     async def handle_oven_start(call):
 
         delay_time = 0

@@ -139,3 +139,33 @@ climate_set_screen_display:
       advanced: false
       selector:
         boolean:
+
+climate_set_rapid_mode:
+  name: Set climate rapid mode
+  description: Activate rapid mode?
+  target:
+    entity:
+      domain: climate
+  fields:
+    rapid_mode:
+      name: Rapid mode
+      description: True means Yes, False is no (obvious)
+      required: true
+      advanced: false
+      selector:
+        boolean:
+
+climate_set_silent_mode:
+  name: Set climate silent mode
+  description: Activate silent mode?
+  target:
+    entity:
+      domain: climate
+  fields:
+    silent_mode:
+      name: Silent mode
+      description: True means Yes, False is no (obvious)
+      required: true
+      advanced: false
+      selector:
+        boolean:

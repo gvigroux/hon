@@ -43,6 +43,7 @@ class ClimateFanMode(IntEnum):
 class ClimateHvacMode(IntEnum):
     HON_HVAC_AUTO = 0
     HON_HVAC_COOL = 1
+    HON_HVAC_DRY = 2
     HON_HVAC_HEAT = 4
     HON_HVAC_FAN_ONLY = 6
 
@@ -76,6 +77,7 @@ CLIMATE_HVAC_MODE = {
     HVACMode.AUTO: ClimateHvacMode.HON_HVAC_AUTO,
     HVACMode.COOL: ClimateHvacMode.HON_HVAC_COOL,
     HVACMode.HEAT: ClimateHvacMode.HON_HVAC_HEAT,
+    HVACMode.DRY: ClimateHvacMode.HON_HVAC_DRY,
     HVACMode.FAN_ONLY: ClimateHvacMode.HON_HVAC_FAN_ONLY,
 }
 

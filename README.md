@@ -19,3 +19,5 @@ Now you can see one new integration named with your email account with the entit
 ### Climate
 - AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS50S2SF2FA-1/1U50S2SJ2FA
+
+### Oven

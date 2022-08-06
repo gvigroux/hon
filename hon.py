@@ -5,7 +5,8 @@ import aiohttp
 import asyncio
 import json
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,10 +24,29 @@ from .const import (
 )
 
 
+class HonCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass, hon, appliance):
+        """Initialize my coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="hOn Coordinator",
+            update_interval=timedelta(seconds=15),
+        )
+        self._hon = hon
+        self._mac       = appliance["macAddress"]
+        self._type_name = appliance["applianceTypeName"]
+
+    async def _async_update_data(self):
+        return await self._hon.async_get_state(self._mac, self._type_name)
+
+
+
 class HonConnection:
     def __init__(self, hass, entry) -> None:
         self._hass = hass
         self._entry = entry
+        self._coordinator_dict = {}
         self._email = entry.data[CONF_EMAIL]
         self._password = entry.data[CONF_PASSWORD]
 
@@ -47,6 +67,17 @@ class HonConnection:
     @property
     def appliances(self):
         return self._appliances
+
+    async def async_get_coordinator(self, appliance):
+        mac = appliance.get("macAddress", "")
+        
+        if mac in self._coordinator_dict:
+            return self._coordinator_dict[mac]
+
+        coordinator = HonCoordinator( self._hass, self, appliance)
+        self._coordinator_dict[mac] = coordinator
+        return coordinator
+
 
     async def async_get_frontdoor_url(self, error_code=0):
         data = (
@@ -133,9 +164,9 @@ class HonConnection:
             "https://he-accounts.force.com/SmartHome/services/oauth2/authorize?response_type=token+id_token&client_id=3MVG9QDx8IX8nP5T2Ha8ofvlmjLZl5L_gvfbT9.HJvpHGKoAS_dcMN8LYpTSYeVFCraUnV.2Ag1Ki7m4znVO6&redirect_uri=hon%3A%2F%2Fmobilesdk%2Fdetect%2Foauth%2Fdone&display=touch&scope=api%20openid%20refresh_token%20web&nonce=82e9f4d1-140e-4872-9fad-15e25fbf2b7c"
         ) as resp:
             text = await resp.text()
-            array = text.split("'", 2)
-            params = urllib.parse.parse_qs(array[1])
             try:
+                array = text.split("'", 2)
+                params = urllib.parse.parse_qs(array[1])
                 self._id_token = params["id_token"][0]
             except:
                 _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
@@ -179,7 +210,7 @@ class HonConnection:
                     self._appliances[]"""
         return True
 
-    async def async_get_state(self, mac, typeName, loop=False):
+    async def async_get_state(self, mac, typeName, returnAllData = False, loop=False):
         credential_headers = {
             "cognito-token": self._cognitoToken,
             "id-token": self._id_token,
@@ -207,7 +238,7 @@ class HonConnection:
                     )
                     return False
                 await self.async_authorize()
-                return await self.async_get_state(mac, typeName, True)
+                return await self.async_get_state(mac, typeName, returnAllData, True)
 
             elif resp.status != 200:
                 _LOGGER.error(
@@ -221,6 +252,9 @@ class HonConnection:
             #_LOGGER.warning(text)
             _LOGGER.info(text)
 
+            if returnAllData:
+                return json.loads(text)
+            
             json_data = json.loads(text)["payload"]["shadow"]["parameters"]
             return json_data
         return False

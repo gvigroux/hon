@@ -5,10 +5,30 @@ import voluptuous as vol
 from datetime import datetime, timedelta
 from typing import Optional
 from enum import IntEnum
+from decimal import Decimal
 
 from homeassistant.components.climate import (
     ClimateEntity,
 )
+
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    CoordinatorEntity,
+)
+
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorDeviceClass,
+    SensorStateClass,
+    SensorEntityDescription,
+)
+from homeassistant.const import (
+    DATA_RATE_MEGABITS_PER_SECOND,
+)
+
+from .hon import HonCoordinator
+
+
 #https://github.com/home-assistant/core/blob/a82a1bfd64708a044af7a716b5e9e057b1656f2e/homeassistant/components/climate/const.py#L70
 from homeassistant.components.climate.const import (
 
@@ -57,7 +77,11 @@ from .const import(
 
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=15)
+#SCAN_INTERVAL = timedelta(seconds=15)
+
+
+
+
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
 
@@ -66,9 +90,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
     appliances = []
     for appliance in hon.appliances:
         if appliance['applianceTypeId'] == 11:
-            appliances.append(HonClimate(hass, entry, appliance))
+            coordinator = await hon.async_get_coordinator(appliance)
+            await coordinator.async_config_entry_first_refresh()
+            appliances.append(HonClimate(hass, coordinator, entry, appliance))
 
-    async_add_entities(appliances, update_before_add=True)
+    async_add_entities(appliances)
 
     platform = entity_platform.async_get_current_platform()
 
@@ -96,6 +122,21 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         "async_set_echo_mode",
     )
 
+    platform.async_register_entity_service(
+        "climate_set_rapid_mode",
+        {
+            vol.Required('rapid_mode'): cv.boolean,
+        },
+        "async_set_rapid_mode",
+    )
+    
+    platform.async_register_entity_service(
+        "climate_set_silent_mode",
+        {
+            vol.Required('silent_mode'): cv.boolean,
+        },
+        "async_set_silent_mode",
+    )
     
 
 # function to return key for any value
@@ -106,13 +147,17 @@ def get_key(dictionnary,val,default):
     return default
 
 
-class HonClimate(ClimateEntity):
-    def __init__(self, hass, entry, appliance) -> None:
+
+
+class HonClimate(CoordinatorEntity, ClimateEntity):
+    def __init__(self,hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator)
+        self._coordinator   = coordinator
         self._hon           = hass.data[DOMAIN][entry.unique_id]
         self._hass          = hass
         self._brand         = appliance['brand']
         self._mac           = appliance['macAddress']
-        self._name          = appliance['nickName']
+        self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
         self._connectivity  = appliance['connectivity']
         self._model         = appliance['modelName']
         self._series        = appliance['series']
@@ -130,43 +175,59 @@ class HonClimate(ClimateEntity):
         self._attr_temperature_unit     = TEMP_CELSIUS
         self._attr_min_temp             = 16
         self._attr_max_temp             = 30
+        #self._attr_auto_temperature     = 24
 
         self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW,FAN_MEDIUM,FAN_HIGH]
-        self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY]
+        self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
         self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
         
+        # Startup Values
+        #self.update_values(self._coordinator.data)
+        self._handle_coordinator_update(False)
+
+
     async def async_set_sleep_mode(self, sleep_mode=False):
-        parameters = {"silentSleepStatus": "1" if sleep_mode else "0"}
         self._sleep_mode = sleep_mode
-        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+        parameters = {"silentSleepStatus": "1" if sleep_mode else "0"}
+        await self.async_send_command(self.get_command(parameters))
+
+    async def async_set_rapid_mode(self, rapid_mode=False):
+        self._rapid_mode = rapid_mode
+        parameters = {"rapidMode": "1" if rapid_mode else "0"}
+        await self.async_send_command(self.get_command(parameters))
+
+    async def async_set_silent_mode(self, silent_mode=False):
+        self._silent_mode = silent_mode
+        parameters = {"muteStatus": "1" if silent_mode else "0"}
+        await self.async_send_command(self.get_command(parameters))
 
     async def async_set_screen_display(self, screen_display=True):
         self._screen_display = screen_display
         parameters = {"screenDisplayStatus": "1" if screen_display else "0"}
-        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+        await self.async_send_command(self.get_command(parameters))
 
     async def async_set_echo_mode(self, echo_mode=False):
         self._echo_mode = echo_mode
         parameters = {"echoStatus": "0" if echo_mode else "1"}
-        return await self._hon.async_set(self._mac, self._typeName,self.get_command(parameters))
+        await self.async_send_command(self.get_command(parameters))
 
 
-
-    def start_watcher(self, timedelta=timedelta(seconds=1)):
+    def start_watcher(self, timedelta=timedelta(seconds=8)):
         self._watcher = async_track_time_interval(self._hass, self.async_update_after_state_change, timedelta)
 
     async def async_update_after_state_change(self, now: Optional[datetime] = None) -> None:
         self._watcher = None
 
-    async def async_update(self):
+    @callback
+    def _handle_coordinator_update(self, update = True) -> None:
+
         # Watcher is running, update is not allowed because the data may not be yet accurate
         if self._watcher != None:
             return
 
-        # Get state from the cloud
-        json = await self._hon.async_get_state(self._mac, self._typeName)
-
+        json = self._coordinator.data
+        
         # No data returned by the Get State method (unauthorized...)
         if json == False:
             return
@@ -175,8 +236,7 @@ class HonClimate(ClimateEntity):
         for parameter in json:
             if parameter in self._default_command:
                 self._default_command[parameter] = json[parameter]['parNewVal']
-                
-            
+
         self._attr_target_temperature   = int(float(json['tempSel']['parNewVal']))
         self._attr_current_temperature  = float(json['tempIndoor']['parNewVal'])
 
@@ -187,7 +247,12 @@ class HonClimate(ClimateEntity):
         self._sleep_mode    = True if self.get_int_state(json,'silentSleepStatus') == 1 else False
         self._echo_mode     = True if self.get_int_state(json,'echoStatus') == 0 else False
         self._screen_display= True if self.get_int_state(json,'screenDisplayStatus') == 1 else False
+        self._rapid_mode    = True if self.get_int_state(json,'rapidMode') == 1 else False
+        self._silent_mode   = True if self.get_int_state(json,'muteStatus') == 1 else False
         
+        if update: self.async_write_ha_state()
+
+            
     def get_int_state(self, json, val):
         return int(json[val]['parNewVal'])
 
@@ -255,6 +320,8 @@ class HonClimate(ClimateEntity):
         attr = super().state_attributes
         attr["sleep_mode"]      = self._sleep_mode
         attr["echo_mode"]       = self._echo_mode
+        attr["rapid_mode"]      = self._rapid_mode
+        attr["silent_mode"]     = self._silent_mode
         attr["screen_display"]  = self._screen_display
         return attr
 
@@ -262,42 +329,48 @@ class HonClimate(ClimateEntity):
     #https://github.com/home-assistant/core/blob/dev/homeassistant/components/mill/climate.py
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
+
+        '''
+        # Impossible to change the targeted temperature when AUTO
+        if (self._attr_hvac_mode == HVACMode.AUTO):
+            self._attr_current_temperature = self._attr_auto_temperature
+            self.async_write_ha_state()
+            return False '''
+
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return False
-        return await self._hon.async_set(self._mac, self._typeName,self.get_command({'tempSel': temperature}))
-
+        await self.async_send_command(self.get_command({'tempSel': temperature}))
 
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
-        if hvac_mode == HVACMode.COOL:
-            await self._hon.async_set(self._mac, self._typeName,self.get_command({'machMode': ClimateHvacMode.HON_HVAC_COOL}))
-        elif hvac_mode == HVACMode.OFF:
-            await self._hon.async_set(self._mac, self._typeName, json.loads('{"onOffStatus":"0"}'))
+        command = {}
+
+        if hvac_mode == HVACMode.OFF:
+            command = {"onOffStatus":"0"}
+        elif hvac_mode == HVACMode.COOL:
+            command = {'machMode': ClimateHvacMode.HON_HVAC_COOL}
         elif hvac_mode == HVACMode.HEAT:
-            command = self._default_command
-            await self._hon.async_set(self._mac, self._typeName,self.get_command({'machMode': ClimateHvacMode.HON_HVAC_HEAT}))
+            command = {'machMode': ClimateHvacMode.HON_HVAC_HEAT}
+        elif hvac_mode == HVACMode.DRY:
+            command = {'machMode': ClimateHvacMode.HON_HVAC_DRY}
         elif hvac_mode == HVACMode.AUTO:
-            await self._hon.async_set(self._mac, self._typeName,self.get_command({'machMode': ClimateHvacMode.HON_HVAC_AUTO}))
+            #self._attr_current_temperature = self._attr_auto_temperature
+            #command = {'machMode': ClimateHvacMode.HON_HVAC_AUTO, 'tempSel': self._attr_auto_temperature}
+            command = {'machMode': ClimateHvacMode.HON_HVAC_AUTO}
         elif hvac_mode == HVACMode.FAN_ONLY:
             if self._attr_fan_mode == FAN_AUTO:
                 self.update_fan_mode(FAN_MEDIUM)
                 command = self.get_command({'machMode': ClimateHvacMode.HON_HVAC_FAN_ONLY, 'windSpeed': ClimateFanMode.HON_FAN_MEDIUM})
             else:
                 command = self.get_command({'machMode': ClimateHvacMode.HON_HVAC_FAN_ONLY})
-
-            await self._hon.async_set(self._mac, self._typeName, command)
-
-        self.start_watcher(timedelta(seconds=4))
         self._attr_hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        await self.async_send_command(command)
 
     async def async_set_fan_mode(self, fan_mode: str):
-        parameters = {'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, int(ClimateFanMode.HON_FAN_OFF))}
-        await self._hon.async_set(self._mac, self._typeName, self.get_command(parameters))
-        self.start_watcher(timedelta(seconds=4))
         self._attr_fan_mode = fan_mode
-        self.async_write_ha_state()
+        parameters = {'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, int(ClimateFanMode.HON_FAN_OFF))}
+        await self.async_send_command(parameters)
 
     async def async_set_swing_mode(self, swing_mode: str):
         
@@ -323,17 +396,17 @@ class HonClimate(ClimateEntity):
             if int(self._default_command['windDirectionVertical']) == ClimateSwingVertical.AUTO:
                 parameters['windDirectionVertical'] =  ClimateSwingVertical.MEDIUM
 
-        await self._hon.async_set(self._mac, self._typeName, self.get_command(parameters))
-        
-        self.start_watcher(timedelta(seconds=4))
         self._attr_swing_mode = swing_mode
+        await self.async_send_command(parameters)
+
+
+    async def async_send_command(self, parameters):
+        await self._hon.async_set(self._mac, self._typeName, self.get_command(parameters))
+        self.start_watcher()
         self.async_write_ha_state()
-
-        return
-
 
     async def async_will_remove_from_hass(self):
         """When entity will be removed from hass."""
         if self._watcher != None:
             self._watcher = None
-        
+
