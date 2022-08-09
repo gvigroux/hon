@@ -436,7 +436,7 @@ class HonWashingMachineMode(SensorEntity, HonWashingMachineEntity):
         if json is False:
             return
 
-        mode = json["machMode"]
+        mode = json["machMode"]["parNewVal"]
 
         if mode in WASHING_MACHINE_MODE:
             self._attr_native_value = WASHING_MACHINE_MODE[mode]
