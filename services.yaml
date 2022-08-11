@@ -169,3 +169,34 @@ climate_set_silent_mode:
       advanced: false
       selector:
         boolean:
+
+turn_off_cooler_lights:
+  name: Turn off the cooler lights
+  description: Turn off the cooler lights
+  target:
+    entity:
+  fields:
+    device:
+      name: Wine Cooler
+      description: Haier Wine Cooler
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
+          
+turn_on_cooler_lights:
+  name: Turn on the cooler lights
+  description: Turn on the cooler lights
+  target:
+    entity:
+  fields:
+    device:
+      name: Wine Cooler
+      description: Haier Wine Cooler
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
+          
