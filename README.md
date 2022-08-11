@@ -24,3 +24,6 @@ This integration has been tested with the following devices.
 
 ### Washing Machine
 - HW 49AMC/1-80
+
+### Wine Cooler
+- HWS42GDAU1
