@@ -87,10 +87,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 [
                     HonCoolerTemperatureZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ1(hass, coordinator, entry, appliance),
-					HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
+		    HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureZ2(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ2(hass, coordinator, entry, appliance),
-					HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
+		    HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
                     HonCoolerLightStatus(hass, coordinator, entry, appliance),
                     HonCoolerOnOffStatus(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureEnv(hass, coordinator, entry, appliance),
