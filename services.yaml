@@ -216,7 +216,7 @@ turn_on_dishwasher:
 
     program:
       name: Program
-      description: Program mode for oven
+      description: Program mode for dishwasher
       required: true
       selector:
         select:
