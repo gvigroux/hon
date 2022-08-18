@@ -27,3 +27,6 @@ This integration has been tested with the following devices.
 
 ### Wine Cooler
 - HWS42GDAU1
+
+### WashDryer Machine
+- HDQ 496AMBS/1-S
