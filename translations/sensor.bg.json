@@ -1,0 +1,29 @@
+{
+	"state": {
+		"tumbledryerprogram": {
+			"Cotton": "Памук",
+			"Synthetics": "Синтетика",
+			"Mix": "Смесен тип",
+			"Sports": "Спорт",
+			"i-time": "i-time",
+			"Duvet": "Олекотена завивка",
+			"Wool": "Вълна",
+			"i-Refresh": "i-Refresh",
+			"Towel": "Хавлиена кърпа",
+			"Quick Dry": "Бързо Сушене",
+			"Delicate": "Деликатно пране",
+			"Remote 103": "Отдалечен"
+		},
+		"tumbledryertemplevel": {
+			"Cool": "Хладен въздух",
+			"Low temperature L-1": "Ниска температура",
+			"Middle temperature L-2": "Средна температура",
+			"High temperature L-3": "Висока температура"
+		},
+		"tumbledryerdrylevel": {
+			"Extra Dry H-1": "Екстра сухо",
+			"Ready to Store H-2": "Готови за съхранение",
+			"Ready to Iron H-3": "Готови за гладене"
+		}
+	}
+}
