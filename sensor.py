@@ -30,6 +30,13 @@ from .const import DOMAIN, OVEN_PROGRAMS, WASHING_MACHINE_MODE
 from .oven import HonOvenEntity, HonOvenCoordinator
 from .washing_machine import HonWashingMachineCoordinator, HonWashingMachineEntity
 from .cooler import HonCoolerCoordinator, HonCoolerEntity
+from .washdryer import (
+    HonWashDryerCoordinator, 
+    HonWashDryerEntity, 
+    HonWashDryerMode, 
+    HonWashDryerTimeRemaining, 
+    HonWashDryerRemoteControl
+)
 
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -59,6 +66,21 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             )
 
             await coordinator.async_request_refresh()
+
+        elif appliance["applianceTypeId"] == 2:
+            coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonWashDryerTimeRemaining(hass, coordinator, entry, appliance),
+                    HonWashDryerMode(hass, coordinator, entry, appliance),
+                    HonWashDryerRemoteControl(hass, coordinator, entry, appliance),
+                ]
+            )
+
+            await coordinator.async_request_refresh()
+
         elif appliance["applianceTypeId"] == 4:
             coordinator = HonOvenCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
