@@ -12,6 +12,7 @@ supported device: Haier Climate tested
 3. Go to `Settings` - `Devices and Services` and `Add integration`. Search for `hOn` in search bar and select it
 4. Configure the integration with your hOn username and password
 5. Now you can see one new integration named with your email account with the entities and devices registered with hOn App. You can now add this entities in you panel
+6. (optional) An additional restart of HA might be reqiured to discover climate entities
 
 ## Tested devices
 This integration has been tested with the following devices.
@@ -19,6 +20,7 @@ This integration has been tested with the following devices.
 ### Climate
 - AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS50S2SF2FA-1/1U50S2SJ2FA
+- AS35S2SF1FA-WH and AS25S2SF1FA-WH in 2x1 configuration with one outdoor unit
 
 ### Oven
 
