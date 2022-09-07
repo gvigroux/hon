@@ -29,3 +29,6 @@ This integration has been tested with the following devices.
 
 ### Wine Cooler
 - HWS42GDAU1
+
+### Tumble Dryer
+- haier HD80-A3959

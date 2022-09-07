@@ -1,0 +1,14 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "hOn",
+                "description": "Моля, въведете вашите данни за достъп до hOn",
+                "data": {
+                    "email": "Email Адрес",
+                    "password": "Парола"
+                }
+            }
+        }
+    }
+}
