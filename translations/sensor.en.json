@@ -1,9 +1,11 @@
 {
 	"state": {
 		"tumbledryerprogram": {
+			"Default": "Default",
 			"Cotton": "Cotton",
 			"Synthetics": "Synthetics",
 			"Mix": "Mix",
+			"Bed Sheets": "Bed Sheets",
 			"Sports": "Sports",
 			"i-time": "i-time",
 			"Duvet": "Duvet",
@@ -15,6 +17,7 @@
 			"Remote 103": "Remote"
 		},
 		"tumbledryertemplevel": {
+			"Cupboard dry": "Cupboard dry",
 			"Cool": "Cool",
 			"Low temperature L-1": "Low temperature",
 			"Middle temperature L-2": "Middle temperature",
