@@ -16,6 +16,11 @@
 			"Delicate": "Деликатно пране",
 			"Remote 103": "Отдалечен"
 		},
+		"tumbledryerprogramphase": {
+			"Waiting": "Изчаване",
+			"Drying": "Сушене",
+			"Cooldown": "Охлажане",
+		},
 		"tumbledryertemplevel": {
 			"Cool": "Хладен въздух",
 			"Low temperature L-1": "Ниска температура",
