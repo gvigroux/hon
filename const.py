@@ -132,7 +132,7 @@ TUMBLE_DRYER_PROGRAMS_PHASE = {
 	"0": "Waiting",
 	"2": "Drying",
 	"3": "Cooldown",
-	"11": "11",
+	"11": "11"
 }
 
 TUMBLE_DRYER_DRYL = {
