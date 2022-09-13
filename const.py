@@ -112,9 +112,11 @@ TUMBLE_DRYER_MODE = {
 }
 
 TUMBLE_DRYER_PROGRAMS = {
+	"0": "Default",
 	"62": "Cotton",
 	"63": "Synthetics",
 	"64": "Mix",
+	"66": "Bed Sheets",
 	"72": "Sports",
 	"74": "i-time",
 	"75": "Duvet",
@@ -127,10 +129,14 @@ TUMBLE_DRYER_PROGRAMS = {
 }
 
 TUMBLE_DRYER_PROGRAMS_PHASE = {
-	"11": "11"
+	"0": "Waiting",
+	"2": "Drying",
+	"3": "Cooldown",
+	"11": "11",
 }
 
 TUMBLE_DRYER_DRYL = {
+	"3": "Cupboard dry",
 	"12": "Extra Dry H-1",
 	"13": "Ready to Store H-2",
 	"14": "Ready to Iron H-3"
