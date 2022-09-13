@@ -19,7 +19,7 @@
 		"tumbledryerprogramphase": {
 			"Waiting": "Изчаване",
 			"Drying": "Сушене",
-			"Cooldown": "Охлажане",
+			"Cooldown": "Охлажане"
 		},
 		"tumbledryertemplevel": {
 			"Cool": "Хладен въздух",
