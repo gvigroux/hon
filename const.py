@@ -104,6 +104,7 @@ WASHING_MACHINE_MODE = {
     "7": "Finished"
 }
 
+master
 DISH_WASHER_MODE = {
     "1": "Ready",
     "2": "Running",
@@ -111,7 +112,6 @@ DISH_WASHER_MODE = {
     "5": "Delayed start cancelled",
     "7": "Finished",
     "9": "XXXXXX"
-
 }
 
 ##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
@@ -138,3 +138,43 @@ DISH_WASHER_PROGRAMS = {
     "23": "Baby Care", #super cleaning, vapor plus 75ºC
     "24": "Hygiene+ 75ºC",
 }
+
+TUMBLE_DRYER_MODE = {
+    "1": "Ready",
+    "2": "Running",
+    "7": "Finished"
+}
+
+TUMBLE_DRYER_PROGRAMS = {
+	"62": "Cotton",
+	"63": "Synthetics",
+	"64": "Mix",
+	"72": "Sports",
+	"74": "i-time",
+	"75": "Duvet",
+	"76": "Wool",
+	"78": "i-Refresh",
+	"83": "Towel",
+	"85": "Quick Dry",
+	"92": "Delicate",
+	"103": "Remote 103"
+}
+
+TUMBLE_DRYER_PROGRAMS_PHASE = {
+	"11": "11"
+}
+
+TUMBLE_DRYER_DRYL = {
+	"12": "Extra Dry H-1",
+	"13": "Ready to Store H-2",
+	"14": "Ready to Iron H-3"
+}
+
+TUMBLE_DRYER_TEMPL = {
+	"1": "Cool",
+	"2": "Low temperature L-1",
+	"3": "Middle temperature L-2",
+	"4": "High temperature L-3"
+}
+
+

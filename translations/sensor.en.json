@@ -1,0 +1,29 @@
+{
+	"state": {
+		"tumbledryerprogram": {
+			"Cotton": "Cotton",
+			"Synthetics": "Synthetics",
+			"Mix": "Mix",
+			"Sports": "Sports",
+			"i-time": "i-time",
+			"Duvet": "Duvet",
+			"Wool": "Wool",
+			"i-Refresh": "i-Refresh",
+			"Towel": "Towel",
+			"Quick Dry": "Quick Dry",
+			"Delicate": "Delicate",
+			"Remote 103": "Remote"
+		},
+		"tumbledryertemplevel": {
+			"Cool": "Cool",
+			"Low temperature L-1": "Low temperature",
+			"Middle temperature L-2": "Middle temperature",
+			"High temperature L-3": "High temperature"
+		},
+		"tumbledryerdrylevel": {
+			"Extra Dry H-1": "Extra Dry",
+			"Ready to Store H-2": "Ready to Store",
+			"Ready to Iron H-3": "Ready to Iron"
+		}
+	}
+}
