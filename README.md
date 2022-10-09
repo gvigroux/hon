@@ -28,5 +28,5 @@ This integration has been tested with the following devices.
 ### Wine Cooler
 - HWS42GDAU1
 
-## Dish Washer
+### Dish Washer
 - XIB 6B2D3FB
