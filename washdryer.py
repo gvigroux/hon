@@ -130,9 +130,13 @@ class HonWashDryerTimeRemaining(SensorEntity, HonWashDryerEntity):
         if json is False:
             return
 
-        self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) + int(
-            json["delayTime"]["parNewVal"]
-        )
+        time = int(json["delayTime"]["parNewVal"])
+
+        if int(json["machMode"]["parNewVal"]) != 7:
+            time = time + int(json["remainingTimeMM"]["parNewVal"])
+
+        self._attr_native_value = time
+        
         self.async_write_ha_state()
 
 class HonWashDryerRemoteControl(BinarySensorEntity, HonWashDryerEntity):
