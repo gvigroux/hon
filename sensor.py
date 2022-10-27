@@ -24,7 +24,6 @@ from homeassistant.components.binary_sensor import (
 
 from homeassistant.core import callback
 
-
 from .const import DOMAIN, OVEN_PROGRAMS, WASHING_MACHINE_MODE
 
 from .oven import HonOvenEntity, HonOvenCoordinator
@@ -49,6 +48,15 @@ from .tumble_dryer import (
     HonTumbleDryerTempLevel, 
     HonTumbleDryerOnOff, 
     HonTumbleDryerRemoteControl 
+)
+from .purifier import (
+    HonPurifierEntity, 
+    HonPurifierCoordinator,
+    HonPurifierOnOff,
+    HonPurifierIndoorPM2p5,
+    HonPurifierIndoorPM10,
+    HonPurifierIndoorVOC,
+    HonPurifierMode
 )
 
 from homeassistant.helpers.typing import StateType
@@ -125,13 +133,28 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 [
                     HonCoolerTemperatureZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ1(hass, coordinator, entry, appliance),
-		    HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
+		            HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureZ2(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ2(hass, coordinator, entry, appliance),
-		    HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
+		            HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
                     HonCoolerLightStatus(hass, coordinator, entry, appliance),
                     HonCoolerOnOffStatus(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureEnv(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
+            
+        elif appliance["applianceTypeId"] == 7:
+            coordinator = HonPurifierCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonPurifierOnOff(hass, coordinator, entry, appliance),
+                    HonPurifierMode(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorPM2p5(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorPM10(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorVOC(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
@@ -765,3 +788,9 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
 
         self._attr_native_value = json["tempEnv"]["parNewVal"]
         self.async_write_ha_state()        
+
+
+
+
+        
+          

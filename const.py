@@ -143,3 +143,16 @@ TUMBLE_DRYER_TEMPL = {
 	"4": "High temperature L-3"
 }
 
+PURIFIER_MODE = {
+    "0": "Off",
+    "1": "Sleep",
+    "2": "Auto",
+    "4": "Max"
+}
+
+PURIFIER_VOC_VALUE  = {
+    "1": "Good",
+    "2": "Moderate",
+    "3": "Mediocre",
+    "4": "Bad"
+}

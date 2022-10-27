@@ -52,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     # Log details on unknown devices
     for appliance in hon.appliances:
-        if appliance['applianceTypeId'] not in [1, 2, 4, 6, 8, 9, 11]:
+        if appliance['applianceTypeId'] not in [1, 2, 4, 6, 7, 8, 9, 11]:
             try:
                 status = await hon.async_get_state(appliance["macAddress"], appliance["applianceTypeName"], True)
             except:
@@ -114,9 +114,30 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         return await hon.async_set(mac, "WC", parameters)
 
+    async def handle_purifier_stop(call):
+
+        parameters = {"onOffStatus": "0"}
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "AP", parameters)
+
+    async def handle_purifier_start(call):
+
+        parameters = {
+            "onOffStatus": "1",
+            "machMode": "2",
+        }
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "AP", parameters)
+
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
     hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
+    hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
+    hass.services.async_register(DOMAIN, "turn_on_purifier", handle_purifier_start)
     
     return True
