@@ -225,3 +225,43 @@ turn_on_purifier:
       selector:
         device:
           manufacturer: hoover
+          
+set_auto_mode_purifier:
+  name: Set Air Purifier in Auto Mode
+  description: Set Air Purifier in Auto Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+          
+set_sleep_mode_purifier:
+  name: Set Air Purifier in Sleep Mode
+  description: Set Air Purifier in Sleep Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+          
+set_max_mode_purifier:
+  name: Set Air Purifier in Max Mode
+  description: Set Air Purifier in Max Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+          

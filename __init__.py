@@ -133,11 +133,48 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         return await hon.async_set(mac, "AP", parameters)
 
+    async def handle_purifier_maxmode(call):
+
+        parameters = {
+           # "onOffStatus": "1",
+            "machMode": "4",
+        }
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "AP", parameters)
+        
+    async def handle_purifier_automode(call):
+
+        parameters = {
+          #  "onOffStatus": "1",
+            "machMode": "2",
+        }
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "AP", parameters)
+        
+    async def handle_purifier_sleepmode(call):
+
+        parameters = {
+         #   "onOffStatus": "1",
+            "machMode": "1",
+        }
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "AP", parameters)
+
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
     hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
     hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
     hass.services.async_register(DOMAIN, "turn_on_purifier", handle_purifier_start)
+    hass.services.async_register(DOMAIN, "set_auto_mode_purifier", handle_purifier_automode)
+    hass.services.async_register(DOMAIN, "set_sleep_mode_purifier", handle_purifier_sleepmode)
+    hass.services.async_register(DOMAIN, "set_max_mode_purifier", handle_purifier_maxmode)
     
     return True
+
