@@ -37,3 +37,5 @@ This integration has been tested with the following devices.
 ### Tumble Dryer
 - haier HD80-A3959
 
+### Air Purifier
+- hoover HHP30C011 (Air Purifier 300)
