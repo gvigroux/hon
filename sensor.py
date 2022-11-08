@@ -442,7 +442,7 @@ class HonOvenProgram(SensorEntity, HonOvenEntity):
         if program in OVEN_PROGRAMS:
             self._attr_native_value = OVEN_PROGRAMS[program]
         else:
-            self._attr_native_value = f"Unkwon program {program}"
+            self._attr_native_value = f"Unknown program {program}"
 
         self.async_write_ha_state()
 

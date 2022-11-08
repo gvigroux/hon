@@ -203,7 +203,7 @@ class HonTumbleDryerProgram(SensorEntity, HonTumbleDryerEntity):
         if program in TUMBLE_DRYER_PROGRAMS:
             self._attr_native_value = TUMBLE_DRYER_PROGRAMS[program]
         else:
-            self._attr_native_value = f"Unkwon program {program}"
+            self._attr_native_value = f"Unknown program {program}"
 
         self.async_write_ha_state()
 
@@ -232,7 +232,7 @@ class HonTumbleDryerProgramPhase(SensorEntity, HonTumbleDryerEntity):
         if programPhase in TUMBLE_DRYER_PROGRAMS_PHASE:
             self._attr_native_value = TUMBLE_DRYER_PROGRAMS_PHASE[programPhase]
         else:
-            self._attr_native_value = f"Unkwon program phase {programPhase}"
+            self._attr_native_value = f"Unknown program phase {programPhase}"
 
         self.async_write_ha_state()
 
@@ -261,7 +261,7 @@ class HonTumbleDryerDryLevel(SensorEntity, HonTumbleDryerEntity):
         if drylevel in TUMBLE_DRYER_DRYL:
             self._attr_native_value = TUMBLE_DRYER_DRYL[drylevel]
         else:
-            self._attr_native_value = f"Unkwon dry level {drylevel}"
+            self._attr_native_value = f"Unknown dry level {drylevel}"
 
         self.async_write_ha_state()
 
@@ -290,7 +290,7 @@ class HonTumbleDryerTempLevel(SensorEntity, HonTumbleDryerEntity):
         if templevel in TUMBLE_DRYER_TEMPL:
             self._attr_native_value = TUMBLE_DRYER_TEMPL[templevel]
         else:
-            self._attr_native_value = f"Unkwon Temperature level {templevel}"
+            self._attr_native_value = f"Unknown Temperature level {templevel}"
 
         self.async_write_ha_state()
 		
