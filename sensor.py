@@ -30,7 +30,7 @@ from .const import DOMAIN, OVEN_PROGRAMS, WASHING_MACHINE_MODE
 from .oven import HonOvenEntity, HonOvenCoordinator
 from .washing_machine import HonWashingMachineCoordinator, HonWashingMachineEntity
 from .cooler import HonCoolerCoordinator, HonCoolerEntity
-from .fridgefreezer import HonFridgeFreeezerCoordinator, HonFridgeFreezerEntity
+from .fridgefreezer import HonFridgeFreezerCoordinator, HonFridgeFreezerEntity
 from .washdryer import (
     HonWashDryerCoordinator, 
     HonWashDryerEntity, 
@@ -156,7 +156,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             )
             await coordinator.async_request_refresh()
 
-        elif appliance["applianceTypeId"] == 1400000:
+        elif appliance["applianceTypeId"] == 14:
             coordinator = HonFridgeFreezerCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
