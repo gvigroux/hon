@@ -162,10 +162,21 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
             appliances.extend(
                 [
-                    HonFridgeFreezerTemperatureZ1(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerTemperatureSelZ1(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerTemperatureZ2(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerTemperatureSelZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerQuickModeZ1(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerQuickModeZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerDoorStatusZ1(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerDoorStatusZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerIntelligenceMode(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTempSelZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerHolidayMode(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTempSelZ1(hass, coordinator, entry, appliance),			
+                    HonFridgeFreezerTempZ1(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerErrors(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTempZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTempSelZ3(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerHumidityEnv(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTempEnv(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerLastConnEvent(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
@@ -781,7 +792,7 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempEnv"]["parNewVal"]
         self.async_write_ha_state()  
 
-class HonFridgeFreezerTemperatureZ1(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTemperatureZ1(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -804,8 +815,123 @@ class HonFridgeFreezerTemperatureZ1(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempZ1"]["parNewVal"]
         self.async_write_ha_state()
 
+class HonFridgeFreezerQuickModeZ1(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_quickModeZ1"
+        self._attr_name = f"{self._name} Quick Mode Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["quickModeZ1"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeFreezerQuickModeZ2(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_quickModeZ2"
+        self._attr_name = f"{self._name} Quick Mode Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["quickModeZ2"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeFreezerDoorStatusZ1(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_doorStatusZ1"
+        self._attr_name = f"{self._name} Door Status Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["doorStatusZ1"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeFreezerDoor2StatusZ1(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_door2StatusZ1"
+        self._attr_name = f"{self._name} Door 2 Status Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["door2StatusZ1"]["parNewVal"]
+        self.async_write_ha_state()
+	
+class HonFridgeFreezerIntelligenceMode(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_intelligenceMode"
+        self._attr_name = f"{self._name} Intelligence Mode"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["intelligenceMode"]["parNewVal"]
+        self.async_write_ha_state()
+	
         
-class HonFridgeFreezerTemperatureSelZ1(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTempSelZ1(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -828,7 +954,7 @@ class HonFridgeFreezerTemperatureSelZ1(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempSelZ1"]["parNewVal"]
         self.async_write_ha_state()
 
-class HonFridgeFreezerTemperatureZ2(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTempZ2(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -852,7 +978,7 @@ class HonFridgeFreezerTemperatureZ2(SensorEntity, HonCoolerEntity):
         self.async_write_ha_state()
  
 
-class HonFridgeFreezerTemperatureSelZ2(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTempSelZ2(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -875,3 +1001,119 @@ class HonFridgeFreezerTemperatureSelZ2(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempSelZ2"]["parNewVal"]
         self.async_write_ha_state()	
 
+class HonFridgeFreezerHolidayMode(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_hollidayMode"
+        self._attr_name = f"{self._name} Holliday Mode"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["hollidayMode"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeFreezerErrors(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_errors"
+        self._attr_name = f"{self._name} Errors"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["errors"]["parNewVal"]
+        self.async_write_ha_state()
+
+
+class HonFridgeFreezerTempEnv(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_tempEnv"
+        self._attr_name = f"{self._name} Temperature Environment"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempEnv"]["parNewVal"]
+        self.async_write_ha_state()
+	
+class HonFridgeFreezerHumidityEnv(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_humidityEnv"
+        self._attr_name = f"{self._name} Humidity Environment"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["humidityEnv"]["parNewVal"]
+        self.async_write_ha_state()
+	
+
+class HonFridgeFreezerLastConnEvent(SensorEntity, HonFridgeFreezerEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_temEnv"
+        self._attr_name = f"{self._name} Temperature Environment"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["lastConnEvent"]["category"]
+        self.async_write_ha_state()
