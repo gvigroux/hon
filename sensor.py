@@ -30,6 +30,7 @@ from .const import DOMAIN, OVEN_PROGRAMS, WASHING_MACHINE_MODE
 from .oven import HonOvenEntity, HonOvenCoordinator
 from .washing_machine import HonWashingMachineCoordinator, HonWashingMachineEntity
 from .cooler import HonCoolerCoordinator, HonCoolerEntity
+from .fridgefreezer import HonFridgeFreeezerCoordinator, HonFridgeFreezerEntity
 from .washdryer import (
     HonWashDryerCoordinator, 
     HonWashDryerEntity, 
