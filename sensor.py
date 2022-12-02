@@ -158,6 +158,20 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if appliance["applianceTypeId"] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
+		
+        elif appliance["applianceTypeId"] == 14:
+            coordinator = HonFridgeFreezerCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonFridgeTemperatureZ1(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureSelZ1(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureZ2(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureSelZ2(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
             
             appliances.extend(
                 [
