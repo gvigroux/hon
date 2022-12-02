@@ -171,12 +171,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonFridgeFreezerHolidayMode(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempSelZ1(hass, coordinator, entry, appliance),			
                     HonFridgeFreezerTempZ1(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerErrors(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempZ2(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempSelZ3(hass, coordinator, entry, appliance),
                     HonFridgeFreezerHumidityEnv(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempEnv(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerLastConnEvent(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerConnectionStatus(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
@@ -815,15 +814,15 @@ class HonFridgeFreezerTemperatureZ1(SensorEntity, HonFridgeFreezerEntity):
         self._attr_native_value = json["tempZ1"]["parNewVal"]
         self.async_write_ha_state()
 
-class HonFridgeFreezerQuickModeZ1(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerQuickModeZ1(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_quickModeZ1"
         self._attr_name = f"{self._name} Quick Mode Zone 1"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -835,18 +834,18 @@ class HonFridgeFreezerQuickModeZ1(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["quickModeZ1"]["parNewVal"]
+        self._attr_is_on = json["quickModeZ1"]["parNewVal"] == "1"
         self.async_write_ha_state()
 
-class HonFridgeFreezerQuickModeZ2(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerQuickModeZ2(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_quickModeZ2"
         self._attr_name = f"{self._name} Quick Mode Zone 1"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -858,18 +857,18 @@ class HonFridgeFreezerQuickModeZ2(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["quickModeZ2"]["parNewVal"]
+        self._attr_is_on = json["quickModeZ2"]["parNewVal"] == "1"
         self.async_write_ha_state()
 
-class HonFridgeFreezerDoorStatusZ1(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerDoorStatusZ1(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_doorStatusZ1"
         self._attr_name = f"{self._name} Door Status Zone 1"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -881,18 +880,18 @@ class HonFridgeFreezerDoorStatusZ1(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["doorStatusZ1"]["parNewVal"]
+        self._attr_is_on = json["doorStatusZ1"]["parNewVal"] == "1"
         self.async_write_ha_state()
 
-class HonFridgeFreezerDoor2StatusZ1(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerDoor2StatusZ1(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_door2StatusZ1"
         self._attr_name = f"{self._name} Door 2 Status Zone 1"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -904,18 +903,18 @@ class HonFridgeFreezerDoor2StatusZ1(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["door2StatusZ1"]["parNewVal"]
+        self._attr_is_on = json["door2StatusZ1"]["parNewVal"] == "1"
         self.async_write_ha_state()
 	
-class HonFridgeFreezerIntelligenceMode(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerIntelligenceMode(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_intelligenceMode"
         self._attr_name = f"{self._name} Intelligence Mode"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -927,7 +926,7 @@ class HonFridgeFreezerIntelligenceMode(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["intelligenceMode"]["parNewVal"]
+        self._attr_is_on = json["intelligenceMode"]["parNewVal"] == "1"
         self.async_write_ha_state()
 	
         
@@ -1001,15 +1000,15 @@ class HonFridgeFreezerTempSelZ2(SensorEntity, HonFridgeFreezerEntity):
         self._attr_native_value = json["tempSelZ2"]["parNewVal"]
         self.async_write_ha_state()	
 
-class HonFridgeFreezerHolidayMode(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerHolidayMode(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_hollidayMode"
         self._attr_name = f"{self._name} Holliday Mode"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+        self._attr_icon = "mdi:remote"
 
     @callback
     def _handle_coordinator_update(self):
@@ -1021,32 +1020,8 @@ class HonFridgeFreezerHolidayMode(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["hollidayMode"]["parNewVal"]
+        self._attr_is_on = json["hollidayMode"]["parNewVal"] == "1"
         self.async_write_ha_state()
-
-class HonFridgeFreezerErrors(SensorEntity, HonFridgeFreezerEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_errors"
-        self._attr_name = f"{self._name} Errors"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
-
-    @callback
-    def _handle_coordinator_update(self):
-
-        # Get state from the cloud
-        json = self._coordinator.data
-
-        # No data returned by the Get State method (unauthorized...)
-        if json is False:
-            return
-
-        self._attr_native_value = json["errors"]["parNewVal"]
-        self.async_write_ha_state()
-
 
 class HonFridgeFreezerTempEnv(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
@@ -1078,8 +1053,8 @@ class HonFridgeFreezerHumidityEnv(SensorEntity, HonFridgeFreezerEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_humidityEnv"
         self._attr_name = f"{self._name} Humidity Environment"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_device_class = SensorDeviceClass.HUMIDITY
+        self._attr_icon = "mdi:water-percent"
 
     @callback
     def _handle_coordinator_update(self):
@@ -1095,15 +1070,15 @@ class HonFridgeFreezerHumidityEnv(SensorEntity, HonFridgeFreezerEntity):
         self.async_write_ha_state()
 	
 
-class HonFridgeFreezerLastConnEvent(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerConnectionStatus(BinarySensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_temEnv"
-        self._attr_name = f"{self._name} Temperature Environment"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_unique_id = f"{self._mac}_connnectionStatus"
+        self._attr_name = f"{self._name} Connection Status"
+        self._attr_device_class = BinarySensorDeviceClass.POWER
+        self._attr_icon = "mdi:fridge-outline"
 
     @callback
     def _handle_coordinator_update(self):
@@ -1115,5 +1090,5 @@ class HonFridgeFreezerLastConnEvent(SensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_native_value = json["lastConnEvent"]["category"]
+        self._attr_is_on = json["lastConnEvent"]["category"] != "DISCONNECTED"
         self.async_write_ha_state()
