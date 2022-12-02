@@ -156,7 +156,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             )
             await coordinator.async_request_refresh()
 
-        elif appliance["applianceTypeId"] == 14:
+        elif appliance["applianceTypeId"] == 1400000:
             coordinator = HonFridgeFreezerCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
