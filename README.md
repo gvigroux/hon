@@ -37,3 +37,6 @@ This integration has been tested with the following devices.
 ### Tumble Dryer
 - haier HD80-A3959
 
+### Fridge Freezer
+- haier hfw7720enmb
+
