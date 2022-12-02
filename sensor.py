@@ -1028,8 +1028,8 @@ class HonFridgeFreezerHolidayMode(BinarySensorEntity, HonFridgeFreezerEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_hollidayMode"
-        self._attr_name = f"{self._name} Holliday Mode"
+        self._attr_unique_id = f"{self._mac}_holidayMode"
+        self._attr_name = f"{self._name} Holiday Mode"
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:remote"
 
@@ -1043,7 +1043,7 @@ class HonFridgeFreezerHolidayMode(BinarySensorEntity, HonFridgeFreezerEntity):
         if json is False:
             return
 
-        self._attr_is_on = json["hollidayMode"]["parNewVal"] == "1"
+        self._attr_is_on = json["holidayMode"]["parNewVal"] == "1"
         self.async_write_ha_state()
 
 class HonFridgeFreezerTempEnv(SensorEntity, HonFridgeFreezerEntity):
