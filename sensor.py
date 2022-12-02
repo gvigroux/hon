@@ -791,7 +791,7 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempEnv"]["parNewVal"]
         self.async_write_ha_state()  
 
-class HonFridgeFreezerTemperatureZ1(SensorEntity, HonFridgeFreezerEntity):
+class HonFridgeFreezerTempZ1(SensorEntity, HonFridgeFreezerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
