@@ -175,7 +175,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonFridgeFreezerTempSelZ3(hass, coordinator, entry, appliance),
                     HonFridgeFreezerHumidityEnv(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempEnv(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerConnectionStatus(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
@@ -1090,28 +1089,4 @@ class HonFridgeFreezerHumidityEnv(SensorEntity, HonFridgeFreezerEntity):
             return
 
         self._attr_native_value = json["humidityEnv"]["parNewVal"]
-        self.async_write_ha_state()
-	
-
-class HonFridgeFreezerConnectionStatus(BinarySensorEntity, HonFridgeFreezerEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_connnectionStatus"
-        self._attr_name = f"{self._name} Connection Status"
-        self._attr_device_class = BinarySensorDeviceClass.POWER
-        self._attr_icon = "mdi:fridge-outline"
-
-    @callback
-    def _handle_coordinator_update(self):
-
-        # Get state from the cloud
-        json = self._coordinator.data
-
-        # No data returned by the Get State method (unauthorized...)
-        if json is False:
-            return
-
-        self._attr_is_on = json["lastConnEvent"]["category"] != "DISCONNECTED"
         self.async_write_ha_state()
