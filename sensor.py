@@ -165,7 +165,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonFridgeFreezerQuickModeZ1(hass, coordinator, entry, appliance),
                     HonFridgeFreezerQuickModeZ2(hass, coordinator, entry, appliance),
                     HonFridgeFreezerDoorStatusZ1(hass, coordinator, entry, appliance),
-                    HonFridgeFreezerDoorStatusZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerDoor2StatusZ1(hass, coordinator, entry, appliance),
                     HonFridgeFreezerIntelligenceMode(hass, coordinator, entry, appliance),
                     HonFridgeFreezerTempSelZ2(hass, coordinator, entry, appliance),
                     HonFridgeFreezerHolidayMode(hass, coordinator, entry, appliance),
