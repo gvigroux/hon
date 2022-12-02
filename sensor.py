@@ -154,30 +154,32 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 ]
             )
             await coordinator.async_request_refresh()
-                
-        if appliance["applianceTypeId"] == 11:
-            coordinator = await hon.async_get_coordinator(appliance)
-            await coordinator.async_config_entry_first_refresh()
-		
+        
+	
         elif appliance["applianceTypeId"] == 14:
             coordinator = HonFridgeFreezerCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
             appliances.extend(
                 [
-                    HonFridgeTemperatureZ1(hass, coordinator, entry, appliance),
-                    HonFridgeTemperatureSelZ1(hass, coordinator, entry, appliance),
-                    HonFridgeTemperatureZ2(hass, coordinator, entry, appliance),
-                    HonFridgeTemperatureSelZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTemperatureZ1(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTemperatureSelZ1(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTemperatureZ2(hass, coordinator, entry, appliance),
+                    HonFridgeFreezerTemperatureSelZ2(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
-            
-            appliances.extend(
+		
+	
+        if appliance["applianceTypeId"] == 11:
+            coordinator = await hon.async_get_coordinator(appliance)
+            await coordinator.async_config_entry_first_refresh()
+		
+	    appliances.extend(
                 [
                     HonClimateOutdoorTemperature(hass, coordinator, entry, appliance) 
                 ])
-
+	
     async_add_entities(appliances)
 
 
@@ -780,7 +782,7 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempEnv"]["parNewVal"]
         self.async_write_ha_state()  
 
-class HonFridgeTemperatureZ1(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTemperatureZ1(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -804,7 +806,7 @@ class HonFridgeTemperatureZ1(SensorEntity, HonCoolerEntity):
         self.async_write_ha_state()
 
         
-class HonFridgeTemperatureSelZ1(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTemperatureSelZ1(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -827,7 +829,7 @@ class HonFridgeTemperatureSelZ1(SensorEntity, HonCoolerEntity):
         self._attr_native_value = json["tempSelZ1"]["parNewVal"]
         self.async_write_ha_state()
 
-class HonFridgeTemperatureZ2(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTemperatureZ2(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
@@ -851,7 +853,7 @@ class HonFridgeTemperatureZ2(SensorEntity, HonCoolerEntity):
         self.async_write_ha_state()
  
 
-class HonFridgeTemperatureSelZ2(SensorEntity, HonCoolerEntity):
+class HonFridgeFreezerTemperatureSelZ2(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
 
