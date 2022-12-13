@@ -18,7 +18,7 @@ from homeassistant.components.binary_sensor import (
 
 import logging
 from datetime import timedelta
-from .const import DOMAIN, PURIFIER_MODE, PURIFIER_VOC_VALUE
+from .const import DOMAIN, PURIFIER_MODE, PURIFIER_LIGHT_VALUE, PURIFIER_VOC_VALUE
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -224,6 +224,33 @@ class HonPurifierIndoorPM10(SensorEntity, HonPurifierEntity):
 
         self._attr_native_value = json["pm10ValueIndoor"]["parNewVal"]
         self.async_write_ha_state()
+
+class HonPurifierLIGHT(SensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_light"
+        self._attr_name = f"{self._name} light"
+        self._attr_icon = "mdi:air-filter"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        ivoc = json["lightStatus"]["parNewVal"]
+
+        if ivoc in PURIFIER_LIGHT_VALUE:
+            self._attr_native_value = PURIFIER_LIGHT_VALUE[ivoc]
+        else:
+            self._attr_native_value = f"Unknown value {ivoc}"
+        self.async_write_ha_state()        
         
 class HonPurifierIndoorVOC(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
