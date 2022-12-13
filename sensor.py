@@ -54,6 +54,8 @@ from .purifier import (
     HonPurifierCoordinator,
     HonPurifierOnOff,
     HonPurifierIndoorPM2p5,
+    HonPurifierIndoorTemp,
+    HonPurifierIndoorHum,
     HonPurifierIndoorPM10,
     HonPurifierIndoorVOC,
     HonPurifierMode
