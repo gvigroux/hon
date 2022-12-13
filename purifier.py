@@ -161,6 +161,7 @@ class HonPurifierIndoorPM10(SensorEntity, HonPurifierEntity):
         self._attr_unique_id = f"{self._mac}_indoor_pm10"
         self._attr_name = f"{self._name} Indoor PM 10"
         self._attr_device_class = SensorDeviceClass.PM10
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:air-filter"
 
     @callback
