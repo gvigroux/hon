@@ -156,3 +156,8 @@ PURIFIER_VOC_VALUE  = {
     "3": "Mediocre",
     "4": "Bad"
 }
+PURIFIER_LIGHT_VALUE  = {
+    "0": "Off",
+    "1": "50%",
+    "2": "100%"
+}
