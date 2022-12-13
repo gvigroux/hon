@@ -155,6 +155,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonPurifierOnOff(hass, coordinator, entry, appliance),
                     HonPurifierMode(hass, coordinator, entry, appliance),
                     HonPurifierIndoorPM2p5(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorTemp(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorHum(hass, coordinator, entry, appliance),		
                     HonPurifierIndoorPM10(hass, coordinator, entry, appliance),
                     HonPurifierIndoorVOC(hass, coordinator, entry, appliance),
                 ]
