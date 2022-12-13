@@ -185,7 +185,7 @@ class HonPurifierIndoorTemp(SensorEntity, HonPurifierEntity):
         self._attr_name = f"{self._name} Indoor temp"
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_icon = "mdi:thermometr"
+        self._attr_icon = "mdi:thermometer"
 
     @callback
     def _handle_coordinator_update(self):
@@ -209,7 +209,7 @@ class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
         self._attr_name = f"{self._name} Indoor humidity"
         self._attr_device_class = SensorDeviceClass.HUMIDITY
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_icon = "mdi:thermometr"
+        self._attr_icon = "mdi:water-percent"
 
     @callback
     def _handle_coordinator_update(self):
