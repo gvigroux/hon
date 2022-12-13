@@ -128,6 +128,29 @@ class HonPurifierOnOff(BinarySensorEntity, HonPurifierEntity):
 
         self._attr_is_on = json["onOffStatus"]["parNewVal"] == "1"
         self.async_write_ha_state()
+
+class HonPurifierChildLock(BinarySensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_child_lock"
+        self._attr_name = f"{self._name} child lock"
+        self._attr_device_class = BinarySensorDeviceClass.POWER
+        self._attr_icon = "mdi:air-filter"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_is_on = json["lockStatus"]["parNewVal"] == "1"
+        self.async_write_ha_state()        
         
 class HonPurifierIndoorPM2p5(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
