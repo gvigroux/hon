@@ -152,6 +152,54 @@ class HonPurifierIndoorPM2p5(SensorEntity, HonPurifierEntity):
 
         self._attr_native_value = json["pm2p5ValueIndoor"]["parNewVal"]
         self.async_write_ha_state()
+
+class HonPurifierIndoorTemp(SensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_indoor_temp"
+        self._attr_name = f"{self._name} Indoor temp"
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:thermometr"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["temp"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_indoor_humidity"
+        self._attr_name = f"{self._name} Indoor humidity"
+        self._attr_device_class = SensorDeviceClass.HUMIDITY
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:thermometr"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["humidityIndoor"]["parNewVal"]
+        self.async_write_ha_state()        
         
 class HonPurifierIndoorPM10(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
