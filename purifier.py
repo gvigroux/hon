@@ -256,6 +256,7 @@ class HonPurifierAIRpurifyFilterDirtPercentage(SensorEntity, HonPurifierEntity):
         self._attr_unique_id = f"{self._mac}_air_purify_filter_dirty_percentage"
         self._attr_name = f"{self._name} AIR PURIFY FILTER DIRTY PERCENTAGE"
         self._attr_suggested_unit_of_measurement = "%"
+        self._attr_native_unit_of_measurement = "%"      
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:air-filter"
 
