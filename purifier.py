@@ -137,7 +137,7 @@ class HonPurifierChildLock(BinarySensorEntity, HonPurifierEntity):
         self._attr_unique_id = f"{self._mac}_child_lock"
         self._attr_name = f"{self._name} child lock"
         self._attr_device_class = BinarySensorDeviceClass.POWER
-        self._attr_icon = "mdi:air-filter"
+        self._attr_icon = "mdi:lock"
 
     @callback
     def _handle_coordinator_update(self):
@@ -161,7 +161,7 @@ class HonPurifierIndoorPM2p5(SensorEntity, HonPurifierEntity):
         self._attr_name = f"{self._name} Indoor PM 2.5"
         self._attr_device_class = SensorDeviceClass.PM25
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_icon = "mdi:air-filter"
+        self._attr_icon = "mdi:blur"
 
     @callback
     def _handle_coordinator_update(self):
@@ -233,7 +233,7 @@ class HonPurifierIndoorPM10(SensorEntity, HonPurifierEntity):
         self._attr_name = f"{self._name} Indoor PM 10"
         self._attr_device_class = SensorDeviceClass.PM10
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_icon = "mdi:air-filter"
+        self._attr_icon = "mdi:blur"
 
     @callback
     def _handle_coordinator_update(self):
@@ -255,7 +255,7 @@ class HonPurifierLIGHT(SensorEntity, HonPurifierEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_light"
         self._attr_name = f"{self._name} light"
-        self._attr_icon = "mdi:air-filter"
+        self._attr_icon = "mdi:led-on"
 
     @callback
     def _handle_coordinator_update(self):
@@ -282,7 +282,7 @@ class HonPurifierIndoorVOC(SensorEntity, HonPurifierEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_indoor_VOC"
         self._attr_name = f"{self._name} Indoor VOC"
-        self._attr_icon = "mdi:air-filter"
+        self._attr_icon = "mdi:chemical-weapon"
 
     @callback
     def _handle_coordinator_update(self):
