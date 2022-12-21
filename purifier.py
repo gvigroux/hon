@@ -15,6 +15,9 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
 )
 
+from homeassistant.const import (
+    PERCENTAGE,
+)
 
 import logging
 from datetime import timedelta
@@ -271,6 +274,7 @@ class HonPurifierAIRpurifyFilterDirtPercentage(SensorEntity, HonPurifierEntity):
 
         self._attr_native_value = json["preFilterStatus"]["parNewVal"]
         self.async_write_ha_state()
+    
 
 class HonPurifierAIRpurifyFilterLifePercentage(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
