@@ -207,7 +207,7 @@ class HonPurifierCOlevel(SensorEntity, HonPurifierEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_co_level"
         self._attr_name = f"{self._name} CO LEVEL"
-        self._attr_device_class = SensorDeviceClass.CARBON_DIOXIDE
+        self._attr_device_class = SensorDeviceClass.CO2
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:molecule-co2"
 
