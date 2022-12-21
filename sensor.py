@@ -61,7 +61,8 @@ from .purifier import (
     HonPurifierMode,
     HonPurifierLIGHT,
     HonPurifierChildLock,
-    HonPurifierCOlevel
+    HonPurifierCOlevel,
+    HonPurifierAIRquality	
 )
 
 from homeassistant.helpers.typing import StateType
@@ -165,6 +166,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonPurifierLIGHT(hass, coordinator, entry, appliance),
                     HonPurifierChildLock(hass, coordinator, entry, appliance),
                     HonPurifierCOlevel(hass, coordinator, entry, appliance),
+                    HonPurifierAIRquality(hass, coordinator, entry, appliance),			
                 ]
             )
             await coordinator.async_request_refresh()
