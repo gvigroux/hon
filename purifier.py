@@ -271,6 +271,30 @@ class HonPurifierAIRpurifyFilterDirtPercentage(SensorEntity, HonPurifierEntity):
 
         self._attr_native_value = json["preFilterStatus"]["parNewVal"]
         self.async_write_ha_state()
+
+class HonPurifierAIRpurifyFilterLifePercentage(SensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_air_purify_filter_life_percentage"
+        self._attr_name = f"{self._name} FILTER LIFE PERCENTAGE"
+        self._unit_of_measurement = "%"      
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:air-filter"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["mainFilterStatus"]["parNewVal"]
+        self.async_write_ha_state()
         
 class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
