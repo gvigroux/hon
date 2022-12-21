@@ -200,6 +200,30 @@ class HonPurifierIndoorTemp(SensorEntity, HonPurifierEntity):
         self._attr_native_value = json["temp"]["parNewVal"]
         self.async_write_ha_state()
 
+class HonPurifierCOlevel(SensorEntity, HonPurifierEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_co_level"
+        self._attr_name = f"{self._name} CO LEVEL"
+        self._attr_device_class = SensorDeviceClass.CARBON_DIOXIDE
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:molecule-co2"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["coLevel"]["parNewVal"]
+        self.async_write_ha_state()
+        
 class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
