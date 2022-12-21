@@ -39,3 +39,4 @@ This integration has been tested with the following devices.
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)
+- hoover HHP50CA011 (Air Purifier 500)
