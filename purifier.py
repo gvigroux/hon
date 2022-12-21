@@ -296,8 +296,8 @@ class HonPurifierAIRpurifyFilterLifePercentage(SensorEntity, HonPurifierEntity):
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
-
-        self._attr_native_value = 100 - json["mainFilterStatus"]["parNewVal"]
+        perc = 100
+        self._attr_native_value = int(perc) - json["mainFilterStatus"]["parNewVal"]
         self.async_write_ha_state()
         
 class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
