@@ -297,9 +297,9 @@ class HonPurifierAIRpurifyFilterLifePercentage(SensorEntity, HonPurifierEntity):
         if json is False:
             return
         lifeperc = 100
-        lifepercvalue = json["mainFilterStatus"]["parNewVal"]
-        lifepercfinal = lifeperc - float(lifepercvalue)
-        self._attr_native_value = float(lifepercfinal)
+        lifepercvaluee = json["mainFilterStatus"]["parNewVal"]
+        lifepercfinale = lifeperc - float(lifepercvaluee)
+        self._attr_native_value = float(lifepercfinale)
         self.async_write_ha_state()
         
 class HonPurifierIndoorHum(SensorEntity, HonPurifierEntity):
