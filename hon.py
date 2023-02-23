@@ -280,7 +280,7 @@ class HonConnection:
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice"}'
         )
         data["device"] = json.loads(
-            '{"mobileId":"xxxxxxxxxxxxxxxxxxx", "mobileOs": "android", "osVersion": "31", "appVersion": "1.41.2", "deviceModel": "lito"}'
+            '{"mobileId":"xxxxxxxxxxxxxxxxxxx", "mobileOs": "android", "osVersion": "31", "appVersion": "1.53.4", "deviceModel": "lito"}'
         )
         data["parameters"] = parameters
         data["timestamp"] = timestamp
@@ -307,8 +307,11 @@ class HonConnection:
                 )
                 return False
 
-            if json_data["payload"]["resultCode"] == "0":
-                return True
+            try:
+                if json_data["payload"]["resultCode"] == "0":
+                    return True
+            except:
+                return False
 
             _LOGGER.error(
                 "hOn command has been rejected. Error message ["
