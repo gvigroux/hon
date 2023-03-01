@@ -30,10 +30,11 @@ This integration has been tested with the following devices.
 ### Wine Cooler
 - HWS42GDAU1
 
+### Dish Washer
+- XIB 6B2D3FB
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
 
 ### Tumble Dryer
 - haier HD80-A3959
-

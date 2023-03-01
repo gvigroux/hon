@@ -64,8 +64,7 @@ class ClimateSwingHorizontal(IntEnum):
     MEDIUM = 4
     HIGH = 5
     VERY_HIGH = 6
-
-
+    
 CLIMATE_FAN_MODE = {
     FAN_LOW: ClimateFanMode.HON_FAN_LOW.value,
     FAN_MEDIUM: ClimateFanMode.HON_FAN_MEDIUM.value,
@@ -96,13 +95,48 @@ OVEN_PROGRAMS = {
     "5": "Convectional",
     "10": "Taylor Bake",
     "23": "Multi-level",
-    "54": "Soft+",
+    "54": "Soft+"
 }
 
 WASHING_MACHINE_MODE = {
     "1": "Ready",
     "2": "Running",
     "7": "Finished"
+}
+
+master
+DISH_WASHER_MODE = {
+    "1": "Ready",
+    "2": "Running",
+    "3": "Delayed start",
+    "5": "Delayed start cancelled",
+    "7": "Finished",
+    "9": "XXXXXX"
+}
+
+##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
+DISH_WASHER_PROGRAMS = {
+    "1": "program1",
+    "2": "program2",
+    "3": "Strong & Fast",
+    "4": "program4",
+    "5": "Dinner for 2",
+    "6": "program6",
+    "7": "program7",
+    "8": "Eco 45ºC", ##happy hour, plastic & tupperware (75ºC & more water usage)
+    "9": "Crystal", ##delicate 45ºC
+    "10": "Class A 59' 65ºC", ##Pirex & Glassware
+    "11": "Fast 29' 50ºC",
+    "12": "Rinse",
+    "13": "Crystal 45ºC",
+    "14": "Auto Universal 65-75ºC",
+    "15": "Auto Universal 50-60ºC", ##daily, special for pots
+    "16": "Auto Sensor", ##dinner for 2, coctail glasses
+    "17": "Ultra Silence 55ºC",
+    "21": "Breakfast", #fast 39' 60ºC
+    "22": "Sanitizing cycle",
+    "23": "Baby Care", #super cleaning, vapor plus 75ºC
+    "24": "Hygiene+ 75ºC",
 }
 
 TUMBLE_DRYER_MODE = {
@@ -148,4 +182,5 @@ TUMBLE_DRYER_TEMPL = {
 	"3": "Middle temperature L-2",
 	"4": "High temperature L-3"
 }
+
 

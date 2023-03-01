@@ -52,7 +52,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     # Log details on unknown devices
     for appliance in hon.appliances:
+
         if appliance['applianceTypeId'] not in [1, 2, 4, 6, 8, 9, 11]:
+
             try:
                 status = await hon.async_get_state(appliance["macAddress"], appliance["applianceTypeName"], True)
             except:
@@ -113,10 +115,41 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         mac = get_hOn_mac(call.data.get("device"), hass)
 
         return await hon.async_set(mac, "WC", parameters)
+    
+    async def handle_dishwasher_start(call):
+
+        delay_time = 0
+        tz = gettz(hass.config.time_zone)
+
+        if "start" in call.data:
+            date = datetime.strptime(call.data.get("start"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
+            delay_time = int((date - datetime.now(tz)).seconds / 60)
+
+        if "end" in call.data and "duration" in call.data:
+            date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
+            duration = call.data.get("duration")
+            delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
+
+        paramaters = {
+            "delayTime": delay_time,
+            "onOffStatus": "1",
+            "prCode": call.data.get("program"),
+            "prPosition": "1",
+            "prTime": call.data.get("duration", "0"),
+ #           "extraDry": "1" if call.data.get("extra_dry", False) else "0",
+ #           "openDoor": "1" if call.data.get("open_door", False) else "0", ##conditional program
+ #           "halfLoad": "1" if call.data.get("half_load", False) else "0", ##conditional programm
+ #           "prStrDisp": call.data.get("string_display"),
+        }
+
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "DW", paramaters)
 
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
     hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
+    hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
     
     return True

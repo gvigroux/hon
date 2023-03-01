@@ -199,4 +199,94 @@ turn_on_cooler_lights:
       selector:
         device:
           manufacturer: haier
-          
+
+turn_on_dishwasher:
+  name: Turn on the dishwasher
+  description: Start a dishwasher program
+
+  fields:
+    device:
+      name: Dishwasher
+      description: Haier Dishwasher
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
+
+    program:
+      name: Program
+      description: Program mode for dishwasher
+      required: true
+      selector:
+        select:
+          options:
+            - label: Strong & Fast
+              value: 3
+            - label: Eco 45ºC
+              value: 8
+            - label: Cristal
+              value: 9
+            - label: Class A 59' 65ºC
+              value: 10
+            - label: Fast 29' 50ºC
+              value: 11
+            - label: Rinse
+              value: 12
+            - label: Crystal 45ºC
+              value: 13
+            - label: Auto Univerlsal 65-75ºC
+              value: 14
+            - label: Auto Universal 50-60ºC
+              value: 15
+            - label: Auto Sensor
+              value: 16
+            - label: Ultra Silence 55ºC
+              value: 17
+            - label: Breakfast
+              value: 21
+            - label: Sanitizing Cycle
+              value: 22
+            - label: Baby Care
+              value: 23
+            - label: Hygiene+ 75ºC
+              value: 24
+
+    start:
+      name: Start time
+      description: Time when the program will start.
+      required: false
+      selector:
+        datetime:
+
+    end:
+      name: End time
+      description: Time when the program will be finish. You need set duration too
+      required: false
+      selector:
+        datetime:
+
+    extra_dry:
+      name: Extra Dry
+      description: True means Yes, False is no (obvious)
+      required: true
+      advanced: false
+      selector:
+        boolean:
+    
+    open_door:
+      name: Open door
+      description: True means Yes, False is no (obvious)
+      required: true
+      advanced: false
+      selector:
+        boolean:
+        
+    half_load:
+      name: Half load
+      description: True means Yes, False is no (obvious)
+      required: true
+      advanced: false
+      selector:
+        boolean:
+        
