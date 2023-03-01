@@ -1,9 +1,11 @@
 {
 	"state": {
 		"tumbledryerprogram": {
+			"Default": "По подразбиране",
 			"Cotton": "Памук",
 			"Synthetics": "Синтетика",
 			"Mix": "Смесен тип",
+			"Bed Sheets": "Чаршафи",
 			"Sports": "Спорт",
 			"i-time": "i-time",
 			"Duvet": "Олекотена завивка",
@@ -14,6 +16,11 @@
 			"Delicate": "Деликатно пране",
 			"Remote 103": "Отдалечен"
 		},
+		"tumbledryerprogramphase": {
+			"Waiting": "Изчаване",
+			"Drying": "Сушене",
+			"Cooldown": "Охлажане"
+		},
 		"tumbledryertemplevel": {
 			"Cool": "Хладен въздух",
 			"Low temperature L-1": "Ниска температура",
@@ -21,6 +28,7 @@
 			"High temperature L-3": "Висока температура"
 		},
 		"tumbledryerdrylevel": {
+			"Cupboard dry": "Готови за съхранение",
 			"Extra Dry H-1": "Екстра сухо",
 			"Ready to Store H-2": "Готови за съхранение",
 			"Ready to Iron H-3": "Готови за гладене"
