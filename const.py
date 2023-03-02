@@ -104,7 +104,6 @@ WASHING_MACHINE_MODE = {
     "7": "Finished"
 }
 
-master
 DISH_WASHER_MODE = {
     "1": "Ready",
     "2": "Running",
