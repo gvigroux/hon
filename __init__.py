@@ -145,11 +145,20 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         mac = get_hOn_mac(call.data.get("device"), hass)
 
         return await hon.async_set(mac, "DW", paramaters)
+    
+    # async def handle_washingmachine_start(call):
 
+    #     parameters = {"program": "PROGRAMS.WM_WD.IOT_WASH_CASHMERE"}
+
+    #     mac = get_hOn_mac(call.data.get("device"), hass)
+
+    #     return await hon.async_set(mac, "WM", parameters)
+
+    # hass.services.async_register(DOMAIN, "set_washingmachine_program", handle_washingmachine_start)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
     hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
     hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
-    
+
     return True
