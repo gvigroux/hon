@@ -26,6 +26,7 @@ This integration has been tested with the following devices.
 
 ### Washing Machine
 - HW 49AMC/1-80
+- HW90-B14959S8U1
 
 ### Wine Cooler
 - HWS42GDAU1
@@ -35,7 +36,6 @@ This integration has been tested with the following devices.
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
-- HW90-B14959S8U1
 
 ### Tumble Dryer
 - haier HD80-A3959
