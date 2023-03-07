@@ -35,6 +35,7 @@ This integration has been tested with the following devices.
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
+- HW90-B14959S8U1
 
 ### Tumble Dryer
 - haier HD80-A3959
