@@ -256,6 +256,11 @@ class HonConnection:
                 return json.loads(text)
             
             json_data = json.loads(text)["payload"]["shadow"]["parameters"]
+            json_data_pay = json.loads(text)["payload"]
+            if "lastConnEvent" in json_data_pay:
+                json_data_lastCon = json.loads(text)["payload"]["lastConnEvent"]
+                json_data.update(json_data_lastCon)
+
             return json_data
         return False
 

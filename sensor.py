@@ -25,10 +25,27 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.core import callback
 
 
-from .const import DOMAIN, OVEN_PROGRAMS, WASHING_MACHINE_MODE, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS
+from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS
 
 from .oven import HonOvenEntity, HonOvenCoordinator
-from .washing_machine import HonWashingMachineCoordinator, HonWashingMachineEntity
+
+from .washing_machine import (
+    HonWashingMachineCoordinator, 
+    HonWashingMachineEntity, 
+    HonWashingMachineCurrentElectricityUsed,
+    HonWashingMachineCurrentWaterUsed,
+    HonWashingMachineError,
+    HonWashingMachineLastStatus,
+    HonWashingMeanWaterConsumption,
+    HonWashingMachineMode,
+    HonWashingMachineSpinSpeed,
+    HonWashingMachineTimeRemaining,
+    HonWashingMachineTemp,
+    HonWashingMachineTotalElectricityUsed,
+    HonWashingMachineTotalWashCycle,
+    HonWashingMachineTotalWaterUsed,
+    HonWashingMachineWeight
+)
 from .cooler import HonCoolerCoordinator, HonCoolerEntity
 
 from .dish_washer import HonDishWasherEntity, HonDishWasherCoordinator
@@ -80,8 +97,19 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
             appliances.extend(
                 [
-                    HonWashingMachineTimeRemaining(hass, coordinator, entry, appliance),
+                    HonWashingMachineCurrentElectricityUsed(hass, coordinator, entry, appliance),
+                    HonWashingMachineCurrentWaterUsed(hass, coordinator, entry, appliance),
+                    HonWashingMachineError(hass, coordinator, entry, appliance),
+                    HonWashingMachineLastStatus(hass, coordinator, entry, appliance),
                     HonWashingMachineMode(hass, coordinator, entry, appliance),
+                    HonWashingMeanWaterConsumption(hass, coordinator, entry, appliance),
+                    HonWashingMachineSpinSpeed(hass, coordinator, entry, appliance),
+                    HonWashingMachineTimeRemaining(hass, coordinator, entry, appliance),
+                    HonWashingMachineTemp(hass, coordinator, entry, appliance),
+                    HonWashingMachineTotalElectricityUsed(hass, coordinator, entry, appliance),
+                    HonWashingMachineTotalWashCycle(hass, coordinator, entry, appliance),
+                    HonWashingMachineTotalWaterUsed(hass, coordinator, entry, appliance),
+                    HonWashingMachineWeight(hass, coordinator, entry, appliance),
                 ]
             )
 
@@ -122,7 +150,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             )
             await coordinator.async_request_refresh()
         
-        elif appliance["applianceTypeId"] == 6:
+        elif appliance["applianceTypeId"] == 6 and "macAddress" in appliance:
             coordinator = HonCoolerCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
@@ -510,62 +538,6 @@ class HonOvenOnOff(BinarySensorEntity, HonOvenEntity):
             return
 
         self._attr_is_on = json["onOffStatus"]["parNewVal"] == "1"
-        self.async_write_ha_state()
-
-
-class HonWashingMachineMode(SensorEntity, HonWashingMachineEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_machine_mode"
-        self._attr_name = f"{self._name} Machine Mode"
-        self._attr_icon = "mdi:chef-hat"
-
-    @callback
-    def _handle_coordinator_update(self):
-
-        # Get state from the cloud
-        json = self._coordinator.data
-
-        # No data returned by the Get State method (unauthorized...)
-        if json is False:
-            return
-
-        mode = json["machMode"]["parNewVal"]
-
-        if mode in WASHING_MACHINE_MODE:
-            self._attr_native_value = WASHING_MACHINE_MODE[mode]
-        else:
-            self._attr_native_value = f"Unknown mode {mode}"
-
-        self.async_write_ha_state()
-
-
-class HonWashingMachineTimeRemaining(SensorEntity, HonWashingMachineEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_remaining"
-        self._attr_name = f"{self._name} Time Remaining"
-        self._attr_native_unit_of_measurement = TIME_MINUTES
-        self._attr_device_class = SensorDeviceClass.DURATION
-        self._attr_icon = "mdi:progress-clock"
-
-    @callback
-    def _handle_coordinator_update(self):
-
-        # Get state from the cloud
-        json = self._coordinator.data
-
-        # No data returned by the Get State method (unauthorized...)
-        if json is False:
-            return
-
-        self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) + int(
-            json["delayTime"]["parNewVal"]
-        )
         self.async_write_ha_state()
 
         

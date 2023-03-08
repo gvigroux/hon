@@ -290,3 +290,31 @@ turn_on_dishwasher:
       selector:
         boolean:
         
+# handle_washingmachine_start:
+#   name: start the wasshing machine program
+#   description: start the selected program
+#   target:
+#     entity:
+#   fields:
+
+#     device:
+#         name: Washing Machine
+#         description: Haier Washing Machine
+#         required: true
+#         advanced: false
+#         selector:
+#           device:
+#             manufacturer: haier
+
+#     program:
+#       name: Program
+#       description: Haier Washing Machine Program
+#       required: true
+#       advanced: false
+#       selector:
+#         select:
+#             options:
+#               [here available programs list]
+#               - label: Cachemire
+#                 value: PROGRAMS.WM_WD.IOT_WASH_CASHMERE
+
