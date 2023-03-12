@@ -27,7 +27,8 @@ from homeassistant.core import callback
 
 from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS
 
-from .oven import HonOvenEntity, HonOvenCoordinator
+from .oven      import HonOvenEntity, HonOvenCoordinator
+from .fridge    import HonFridgeEntity, HonFridgeCoordinator
 
 from .washing_machine import (
     HonWashingMachineCoordinator, 
@@ -262,6 +263,18 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonClimateOutdoorTemperature(hass, coordinator, entry, appliance) 
                 ])
 
+        elif appliance["applianceTypeId"] == 14:
+            coordinator = HonFridgeCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonFridgeTemperatureZ1(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureZ2(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureOutside(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
     async_add_entities(appliances)
 
 
@@ -803,7 +816,7 @@ class HonDishWasherStart(SensorEntity, HonDishWasherEntity):
 
         self.async_write_ha_state()
 
-        
+
 class HonCoolerTemperatureZ1(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
@@ -970,7 +983,6 @@ class HonCoolerLightStatus(BinarySensorEntity, HonCoolerEntity):
 
         self._attr_is_on = json["lightStatus"]["parNewVal"] == "1"
         self.async_write_ha_state()
-   
 
 class HonCoolerOnOffStatus(BinarySensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
@@ -1013,6 +1025,64 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
         json = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempEnv"]["parNewVal"]
+        self.async_write_ha_state()
+
+
+class HonFridgeTemperatureZ1(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_zone1"
+        self._attr_name = f"{self._name} Selected Temperature Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempSelZ1"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeTemperatureZ2(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_zone2"
+        self._attr_name = f"{self._name} Selected Temperature Zone 2"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempSelZ2"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeTemperatureOutside(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_outside"
+        self._attr_name = f"{self._name} Selected Temperature Outside"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
         if json is False:
             return
 
