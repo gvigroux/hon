@@ -175,39 +175,42 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 ]
             )
             await coordinator.async_request_refresh()
-        
-        elif appliance["applianceTypeId"] == 9:
-            coordinator = HonDishWasherCoordinator(hass, hon, appliance)
 
         elif appliance["applianceTypeId"] == 8:
             coordinator = HonTumbleDryerCoordinator(hass, hon, appliance)
-
             await coordinator.async_config_entry_first_refresh()
 
             appliances.extend(
                 [
+                    HonTumbleDryerTimeRemaining(hass, coordinator, entry, appliance),
+                    HonTumbleDryerMode(hass, coordinator, entry, appliance),
+                    HonTumbleDryerProgram(hass, coordinator, entry, appliance),
+                    HonTumbleDryerProgramPhase(hass, coordinator, entry, appliance),
+                    HonTumbleDryerDryLevel(hass, coordinator, entry, appliance),
+                    HonTumbleDryerTempLevel(hass, coordinator, entry, appliance),
+                    HonTumbleDryerOnOff(hass, coordinator, entry, appliance),
+                    HonTumbleDryerStart(hass, coordinator, entry, appliance),
+                    HonTumbleDryerRemoteControl(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
 
+        elif appliance["applianceTypeId"] == 9:
+            coordinator = HonDishWasherCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
                     HonDishWasherTimeRemaining(hass, coordinator, entry, appliance),
                     HonDishWasherMode(hass, coordinator, entry, appliance),
                     HonDishWasherRemoteControl(hass, coordinator, entry, appliance),
                     HonDishWasherProgram(hass, coordinator, entry, appliance),
                     HonDishWasherStart(hass, coordinator, entry, appliance),
                     HonDishWasherEnd(hass, coordinator, entry, appliance),
-                    
-                    HonTumbleDryerTimeRemaining(hass, coordinator, entry, appliance),
-                    HonTumbleDryerMode(hass, coordinator, entry, appliance),
-					HonTumbleDryerProgram(hass, coordinator, entry, appliance),
-					HonTumbleDryerProgramPhase(hass, coordinator, entry, appliance),
-					HonTumbleDryerDryLevel(hass, coordinator, entry, appliance),
-					HonTumbleDryerTempLevel(hass, coordinator, entry, appliance),
-					HonTumbleDryerOnOff(hass, coordinator, entry, appliance),
-					HonTumbleDryerStart(hass, coordinator, entry, appliance),
-					HonTumbleDryerRemoteControl(hass, coordinator, entry, appliance),
-
                 ]
             )
             await coordinator.async_request_refresh()
-                
+
         if appliance["applianceTypeId"] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
