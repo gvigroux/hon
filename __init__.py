@@ -146,15 +146,93 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         return await hon.async_set(mac, "DW", paramaters)
     
-    # async def handle_washingmachine_start(call):
+    async def handle_washingmachine_start(call):
 
-    #     parameters = {"program": "PROGRAMS.WM_WD.IOT_WASH_CASHMERE"}
+        delay_time = 0
+        tz = gettz(hass.config.time_zone)
+        if "end" in call.data:
+            date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
+            delay_time = int((date - datetime.now(tz)).seconds / 60)
 
-    #     mac = get_hOn_mac(call.data.get("device"), hass)
+        parameters = {
+                    "haier_MainWashSpeed": "50",
+                    "creaseResistSoakStatus": "0",
+                    "haier_SoakPrewashSelection": "0",
+                    "prCode": "999",
+                    "soakWashStatus": "0",
+                    "strongStatus": "0",
+                    "energySavingStatus": "0",
+                    "spinSpeed": call.data.get("spinSpeed", "400"),
+                    "haier_MainWashWaterLevel": "2",
+                    "rinseIterationTime": "8",
+                    "haier_SoakPrewashSpeed": "0",
+                    "permanentPressStatus": "1",
+                    "nightWashStatus": "0",
+                    "intelligenceStatus": "0",
+                    "haier_SoakPrewashStopTime": "0",
+                    "weight": "5",
+                    "highWaterLevelStatus": "0",
+                    "voiceStatus": "0",
+                    "haier_SoakPrewashTime": "0",
+                    "autoDisinfectantStatus": "0",
+                    "cloudProgSrc": "2",
+                    "haier_SoakPrewashRotateTime": "0",
+                    "cloudProgId": "255",
+                    "haier_SoakPrewashTemperature": "0",
+                    "dryProgFlag": "0",
+                    "dryLevel": "0",
+                    "haier_RinseRotateTime": "20",
+                    "uvSterilizationStatus": "0",
+                    "dryTime": "0",
+                    "delayStatus": "0",
+                    "dryLevelAllowed": "0",
+                    "rinseIterations": call.data.get("rinseIterations", "2"),
+                    "lockStatus": "0",
+                    "mainWashTime": call.data.get("mainWashTime", "15"),
+                    "autoSoftenerStatus": call.data.get("autoSoftenerStatus", "0"),
+                    "washerDryIntensity": "1",
+                    "autoDetergentStatus": "0",
+                    "antiAllergyStatus": "0",
+                    "speedUpStatus": "0",
+                    "temp": call.data.get("temp", "30"),
+                    "haier_MainWashRotateTime": "20",
+                    "detergentBStatus": "0",
+                    "haier_MainWashStopTime": "5",
+                    "texture": "1",
+                    "operationName": "grOnlineWash",
+                    "haier_RinseSpeed": "50",
+                    "haier_ConstantTempStatus": "1",
+                    "haier_RinseStopTime": "5",
+                    "delayTime": delay_time
+                }
 
-    #     return await hon.async_set(mac, "WM", parameters)
+        mac = get_hOn_mac(call.data.get("device"), hass)
 
-    # hass.services.async_register(DOMAIN, "set_washingmachine_program", handle_washingmachine_start)
+        json = await hon.async_get_state(mac, "WM", True)
+
+        # _LOGGER.warning(
+        #         json
+        #     )
+        
+        if json["payload"]["lastConnEvent"]["category"] != "DISCONNECTED":
+            return await hon.async_set(mac, "WM", parameters)
+        else:
+            _LOGGER.error(
+                    "This hOn device is disconnected - Mac address ["
+                    + mac
+                    + "]"
+                )
+        
+    async def handle_washingmachine_stop(call):
+
+        parameters = {"onOffStatus":"0"}
+        
+        mac = get_hOn_mac(call.data.get("device"), hass)
+
+        return await hon.async_set(mac, "WM", parameters)
+
+    hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
+    hass.services.async_register(DOMAIN, "turn_off_washingmachine", handle_washingmachine_stop)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)

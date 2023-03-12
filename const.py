@@ -99,8 +99,10 @@ OVEN_PROGRAMS = {
 }
 
 WASHING_MACHINE_MODE = {
+    "0": "Disconnected",
     "1": "Ready",
     "2": "Running",
+    "3": "Paused",
     "5": "Scheduled",
     "6": "Error",
     "7": "Finished"

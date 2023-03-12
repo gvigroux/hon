@@ -290,31 +290,122 @@ turn_on_dishwasher:
       selector:
         boolean:
         
-# handle_washingmachine_start:
-#   name: start the wasshing machine program
-#   description: start the selected program
-#   target:
-#     entity:
-#   fields:
+turn_on_washingmachine:
+  name: start the washing machine program
+  description: Start ta program with chosen options
+  
+  fields:
+    device:
+      name: Washing Machine
+      description: Haier Washing Machine
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier
 
-#     device:
-#         name: Washing Machine
-#         description: Haier Washing Machine
-#         required: true
-#         advanced: false
-#         selector:
-#           device:
-#             manufacturer: haier
+    end:
+      name: End time
+      description: Time when the program will be finished
+      required: false
+      selector:
+        datetime:
 
-#     program:
-#       name: Program
-#       description: Haier Washing Machine Program
-#       required: true
-#       advanced: false
-#       selector:
-#         select:
-#             options:
-#               [here available programs list]
-#               - label: Cachemire
-#                 value: PROGRAMS.WM_WD.IOT_WASH_CASHMERE
+    temp:
+      name: Washing Program Temperature
+      description: Set the program temperature (30° by default)
+      required: false
+      advanced: false
+      example: "30°"
+      selector:
+        select:
+          options:
+            - label: "20°"
+              value: 20
+            - label: "30°"
+              value: 30
+            - label: "40°"
+              value: 40
+            - label: "60°"
+              value: 60
+            - label: "90°"
+              value: 90
+            - label: " "
+              value: 40
+          
+    autoSoftenerStatus:
+      name: Keep Fresh
+      description: Active the keep fresh option (deactivated by default)
+      required: false
+      advanced: false
+      default: false
+      selector:
+        select:
+          options:
+            - label: "Yes"
+              value: 1
+            - label: "No"
+              value: 0
 
+    rinseIterations:
+      name: Number of rinse cycle
+      description: Set the number of rinse cycle (2 by default)
+      required: false
+      advanced: false
+      selector:
+        number:
+          min: 1
+          max: 4
+          step: 1
+          mode: slider
+
+    spinSpeed:
+      name: Spin Speed
+      description: Set the program SpinSpeed (400 by default)
+      required: false
+      advanced: false
+      selector:
+        select:
+            options:
+              - label: "min"
+                value: 400
+              - label: "400 rpm"
+                value: 400
+              - label: "800 rpm"
+                value: 800
+              - label: "1000 rpm"
+                value: 1000
+              - label: "1200 rpm"
+                value: 1200
+              - label: "1400 rpm"
+                value: 1400
+
+    mainWashTime:
+      name: Washing Program cleaning duration
+      description: Set the cleaning phase duration (15 minutes by default)
+      required: false
+      advanced: false
+      selector:
+        select:
+            options:
+              - label: "5 min"
+                value: 5
+              - label: "10 min"
+                value: 10
+              - label: "15 min"
+                value: 15
+              - label: "20 min"
+                value: 20
+
+turn_off_washingmachine:
+  name: Stop the current program
+  description: Stop the current program
+  fields:
+    device:
+      name: Washing Machine
+      description: Haier Washing Machine
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: haier

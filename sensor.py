@@ -31,7 +31,6 @@ from .oven import HonOvenEntity, HonOvenCoordinator
 
 from .washing_machine import (
     HonWashingMachineCoordinator, 
-    HonWashingMachineEntity, 
     HonWashingMachineCurrentElectricityUsed,
     HonWashingMachineCurrentWaterUsed,
     HonWashingMachineError,
@@ -44,7 +43,8 @@ from .washing_machine import (
     HonWashingMachineTotalElectricityUsed,
     HonWashingMachineTotalWashCycle,
     HonWashingMachineTotalWaterUsed,
-    HonWashingMachineWeight
+    HonWashingMachineWeight,
+    HonWashingMachineDoorLockStatus
 )
 from .cooler import HonCoolerCoordinator, HonCoolerEntity
 
@@ -111,6 +111,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonWashingMachineTotalWashCycle(hass, coordinator, entry, appliance),
                     HonWashingMachineTotalWaterUsed(hass, coordinator, entry, appliance),
                     HonWashingMachineWeight(hass, coordinator, entry, appliance),
+                    HonWashingMachineDoorLockStatus(hass, coordinator, entry, appliance),
                 ]
             )
 
@@ -959,4 +960,4 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
             return
 
         self._attr_native_value = json["tempEnv"]["parNewVal"]
-        self.async_write_ha_state()        
+        self.async_write_ha_state()
