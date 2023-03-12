@@ -53,6 +53,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     # Log details on unknown devices
     for appliance in hon.appliances:
 
+        if appliance.get("macAddress", None) == None:
+            continue
+
         if appliance['applianceTypeId'] not in [1, 2, 4, 6, 8, 9, 11]:
 
             try:

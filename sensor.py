@@ -92,6 +92,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
+        
+        if appliance.get("macAddress", None) == None:
+            _LOGGER.warning("Appliance with no MAC")
+            continue
+
         if appliance["applianceTypeId"] == 1:
             coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
