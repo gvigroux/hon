@@ -203,3 +203,21 @@ TUMBLE_DRYER_TEMPL = {
 }
 
 
+PURIFIER_MODE = {
+    "0": "Off",
+    "1": "Sleep",
+    "2": "Auto",
+    "4": "Max"
+}
+
+PURIFIER_VOC_VALUE  = {
+    "1": "Good",
+    "2": "Moderate",
+    "3": "Mediocre",
+    "4": "Bad"
+}
+PURIFIER_LIGHT_VALUE  = {
+    "0": "Off",
+    "1": "50%",
+    "2": "100%"
+}

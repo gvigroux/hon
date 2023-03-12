@@ -71,6 +71,24 @@ from .tumble_dryer import (
     HonTumbleDryerRemoteControl 
 )
 
+from .purifier import (
+    HonPurifierEntity, 
+    HonPurifierCoordinator,
+    HonPurifierOnOff,
+    HonPurifierIndoorPM2p5,
+    HonPurifierIndoorTemp,
+    HonPurifierIndoorHum,
+    HonPurifierIndoorPM10,
+    HonPurifierIndoorVOC,
+    HonPurifierMode,
+    HonPurifierLIGHT,
+    HonPurifierChildLock,
+    HonPurifierCOlevel,
+    HonPurifierAIRquality,
+    HonPurifierAIRpurifyFilterDirtPercentage,
+    HonPurifierAIRpurifyFilterLifePercentage
+)
+
 from homeassistant.helpers.typing import StateType
 
 from .climate import HonClimateEntity
@@ -165,10 +183,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 [
                     HonCoolerTemperatureZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ1(hass, coordinator, entry, appliance),
-		            HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
+                    HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureZ2(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ2(hass, coordinator, entry, appliance),
-		            HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
+                    HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
                     HonCoolerLightStatus(hass, coordinator, entry, appliance),
                     HonCoolerOnOffStatus(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureEnv(hass, coordinator, entry, appliance),
@@ -176,6 +194,29 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             )
             await coordinator.async_request_refresh()
 
+        elif appliance["applianceTypeId"] == 7:
+            coordinator = HonPurifierCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonPurifierOnOff(hass, coordinator, entry, appliance),
+                    HonPurifierMode(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorPM2p5(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorTemp(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorHum(hass, coordinator, entry, appliance),		
+                    HonPurifierIndoorPM10(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorVOC(hass, coordinator, entry, appliance),
+                    HonPurifierLIGHT(hass, coordinator, entry, appliance),
+                    HonPurifierChildLock(hass, coordinator, entry, appliance),
+                    HonPurifierCOlevel(hass, coordinator, entry, appliance),
+                    HonPurifierAIRquality(hass, coordinator, entry, appliance),
+                    HonPurifierAIRpurifyFilterDirtPercentage(hass, coordinator, entry, appliance),
+                    HonPurifierAIRpurifyFilterLifePercentage(hass, coordinator, entry, appliance),			
+                ]
+            )
+            await coordinator.async_request_refresh()
+            
         elif appliance["applianceTypeId"] == 8:
             coordinator = HonTumbleDryerCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
