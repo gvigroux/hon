@@ -73,6 +73,7 @@ from .tumble_dryer import (
 
 from homeassistant.helpers.typing import StateType
 
+from .climate import HonClimateEntity
 
 
 from homeassistant.helpers.update_coordinator import (
@@ -207,6 +208,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             
             appliances.extend(
                 [
+                    HonClimateIndoorTemperature(hass, coordinator, entry, appliance),
                     HonClimateOutdoorTemperature(hass, coordinator, entry, appliance) 
                 ])
 
@@ -214,9 +216,45 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 
+class HonClimateIndoorTemperature(SensorEntity, CoordinatorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator)
+
+        self._mac           = appliance["macAddress"]
+        self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
+        self._model         = appliance['modelName']
+        self._fwVersion     = appliance['fwVersion']
+        self._brand         = appliance['brand']
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_indoor_temperature"
+        self._attr_name = f"{self._name} Indoor Temperature"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        #self._attr_icon = "mdi:thermometer"
+        #self._attr_state_class = SensorStateClass.MEASUREMENT
+
+        self._attr_native_value = self._coordinator.data["tempIndoor"]["parNewVal"]
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempIndoor"]["parNewVal"]
+        self.async_write_ha_state()
+
+
+
 class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator)
+        #super().__init__(hass, entry, coordinator, appliance)
 
         self._mac           = appliance["macAddress"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
@@ -229,8 +267,6 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
         self._attr_name = f"{self._name} Temperature Outdoor"
         self._attr_native_unit_of_measurement = TEMP_CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
-        self._attr_icon = "mdi:thermometer"
-        self._attr_state_class = SensorStateClass.MEASUREMENT
 
         self._attr_native_value = self._coordinator.data["tempOutdoor"]["parNewVal"]
 
@@ -242,24 +278,10 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
-            _LOGGER.warning("Unable to update Sensor value: no Data")
             return
 
         self._attr_native_value = json["tempOutdoor"]["parNewVal"]
         self.async_write_ha_state()
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self._mac)
-            },
-            "name": self._name,
-            "manufacturer": self._brand,
-            "model": self._model,
-            "sw_version": self._fwVersion
-        }
 
 
 
