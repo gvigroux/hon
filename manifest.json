@@ -2,7 +2,7 @@
   "domain": "hon",
   "name": "hOn",
   "config_flow": true,
-  "version": "0.0.6",
+  "version": "0.0.7",
   "codeowners": ["@gvigroux","@MiguelAngelLV"],
   "iot_class": "cloud_polling"
 }

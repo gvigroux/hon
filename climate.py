@@ -134,7 +134,32 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         },
         "async_set_silent_mode",
     )
+
+    platform.async_register_entity_service(
+        "climate_set_wind_direction_horizontal",
+        {
+            vol.Required('value'): cv.positive_int,
+        },
+        "async_set_wind_direction_horizontal",
+    )
     
+    platform.async_register_entity_service(
+        "climate_set_wind_direction_vertical",
+        {
+            vol.Required('value'): cv.positive_int,
+        },
+        "async_set_wind_direction_vertical",
+    )
+
+    #platform.async_register_entity_service(
+    #    "climate_set_wind_direction",
+    #    {
+    #        vol.Required('horizontal'): cv.positive_int,
+    #        vol.Required('vertical'): cv.positive_int,
+    #    },
+    #    "async_set_wind_direction",
+    #)
+
 
 # function to return key for any value
 def get_key(dictionnary,val,default):
@@ -174,7 +199,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._attr_max_temp             = 30
         #self._attr_auto_temperature     = 24
 
-        self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW,FAN_MEDIUM,FAN_HIGH]
+        self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
         self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
         self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
@@ -209,6 +234,15 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         parameters = {"echoStatus": "0" if echo_mode else "1"}
         await self.async_send_command(self.get_command(parameters))
 
+    async def async_set_wind_direction_horizontal(self, value: int):
+        self._wind_direction_horizontal = value
+        parameters = {'windDirectionHorizontal': value}
+        await self.async_send_command(parameters)
+        
+    async def async_set_wind_direction_vertical(self, value: int):
+        self._wind_direction_vertical = value
+        parameters = {'windDirectionVertical': value}
+        await self.async_send_command(parameters)
 
     def start_watcher(self, timedelta=timedelta(seconds=8)):
         self._watcher = async_track_time_interval(self._hass, self.async_update_after_state_change, timedelta)
@@ -246,6 +280,8 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._screen_display= True if self.get_int_state(json,'screenDisplayStatus') == 1 else False
         self._rapid_mode    = True if self.get_int_state(json,'rapidMode') == 1 else False
         self._silent_mode   = True if self.get_int_state(json,'muteStatus') == 1 else False
+        self._wind_direction_horizontal = self.get_int_state(json,'windDirectionHorizontal')
+        self._wind_direction_vertical   = self.get_int_state(json,'windDirectionVertical')
         
         if update: self.async_write_ha_state()
 
@@ -320,8 +356,9 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         attr["rapid_mode"]      = self._rapid_mode
         attr["silent_mode"]     = self._silent_mode
         attr["screen_display"]  = self._screen_display
+        attr["wind_direction_horizontal"]   = self._wind_direction_horizontal
+        attr["wind_direction_vertical"]     = self._wind_direction_vertical
         return attr
-
 
     #https://github.com/home-assistant/core/blob/dev/homeassistant/components/mill/climate.py
     async def async_set_temperature(self, **kwargs):
@@ -369,19 +406,20 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         parameters = {'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, int(ClimateFanMode.HON_FAN_OFF))}
         await self.async_send_command(parameters)
 
+
     async def async_set_swing_mode(self, swing_mode: str):
         
         if swing_mode == SWING_BOTH:
             parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.AUTO, 'windDirectionVertical': ClimateSwingVertical.AUTO}
 
         elif swing_mode == SWING_HORIZONTAL and int(self._default_command['windDirectionVertical']) == ClimateSwingVertical.AUTO:
-            parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.AUTO, 'windDirectionVertical': ClimateSwingVertical.MEDIUM}
+            parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.AUTO, 'windDirectionVertical': ClimateSwingVertical.MIDDLE}
 
         elif swing_mode == SWING_HORIZONTAL:
             parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.AUTO}
 
         elif swing_mode == SWING_VERTICAL and int(self._default_command['windDirectionHorizontal']) == ClimateSwingHorizontal.AUTO:
-            parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.MEDIUM, 'windDirectionVertical': ClimateSwingVertical.AUTO}
+            parameters = {'windDirectionHorizontal': ClimateSwingHorizontal.MIDDLE, 'windDirectionVertical': ClimateSwingVertical.AUTO}
 
         elif swing_mode == SWING_VERTICAL:
             parameters = {'windDirectionVertical': ClimateSwingVertical.AUTO}
@@ -389,9 +427,9 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         else: #off
             parameters = {}
             if int(self._default_command['windDirectionHorizontal']) == ClimateSwingHorizontal.AUTO:
-                parameters['windDirectionHorizontal'] =  ClimateSwingHorizontal.MEDIUM
+                parameters['windDirectionHorizontal'] =  ClimateSwingHorizontal.MIDDLE
             if int(self._default_command['windDirectionVertical']) == ClimateSwingVertical.AUTO:
-                parameters['windDirectionVertical'] =  ClimateSwingVertical.MEDIUM
+                parameters['windDirectionVertical'] =  ClimateSwingVertical.MIDDLE
 
         self._attr_swing_mode = swing_mode
         await self.async_send_command(parameters)
