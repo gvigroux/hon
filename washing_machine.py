@@ -5,7 +5,8 @@ from homeassistant.helpers.update_coordinator import (
 
 from homeassistant.components.sensor import (
     SensorEntity,
-    SensorDeviceClass
+    SensorDeviceClass,
+    SensorStateClass
 )
 
 from homeassistant.components.binary_sensor import (
@@ -14,11 +15,12 @@ from homeassistant.components.binary_sensor import (
 )
 
 from homeassistant.const import (
-    TIME_MINUTES,
-    ENERGY_KILO_WATT_HOUR,
-    TEMP_CELSIUS, 
-    VOLUME_LITERS,
-    UnitOfMass
+    UnitOfTime,
+    UnitOfEnergy,
+    UnitOfTemperature, 
+    UnitOfMass,
+    UnitOfVolume,
+    REVOLUTIONS_PER_MINUTE
 )
 from homeassistant.core import callback
 
@@ -88,7 +90,7 @@ class HonWashingMachineCurrentElectricityUsed(SensorEntity, HonWashingMachineEnt
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_current_electricity_used"
         self._attr_name = f"{self._name} Current Electricity Used"
-        self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_device_class = SensorDeviceClass.ENERGY
         self._attr_icon = "mdi:lightning-bolt"
 
@@ -113,7 +115,7 @@ class HonWashingMachineCurrentWaterUsed(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_current_water_used"
         self._attr_name = f"{self._name} Current Water Used"
-        self._attr_native_unit_of_measurement = VOLUME_LITERS
+        self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_icon = "mdi:water"
 
@@ -218,6 +220,7 @@ class HonWashingMachineSpinSpeed(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_spin_Speed"
         self._attr_name = f"{self._name} Spin speed"
+        self._attr_native_unit_of_measurement = REVOLUTIONS_PER_MINUTE
         self._attr_icon = "mdi:speedometer"
 
     @callback
@@ -245,7 +248,7 @@ class HonWashingMachineTimeRemaining(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_remaining"
         self._attr_name = f"{self._name} Time Remaining"
-        self._attr_native_unit_of_measurement = TIME_MINUTES
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:progress-clock"
 
@@ -274,7 +277,7 @@ class HonWashingMachineTemp(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_temp"
         self._attr_name = f"{self._name} Temperature"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         self._attr_icon = "mdi:thermometer"
 
@@ -302,7 +305,7 @@ class HonWashingMeanWaterConsumption(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_mean_water_consumption"
         self._attr_name = f"{self._name} Mean Water Consumption"
-        self._attr_native_unit_of_measurement = VOLUME_LITERS
+        self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_icon = "mdi:water-sync"
 
@@ -330,7 +333,7 @@ class HonWashingMachineTotalElectricityUsed(SensorEntity, HonWashingMachineEntit
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_total_electricity_used"
         self._attr_name = f"{self._name} Total Electricity Used"
-        self._attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_device_class = SensorDeviceClass.ENERGY
         self._attr_icon = "mdi:connection"
 
@@ -378,7 +381,7 @@ class HonWashingMachineTotalWaterUsed(SensorEntity, HonWashingMachineEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_total_water_used"
         self._attr_name = f"{self._name} Total Water Used"
-        self._attr_native_unit_of_measurement = VOLUME_LITERS
+        self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_icon = "mdi:water-pump"
 
@@ -418,5 +421,31 @@ class HonWashingMachineWeight(SensorEntity, HonWashingMachineEntity):
             return
 
         self._attr_native_value = float(json["actualWeight"]["parNewVal"])
+        
+        self.async_write_ha_state()
+
+class HonWashingMachineDoorLockStatus(SensorEntity, HonWashingMachineEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_door_lock_status"
+        self._attr_name = f"{self._name} Door Lock Status"
+        self._attr_device_class  = BinarySensorDeviceClass.DOOR,
+        self._attr_icon = "mdi:lock-question"
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+        if json["doorLockStatus"]["parNewVal"] == "1":
+            self._attr_native_value = "Locked"
+        else:
+            self._attr_native_value = "Unlocked"
         
         self.async_write_ha_state()

@@ -284,6 +284,10 @@ class HonConnection:
         data["attributes"] = json.loads(
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice"}'
         )
+        if typeName == "WM":
+             data["attributes"] = json.loads(
+            '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice", "energyLabel": "0"}'
+        )
         data["device"] = json.loads(
             '{"mobileId":"xxxxxxxxxxxxxxxxxxx", "mobileOs": "android", "osVersion": "31", "appVersion": "1.53.4", "deviceModel": "lito"}'
         )
@@ -297,9 +301,9 @@ class HonConnection:
             headers=post_headers,
             json=data,
         ) as resp:
-            # _LOGGER.warning(resp.status)
+            #_LOGGER.warning(resp.status)
             text = await resp.text()
-            #_LOGGER.warning(text)
+           # _LOGGER.warning(text)
             try:
                 json_data = json.loads(text)
             except:
@@ -326,7 +330,6 @@ class HonConnection:
                 + "]"
             )
         return False
-
 
 def get_hOn_mac(device_id, hass):
     device_registry = dr.async_get(hass)
