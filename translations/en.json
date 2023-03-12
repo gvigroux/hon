@@ -9,6 +9,9 @@
                     "password": "Password"
                 }
             }
+        },
+        "error": {
+            "auth_error": "Your login attempt has failed. Make sure the username and password are correct."
         }
     }
 }

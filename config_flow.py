@@ -1,8 +1,8 @@
 
 import logging
-
-
 import voluptuous as vol
+
+from .hon import HonConnection
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
@@ -48,12 +48,21 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(step_id="user",data_schema=vol.Schema({vol.Required(CONF_EMAIL): str,vol.Required(CONF_PASSWORD): str}))
 
-        self._email = user_input[CONF_EMAIL]
-        self._password = user_input[CONF_PASSWORD]
+        self._email     = user_input[CONF_EMAIL]
+        self._password  = user_input[CONF_PASSWORD]
 
         # Check if already configured
         await self.async_set_unique_id(self._email)
         self._abort_if_unique_id_configured()
+
+        # Test connection
+        hon = HonConnection(None, None, self._email, self._password)
+        if( await hon.async_authorize() == False ):
+            errors = {}
+            errors["base"] = "auth_error"
+            await hon.async_close()
+            return self.async_show_form(step_id="user",data_schema=vol.Schema({vol.Required(CONF_EMAIL): str,vol.Required(CONF_PASSWORD): str}), errors=errors)
+        await hon.async_close()
 
         return self.async_create_entry(
             title=self._email,
@@ -66,6 +75,7 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_REFRESH_TOKEN: ""
             },
         )
+
 
 
     async def async_step_import(self, user_input=None):

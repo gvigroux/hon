@@ -222,10 +222,11 @@ class HonClimateIndoorTemperature(SensorEntity, CoordinatorEntity):
         super().__init__(coordinator)
 
         self._mac           = appliance["macAddress"]
+        self._type_name     = appliance["applianceTypeName"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
-        self._model         = appliance['modelName']
-        self._fwVersion     = appliance['fwVersion']
-        self._brand         = appliance['brand']
+        #self._model         = appliance['modelName']
+        #self._fwVersion     = appliance['fwVersion']
+        #self._brand         = appliance['brand']
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_indoor_temperature"
@@ -258,10 +259,11 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
         #super().__init__(hass, entry, coordinator, appliance)
 
         self._mac           = appliance["macAddress"]
+        self._type_name     = appliance["applianceTypeName"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
-        self._model         = appliance['modelName']
-        self._fwVersion     = appliance['fwVersion']
-        self._brand         = appliance['brand']
+        #self._model         = appliance['modelName']
+        #self._fwVersion     = appliance['fwVersion']
+        #self._brand         = appliance['brand']
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_temperature_Outdoor"
