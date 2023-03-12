@@ -224,13 +224,12 @@ class HonClimateIndoorTemperature(SensorEntity, CoordinatorEntity):
         self._mac           = appliance["macAddress"]
         self._type_name     = appliance["applianceTypeName"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
-        #self._model         = appliance['modelName']
-        #self._fwVersion     = appliance['fwVersion']
-        #self._brand         = appliance['brand']
 
         self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_indoor_temperature"
-        self._attr_name = f"{self._name} Indoor Temperature"
+        #self._id                = appliance["macAddress"]
+        #self._attr_id           = appliance["macAddress"]
+        self._attr_unique_id    = f"{self._mac}_indoor_temperature"
+        self._attr_name         = f"{self._name} Indoor Temperature"
         self._attr_native_unit_of_measurement = TEMP_CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         #self._attr_icon = "mdi:thermometer"
@@ -251,6 +250,11 @@ class HonClimateIndoorTemperature(SensorEntity, CoordinatorEntity):
         self._attr_native_value = json["tempIndoor"]["parNewVal"]
         self.async_write_ha_state()
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._mac)}
+        }
 
 
 class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
@@ -261,13 +265,10 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
         self._mac           = appliance["macAddress"]
         self._type_name     = appliance["applianceTypeName"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
-        #self._model         = appliance['modelName']
-        #self._fwVersion     = appliance['fwVersion']
-        #self._brand         = appliance['brand']
 
         self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_temperature_Outdoor"
-        self._attr_name = f"{self._name} Temperature Outdoor"
+        self._attr_unique_id    = f"{self._mac}_temperature_Outdoor"
+        self._attr_name         = f"{self._name} Temperature Outdoor"
         self._attr_native_unit_of_measurement = TEMP_CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
 
@@ -286,6 +287,11 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
         self._attr_native_value = json["tempOutdoor"]["parNewVal"]
         self.async_write_ha_state()
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._mac)}
+        }
 
 
 
