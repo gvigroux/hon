@@ -98,14 +98,9 @@ OVEN_PROGRAMS = {
     "54": "Soft+"
 }
 
-WASHING_MACHINE_MODE = {
-    "0": "Disconnected",
-    "1": "Ready",
-    "2": "Running",
-    "3": "Paused",
-    "5": "Scheduled",
-    "6": "Error",
-    "7": "Finished"
+WASHING_MACHINE_DOOR_LOCK_STATUS = {
+    "1": "Locked",
+    "0": "Unlocked"
 }
 
 WASHING_MACHINE_ERROR_CODES = {
@@ -122,6 +117,35 @@ WASHING_MACHINE_ERROR_CODES = {
     #"FC0": "Error FC0: Communication error",
     #"FC1": "Error FC1: Communication error",
     #"FC2": "Error FC2: Communication error"
+}
+
+WASHING_MACHINE_MODE = {
+    "0": "Disconnected",
+    "1": "Ready",
+    "2": "Running",
+    "3": "Paused",
+    "5": "Scheduled",
+    "6": "Error",
+    "7": "Finished"
+}
+
+WASHING_MACHINE_PROGRAM = {
+    "0": { 
+        "name": "fragile",
+        "spinSpeed": "400",
+        "temp": "30",
+        "rinseIterations": "1",
+        "mainWashTime": "10",
+        "autoSoftenerStatus": "1"
+                },
+    "1": { 
+        "name": "quotidien sale",
+        "spinSpeed": "1400",
+        "temp": "40",
+        "rinseIterations": "2",
+        "mainWashTime": "15",
+        "autoSoftenerStatus": "1"
+                },
 }
 
 DISH_WASHER_MODE = {
