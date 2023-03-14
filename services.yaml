@@ -560,3 +560,16 @@ set_max_mode_purifier:
       selector:
         device:
           manufacturer: hoover
+
+turn_on:
+  name: Turn on
+  description: Turn on
+  fields:
+    device:
+      name: hOn Device
+      description: Select any compatible hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover

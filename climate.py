@@ -86,9 +86,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
-        if appliance.get("macAddress", None) == None:
-            _LOGGER.warning("Appliance with no MAC")
-            continue
         if appliance['applianceTypeId'] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
@@ -153,16 +150,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         },
         "async_set_wind_direction_vertical",
     )
-
-    #platform.async_register_entity_service(
-    #    "climate_set_wind_direction",
-    #    {
-    #        vol.Required('horizontal'): cv.positive_int,
-    #        vol.Required('vertical'): cv.positive_int,
-    #    },
-    #    "async_set_wind_direction",
-    #)
-
 
 # function to return key for any value
 def get_key(dictionnary,val,default):

@@ -42,6 +42,7 @@ class HonCoordinator(DataUpdateCoordinator):
 
 
 
+
 class HonConnection:
     def __init__(self, hass, entry, email = None, password = None) -> None:
         self._hass = hass
