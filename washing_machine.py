@@ -15,6 +15,7 @@ from homeassistant.components.binary_sensor import (
 )
 
 from homeassistant.const import (
+    EntityCategory,
     UnitOfTime,
     UnitOfEnergy,
     UnitOfTemperature, 
@@ -22,7 +23,11 @@ from homeassistant.const import (
     UnitOfVolume,
     REVOLUTIONS_PER_MINUTE
 )
+
+from homeassistant.config_entries import ConfigEntry
+
 from homeassistant.core import callback
+
 
 import logging
 from datetime import timedelta
@@ -297,8 +302,12 @@ class HonWashingMachineTimeRemaining(SensorEntity, HonWashingMachineEntity):
         if json["machMode"]["parNewVal"] in ("1","6"):
             self._attr_native_value = 0
         else:
+            if 'delayTime' in json:
+                time = int(json["delayTime"]["parNewVal"])
+            else:
+                time = 0
             self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) 
-            # + int( json["delayTime"])
+            + time
 
         self.async_write_ha_state()
 
@@ -455,4 +464,3 @@ class HonWashingMachineWeight(SensorEntity, HonWashingMachineEntity):
         self._attr_native_value = float(json["actualWeight"]["parNewVal"])
         
         self.async_write_ha_state()
-
