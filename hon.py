@@ -43,17 +43,23 @@ class HonCoordinator(DataUpdateCoordinator):
 
 
 class HonConnection:
-    def __init__(self, hass, entry) -> None:
+    def __init__(self, hass, entry, email = None, password = None) -> None:
         self._hass = hass
         self._entry = entry
         self._coordinator_dict = {}
-        self._email = entry.data[CONF_EMAIL]
-        self._password = entry.data[CONF_PASSWORD]
 
-        self._framework = entry.data.get(CONF_FRAMEWORK, "")
-        self._id_token = entry.data.get(CONF_ID_TOKEN, "")
-        self._refresh_token = entry.data.get(CONF_REFRESH_TOKEN, "")
-        self._cognitoToken = entry.data.get(CONF_COGNITO_TOKEN, "")
+        # Only used during registration (Login/password check)
+        if( email != None ) and ( password != None ):
+            self._email = email
+            self._password = password
+            self._framework = "None"
+        else:
+            self._email = entry.data[CONF_EMAIL]
+            self._password = entry.data[CONF_PASSWORD]
+            self._framework = entry.data.get(CONF_FRAMEWORK, "")
+            self._id_token = entry.data.get(CONF_ID_TOKEN, "")
+            self._refresh_token = entry.data.get(CONF_REFRESH_TOKEN, "")
+            self._cognitoToken = entry.data.get(CONF_COGNITO_TOKEN, "")
 
         self._frontdoor_url = ""
 
@@ -63,6 +69,8 @@ class HonConnection:
         self._session = aiohttp.ClientSession(headers=headers)
         self._appliances = []
 
+    async def async_close(self):
+        await self._session.close()
 
     @property
     def appliances(self):
@@ -115,7 +123,7 @@ class HonConnection:
                 if text.find("clientOutOfSync") > 0 and error_code != 2:
                     start = text.find("Expected: ") + 10
                     end = text.find(" ", start)
-                    _LOGGER.warning(
+                    _LOGGER.info(
                         "Framework update from ["
                         + self._framework
                         + "] to ["
@@ -127,7 +135,7 @@ class HonConnection:
                 _LOGGER.error("Unable to retreive the frontdoor URL. Message: " + text)
                 return 1
 
-        if error_code == 2:
+        if error_code == 2 and self._entry != None:
             # Update Framework
             data = {**self._entry.data}
             data[CONF_FRAMEWORK] = self._framework
@@ -184,7 +192,7 @@ class HonConnection:
                 _LOGGER.error("No JSON Data after POST: " + text)
                 return False
             self._cognitoToken = json_data["cognitoUser"]["Token"]
-            # _LOGGER.warning(self._cognitoToken)
+            #_LOGGER.warning(self._cognitoToken)
 
         credential_headers = {
             "cognito-token": self._cognitoToken,
@@ -202,7 +210,7 @@ class HonConnection:
                 return False
 
             self._appliances = json_data["payload"]["appliances"]
-            # _LOGGER.warning(self._appliances)
+            #_LOGGER.warning(self._appliances)
 
             """for appliance in json_data['payload']['appliances']:
                 _LOGGER.warning(appliance)
@@ -285,7 +293,7 @@ class HonConnection:
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice"}'
         )
         if typeName == "WM":
-             data["attributes"] = json.loads(
+            data["attributes"] = json.loads(
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice", "energyLabel": "0"}'
         )
         data["device"] = json.loads(
@@ -303,7 +311,7 @@ class HonConnection:
         ) as resp:
             #_LOGGER.warning(resp.status)
             text = await resp.text()
-           # _LOGGER.warning(text)
+            # _LOGGER.warning(text)
             try:
                 json_data = json.loads(text)
             except:

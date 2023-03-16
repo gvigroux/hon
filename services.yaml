@@ -170,6 +170,92 @@ climate_set_silent_mode:
       selector:
         boolean:
 
+climate_set_wind_direction_horizontal:
+  name: Set wind direction horizontal
+  description: Set wind direction horizontal
+  target:
+    entity:
+      domain: climate
+  fields:
+    value:
+      name: Wind direction horizontal
+      description: Direction can be from "Far left" to "Far right". "Auto" means swing
+      required: true
+      advanced: false
+      selector:
+        select:
+          options:
+            - label: "Auto"
+              value: 7
+            - label: "Far left"
+              value: 3
+            - label: "Left"
+              value: 4
+            - label: "Middle"
+              value: 0
+            - label: "Right"
+              value: 5
+            - label: "Far right"
+              value: 6
+
+climate_set_wind_direction_vertical:
+  name: Set wind direction vertical
+  description: Set wind direction vertical
+  target:
+    entity:
+      domain: climate
+  fields:
+    value:
+      name: Wind direction vertical
+      description: Direction can be from "Very low" to "Very high". "Auto" means swing
+      required: true
+      advanced: false
+      selector:
+        select:
+          options:
+            - label: "Auto"
+              value: 8
+            - label: "Very low"
+              value: 7
+            - label: "Low"
+              value: 6
+            - label: "Middle"
+              value: 5
+            - label: "High"
+              value: 4
+            - label: "Very high"
+              value: 2
+
+#climate_set_wind_direction:
+#  name: Set wind direction
+#  description: Set wind direction horizontal & vertical
+#  target:
+#    entity:
+#      domain: climate
+#  fields:
+#    horizontal:
+#      name: Wind direction horizontal
+#      description: From 0 (VERY_LOW) to 6 (VERY_HIGH). 7 = AUTO
+#      required: true
+#      advanced: false
+#      selector:
+#        number:
+#          min: 0
+#          max: 7
+#          step: 1
+#          mode: slider
+#    vertical:
+#      name: Wind direction vertical
+#      description: From 2 (VERY_LOW) to 7 (VERY_HIGH). 8 = AUTO
+#      required: true
+#      advanced: false
+#      selector:
+#        number:
+#          min: 2
+#          max: 8
+#          step: 1
+#          mode: slider
+
 turn_off_cooler_lights:
   name: Turn off the cooler lights
   description: Turn off the cooler lights
@@ -184,7 +270,7 @@ turn_off_cooler_lights:
       selector:
         device:
           manufacturer: haier
-          
+
 turn_on_cooler_lights:
   name: Turn on the cooler lights
   description: Turn on the cooler lights
@@ -273,7 +359,7 @@ turn_on_dishwasher:
       advanced: false
       selector:
         boolean:
-    
+
     open_door:
       name: Open door
       description: True means Yes, False is no (obvious)
@@ -281,7 +367,7 @@ turn_on_dishwasher:
       advanced: false
       selector:
         boolean:
-        
+
     half_load:
       name: Half load
       description: True means Yes, False is no (obvious)
@@ -289,11 +375,11 @@ turn_on_dishwasher:
       advanced: false
       selector:
         boolean:
-        
+
 turn_on_washingmachine:
   name: start the washing machine program
   description: Start ta program with chosen options
-  
+
   fields:
     device:
       name: Washing Machine
@@ -332,7 +418,7 @@ turn_on_washingmachine:
               value: 90
             - label: " "
               value: 40
-          
+
     autoSoftenerStatus:
       name: Keep Fresh
       description: Active the keep fresh option (deactivated by default)
@@ -368,19 +454,19 @@ turn_on_washingmachine:
       default: "400 rpm"
       selector:
         select:
-            options:
-              - label: "Min"
-                value: 400
-              - label: "400 rpm"
-                value: 400
-              - label: "800 rpm"
-                value: 800
-              - label: "1000 rpm"
-                value: 1000
-              - label: "1200 rpm"
-                value: 1200
-              - label: "1400 rpm"
-                value: 1400
+          options:
+            - label: "min"
+              value: 400
+            - label: "400 rpm"
+              value: 400
+            - label: "800 rpm"
+              value: 800
+            - label: "1000 rpm"
+              value: 1000
+            - label: "1200 rpm"
+              value: 1200
+            - label: "1400 rpm"
+              value: 1400
 
     mainWashTime:
       name: Washing Program cleaning duration
@@ -390,15 +476,15 @@ turn_on_washingmachine:
       default: "15 min"
       selector:
         select:
-            options:
-              - label: "5 min"
-                value: 5
-              - label: "10 min"
-                value: 10
-              - label: "15 min"
-                value: 15
-              - label: "20 min"
-                value: 20
+          options:
+            - label: "5 min"
+              value: 5
+            - label: "10 min"
+              value: 10
+            - label: "15 min"
+              value: 15
+            - label: "20 min"
+              value: 20
 
 turn_off_washingmachine:
   name: Stop the current program
@@ -412,3 +498,68 @@ turn_off_washingmachine:
       selector:
         device:
           manufacturer: haier
+
+turn_off_purifier:
+  name: Turn off the Air Purifier
+  description: Turn off Air Purifier
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer:
+
+turn_on_purifier:
+  name: Turn on the Air Purifier
+  description: Turn on Air Purifier
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+
+set_auto_mode_purifier:
+  name: Set Air Purifier in Auto Mode
+  description: Set Air Purifier in Auto Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+
+set_sleep_mode_purifier:
+  name: Set Air Purifier in Sleep Mode
+  description: Set Air Purifier in Sleep Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover
+
+set_max_mode_purifier:
+  name: Set Air Purifier in Max Mode
+  description: Set Air Purifier in Max Mode
+  fields:
+    device:
+      name: Purifier
+      description: Hoover Air Purifier
+      required: true
+      advanced: false
+      selector:
+        device:
+          manufacturer: hoover

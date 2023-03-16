@@ -21,6 +21,7 @@ This integration has been tested with the following devices.
 - AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS50S2SF2FA-1/1U50S2SJ2FA
 - AS35S2SF1FA-WH and AS25S2SF1FA-WH in 2x1 configuration with one outdoor unit
+- Haier AS07TS4HRA-M
 
 ### Oven
 
@@ -39,3 +40,7 @@ This integration has been tested with the following devices.
 
 ### Tumble Dryer
 - haier HD80-A3959
+
+### Air Purifier
+- hoover HHP30C011 (Air Purifier 300)
+- hoover HHP50CA011 (Air Purifier 500)

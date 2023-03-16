@@ -50,20 +50,20 @@ class ClimateHvacMode(IntEnum):
 
 class ClimateSwingVertical(IntEnum):
     AUTO = 8
-    VERY_LOW = 2
-    LOW = 2
-    MEDIUM = 4
-    HIGH = 5
-    VERY_HIGH = 6
+    VERY_LOW = 7
+    LOW = 6
+    MIDDLE = 5
+    HIGH = 4
+    VERY_HIGH = 2
 
 
 class ClimateSwingHorizontal(IntEnum):
     AUTO = 7
-    VERY_LOW = 0
-    LOW = 3
-    MEDIUM = 4
-    HIGH = 5
-    VERY_HIGH = 6
+    MIDDLE = 0
+    FAR_LEFT = 3
+    LEFT = 4
+    RIGHT = 5
+    FAR_RIGHT = 6
     
 CLIMATE_FAN_MODE = {
     FAN_LOW: ClimateFanMode.HON_FAN_LOW.value,
@@ -81,10 +81,10 @@ CLIMATE_HVAC_MODE = {
 }
 
 CLIMATE_SWING_MODE_HORIZONTAL = {
-    SWING_OFF: ClimateSwingHorizontal.MEDIUM,
+    SWING_OFF: ClimateSwingHorizontal.MIDDLE,
     SWING_BOTH: ClimateSwingHorizontal.AUTO,
     SWING_HORIZONTAL: ClimateSwingHorizontal.AUTO,
-    SWING_VERTICAL: ClimateSwingHorizontal.MEDIUM,
+    SWING_VERTICAL: ClimateSwingHorizontal.MIDDLE,
 }
 
 
@@ -227,3 +227,21 @@ TUMBLE_DRYER_TEMPL = {
 }
 
 
+PURIFIER_MODE = {
+    "0": "Off",
+    "1": "Sleep",
+    "2": "Auto",
+    "4": "Max"
+}
+
+PURIFIER_VOC_VALUE  = {
+    "1": "Good",
+    "2": "Moderate",
+    "3": "Mediocre",
+    "4": "Bad"
+}
+PURIFIER_LIGHT_VALUE  = {
+    "0": "Off",
+    "1": "50%",
+    "2": "100%"
+}

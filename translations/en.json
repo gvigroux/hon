@@ -3,12 +3,15 @@
         "step": {
             "user": {
                 "title": "hOn",
-                "description": "Please enters your hOn credentials",
+                "description": "Please enter your hOn credentials",
                 "data": {
                     "email": "Email Address",
                     "password": "Password"
                 }
             }
+        },
+        "error": {
+            "auth_error": "Your login attempt has failed. Make sure the username and password are correct."
         }
     }
 }

@@ -27,7 +27,8 @@ from homeassistant.core import callback
 
 from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS
 
-from .oven import HonOvenEntity, HonOvenCoordinator
+from .oven      import HonOvenEntity, HonOvenCoordinator
+from .fridge    import HonFridgeEntity, HonFridgeCoordinator
 
 from .washing_machine import (
     HonWashingMachineCoordinator, 
@@ -64,8 +65,27 @@ from .tumble_dryer import (
     HonTumbleDryerRemoteControl 
 )
 
+from .purifier import (
+    HonPurifierEntity, 
+    HonPurifierCoordinator,
+    HonPurifierOnOff,
+    HonPurifierIndoorPM2p5,
+    HonPurifierIndoorTemp,
+    HonPurifierIndoorHum,
+    HonPurifierIndoorPM10,
+    HonPurifierIndoorVOC,
+    HonPurifierMode,
+    HonPurifierLIGHT,
+    HonPurifierChildLock,
+    HonPurifierCOlevel,
+    HonPurifierAIRquality,
+    HonPurifierAIRpurifyFilterDirtPercentage,
+    HonPurifierAIRpurifyFilterLifePercentage
+)
+
 from homeassistant.helpers.typing import StateType
 
+from .climate import HonClimateEntity
 
 
 from homeassistant.helpers.update_coordinator import (
@@ -84,6 +104,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
+    
+        if appliance.get("macAddress", None) == None:
+            _LOGGER.warning("Appliance with no MAC")
+            continue
+            
         if appliance["applianceTypeId"] in [1,2]:
             coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
@@ -137,79 +162,155 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                 [
                     HonCoolerTemperatureZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ1(hass, coordinator, entry, appliance),
-		            HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
+                    HonCoolerHumidityZ1(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureZ2(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureSelZ2(hass, coordinator, entry, appliance),
-		            HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
+                    HonCoolerHumidityZ2(hass, coordinator, entry, appliance),
                     HonCoolerLightStatus(hass, coordinator, entry, appliance),
                     HonCoolerOnOffStatus(hass, coordinator, entry, appliance),
                     HonCoolerTemperatureEnv(hass, coordinator, entry, appliance),
                 ]
             )
             await coordinator.async_request_refresh()
-        
-        elif appliance["applianceTypeId"] == 9:
-            coordinator = HonDishWasherCoordinator(hass, hon, appliance)
 
-        elif appliance["applianceTypeId"] == 8:
-            coordinator = HonTumbleDryerCoordinator(hass, hon, appliance)
-
+        elif appliance["applianceTypeId"] == 7:
+            coordinator = HonPurifierCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
             appliances.extend(
                 [
+                    HonPurifierOnOff(hass, coordinator, entry, appliance),
+                    HonPurifierMode(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorPM2p5(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorTemp(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorHum(hass, coordinator, entry, appliance),		
+                    HonPurifierIndoorPM10(hass, coordinator, entry, appliance),
+                    HonPurifierIndoorVOC(hass, coordinator, entry, appliance),
+                    HonPurifierLIGHT(hass, coordinator, entry, appliance),
+                    HonPurifierChildLock(hass, coordinator, entry, appliance),
+                    HonPurifierCOlevel(hass, coordinator, entry, appliance),
+                    HonPurifierAIRquality(hass, coordinator, entry, appliance),
+                    HonPurifierAIRpurifyFilterDirtPercentage(hass, coordinator, entry, appliance),
+                    HonPurifierAIRpurifyFilterLifePercentage(hass, coordinator, entry, appliance),			
+                ]
+            )
+            await coordinator.async_request_refresh()
+            
+        elif appliance["applianceTypeId"] == 8:
+            coordinator = HonTumbleDryerCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
 
+            appliances.extend(
+                [
+                    HonTumbleDryerTimeRemaining(hass, coordinator, entry, appliance),
+                    HonTumbleDryerMode(hass, coordinator, entry, appliance),
+                    HonTumbleDryerProgram(hass, coordinator, entry, appliance),
+                    HonTumbleDryerProgramPhase(hass, coordinator, entry, appliance),
+                    HonTumbleDryerDryLevel(hass, coordinator, entry, appliance),
+                    HonTumbleDryerTempLevel(hass, coordinator, entry, appliance),
+                    HonTumbleDryerOnOff(hass, coordinator, entry, appliance),
+                    HonTumbleDryerStart(hass, coordinator, entry, appliance),
+                    HonTumbleDryerRemoteControl(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
+
+        elif appliance["applianceTypeId"] == 9:
+            coordinator = HonDishWasherCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
                     HonDishWasherTimeRemaining(hass, coordinator, entry, appliance),
                     HonDishWasherMode(hass, coordinator, entry, appliance),
                     HonDishWasherRemoteControl(hass, coordinator, entry, appliance),
                     HonDishWasherProgram(hass, coordinator, entry, appliance),
                     HonDishWasherStart(hass, coordinator, entry, appliance),
                     HonDishWasherEnd(hass, coordinator, entry, appliance),
-                    
-                    HonTumbleDryerTimeRemaining(hass, coordinator, entry, appliance),
-                    HonTumbleDryerMode(hass, coordinator, entry, appliance),
-					HonTumbleDryerProgram(hass, coordinator, entry, appliance),
-					HonTumbleDryerProgramPhase(hass, coordinator, entry, appliance),
-					HonTumbleDryerDryLevel(hass, coordinator, entry, appliance),
-					HonTumbleDryerTempLevel(hass, coordinator, entry, appliance),
-					HonTumbleDryerOnOff(hass, coordinator, entry, appliance),
-					HonTumbleDryerStart(hass, coordinator, entry, appliance),
-					HonTumbleDryerRemoteControl(hass, coordinator, entry, appliance),
-
                 ]
             )
             await coordinator.async_request_refresh()
-                
+
         if appliance["applianceTypeId"] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
             
             appliances.extend(
                 [
+                    HonClimateIndoorTemperature(hass, coordinator, entry, appliance),
                     HonClimateOutdoorTemperature(hass, coordinator, entry, appliance) 
                 ])
 
+        elif appliance["applianceTypeId"] == 14:
+            coordinator = HonFridgeCoordinator(hass, hon, appliance)
+            await coordinator.async_config_entry_first_refresh()
+
+            appliances.extend(
+                [
+                    HonFridgeTemperatureZ1(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureZ2(hass, coordinator, entry, appliance),
+                    HonFridgeTemperatureOutside(hass, coordinator, entry, appliance),
+                ]
+            )
+            await coordinator.async_request_refresh()
     async_add_entities(appliances)
 
+
+
+class HonClimateIndoorTemperature(SensorEntity, CoordinatorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator)
+
+        self._mac           = appliance["macAddress"]
+        self._type_name     = appliance["applianceTypeName"]
+        self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
+
+        self._coordinator = coordinator
+        #self._id                = appliance["macAddress"]
+        #self._attr_id           = appliance["macAddress"]
+        self._attr_unique_id    = f"{self._mac}_indoor_temperature"
+        self._attr_name         = f"{self._name} Indoor Temperature"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        #self._attr_icon = "mdi:thermometer"
+        #self._attr_state_class = SensorStateClass.MEASUREMENT
+
+        self._attr_native_value = self._coordinator.data["tempIndoor"]["parNewVal"]
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempIndoor"]["parNewVal"]
+        self.async_write_ha_state()
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._mac)}
+        }
 
 
 class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator)
+        #super().__init__(hass, entry, coordinator, appliance)
 
         self._mac           = appliance["macAddress"]
+        self._type_name     = appliance["applianceTypeName"]
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
-        self._model         = appliance['modelName']
-        self._fwVersion     = appliance['fwVersion']
-        self._brand         = appliance['brand']
 
         self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_temperature_Outdoor"
-        self._attr_name = f"{self._name} Temperature Outdoor"
+        self._attr_unique_id    = f"{self._mac}_temperature_Outdoor"
+        self._attr_name         = f"{self._name} Temperature Outdoor"
         self._attr_native_unit_of_measurement = TEMP_CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
-        self._attr_icon = "mdi:thermometer"
-        self._attr_state_class = SensorStateClass.MEASUREMENT
 
         self._attr_native_value = self._coordinator.data["tempOutdoor"]["parNewVal"]
 
@@ -221,7 +322,6 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
-            _LOGGER.warning("Unable to update Sensor value: no Data")
             return
 
         self._attr_native_value = json["tempOutdoor"]["parNewVal"]
@@ -230,16 +330,8 @@ class HonClimateOutdoorTemperature(SensorEntity, CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self._mac)
-            },
-            "name": self._name,
-            "manufacturer": self._brand,
-            "model": self._model,
-            "sw_version": self._fwVersion
+            "identifiers": {(DOMAIN, self._mac)}
         }
-
 
 
 
@@ -702,7 +794,7 @@ class HonDishWasherStart(SensorEntity, HonDishWasherEntity):
 
         self.async_write_ha_state()
 
-        
+
 class HonCoolerTemperatureZ1(SensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
@@ -869,7 +961,6 @@ class HonCoolerLightStatus(BinarySensorEntity, HonCoolerEntity):
 
         self._attr_is_on = json["lightStatus"]["parNewVal"] == "1"
         self.async_write_ha_state()
-   
 
 class HonCoolerOnOffStatus(BinarySensorEntity, HonCoolerEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
@@ -912,6 +1003,64 @@ class HonCoolerTemperatureEnv(SensorEntity, HonCoolerEntity):
         json = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempEnv"]["parNewVal"]
+        self.async_write_ha_state()
+
+
+class HonFridgeTemperatureZ1(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_zone1"
+        self._attr_name = f"{self._name} Selected Temperature Zone 1"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempSelZ1"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeTemperatureZ2(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_zone2"
+        self._attr_name = f"{self._name} Selected Temperature Zone 2"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
+        if json is False:
+            return
+
+        self._attr_native_value = json["tempSelZ2"]["parNewVal"]
+        self.async_write_ha_state()
+
+class HonFridgeTemperatureOutside(SensorEntity, HonFridgeEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_selected_temperature_outside"
+        self._attr_name = f"{self._name} Selected Temperature Outside"
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @callback
+    def _handle_coordinator_update(self):
+        json = self._coordinator.data
         if json is False:
             return
 
