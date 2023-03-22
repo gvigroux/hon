@@ -15,6 +15,7 @@ from homeassistant.components.binary_sensor import (
 )
 
 from homeassistant.const import (
+    EntityCategory,
     UnitOfTime,
     UnitOfEnergy,
     UnitOfTemperature, 
@@ -22,11 +23,15 @@ from homeassistant.const import (
     UnitOfVolume,
     REVOLUTIONS_PER_MINUTE
 )
+
+from homeassistant.config_entries import ConfigEntry
+
 from homeassistant.core import callback
+
 
 import logging
 from datetime import timedelta
-from .const import DOMAIN, WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES
+from .const import DOMAIN, WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES, WASHING_MACHINE_DOOR_LOCK_STATUS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -133,6 +138,36 @@ class HonWashingMachineCurrentWaterUsed(SensorEntity, HonWashingMachineEntity):
         
         self.async_write_ha_state()
 
+class HonWashingMachineDoorLockStatus(SensorEntity, HonWashingMachineEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+        #see here how to deal with default door ha status
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_door_lock_status"
+        self._attr_name = f"{self._name} Door Lock Status"
+        self._attr_icon = "mdi:lock-question"
+        self._attr_device_class = "washingmachinedoorlockstatus"
+        
+
+    @callback
+    def _handle_coordinator_update(self):
+
+        # Get state from the cloud
+        json = self._coordinator.data
+
+        # No data returned by the Get State method (unauthorized...)
+        if json is False:
+            return
+        
+        door = json["doorLockStatus"]["parNewVal"]
+
+        if door in WASHING_MACHINE_DOOR_LOCK_STATUS:
+            self._attr_native_value = WASHING_MACHINE_DOOR_LOCK_STATUS[door]
+        else:
+            self._attr_native_value = f"Unknown door lock status {door}"
+        
+        self.async_write_ha_state()
+
 class HonWashingMachineError(SensorEntity, HonWashingMachineEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
@@ -141,6 +176,7 @@ class HonWashingMachineError(SensorEntity, HonWashingMachineEntity):
         self._attr_unique_id = f"{self._mac}_error"
         self._attr_name = f"{self._name} Error"
         self._attr_icon = "mdi:math-log"
+        self._attr_device_class = "washingmachineerror"
 
     @callback
     def _handle_coordinator_update(self):
@@ -164,7 +200,7 @@ class HonWashingMachineError(SensorEntity, HonWashingMachineEntity):
 class HonWashingMachineLastStatus(BinarySensorEntity, HonWashingMachineEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
-
+        #See how list and translate values
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_machine_last_status"
         self._attr_name = f"{self._name} Machine Last Status"
@@ -193,6 +229,7 @@ class HonWashingMachineMode(SensorEntity, HonWashingMachineEntity):
         self._attr_unique_id = f"{self._mac}_machine_mode"
         self._attr_name = f"{self._name} Machine Mode"
         self._attr_icon = "mdi:washing-machine"
+        self._attr_device_class = "washingmachinemode"
 
     @callback
     def _handle_coordinator_update(self):
@@ -265,8 +302,12 @@ class HonWashingMachineTimeRemaining(SensorEntity, HonWashingMachineEntity):
         if json["machMode"]["parNewVal"] in ("1","6"):
             self._attr_native_value = 0
         else:
+            if 'delayTime' in json:
+                time = int(json["delayTime"]["parNewVal"])
+            else:
+                time = 0
             self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) 
-            # + int( json["delayTime"])
+            + time
 
         self.async_write_ha_state()
 
@@ -421,31 +462,5 @@ class HonWashingMachineWeight(SensorEntity, HonWashingMachineEntity):
             return
 
         self._attr_native_value = float(json["actualWeight"]["parNewVal"])
-        
-        self.async_write_ha_state()
-
-class HonWashingMachineDoorLockStatus(SensorEntity, HonWashingMachineEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_door_lock_status"
-        self._attr_name = f"{self._name} Door Lock Status"
-        self._attr_device_class  = BinarySensorDeviceClass.DOOR,
-        self._attr_icon = "mdi:lock-question"
-
-    @callback
-    def _handle_coordinator_update(self):
-
-        # Get state from the cloud
-        json = self._coordinator.data
-
-        # No data returned by the Get State method (unauthorized...)
-        if json is False:
-            return
-        if json["doorLockStatus"]["parNewVal"] == "1":
-            self._attr_native_value = "Locked"
-        else:
-            self._attr_native_value = "Unlocked"
         
         self.async_write_ha_state()

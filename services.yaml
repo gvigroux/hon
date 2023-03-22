@@ -402,7 +402,7 @@ turn_on_washingmachine:
       description: Set the program temperature (30° by default)
       required: false
       advanced: false
-      example: "30°"
+      default: "30°"
       selector:
         select:
           options:
@@ -424,7 +424,7 @@ turn_on_washingmachine:
       description: Active the keep fresh option (deactivated by default)
       required: false
       advanced: false
-      default: false
+      default: "No"
       selector:
         select:
           options:
@@ -438,6 +438,7 @@ turn_on_washingmachine:
       description: Set the number of rinse cycle (2 by default)
       required: false
       advanced: false
+      default: "2"
       selector:
         number:
           min: 1
@@ -450,6 +451,7 @@ turn_on_washingmachine:
       description: Set the program SpinSpeed (400 by default)
       required: false
       advanced: false
+      default: "400 rpm"
       selector:
         select:
           options:
@@ -471,6 +473,7 @@ turn_on_washingmachine:
       description: Set the cleaning phase duration (15 minutes by default)
       required: false
       advanced: false
+      default: "15 min"
       selector:
         select:
           options:

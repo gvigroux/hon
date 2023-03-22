@@ -1,0 +1,55 @@
+{
+	"state": {
+		"tumbledryerprogram": {
+			"Default": "Défaut",
+			"Cotton": "Coton",
+			"Synthetics": "Synthetique",
+			"Mix": "Mix",
+			"Bed Sheets": "Draps",
+			"Sports": "Sport",
+			"i-time": "i-time",
+			"Duvet": "Duvet",
+			"Wool": "Laine",
+			"i-Refresh": "i-Refresh",
+			"Towel": "Serviette",
+			"Quick Dry": "Séchage rapide",
+			"Delicate": "Délicat",
+			"Remote 103": "Distant"
+		},
+		"tumbledryerprogramphase": {
+			"Waiting": "En attente",
+			"Drying": "Séchage",
+			"Cooldown": "Refroidisseent"
+		},
+		"tumbledryertemplevel": {
+			"Cupboard dry": "Cupboard dry",
+			"Cool": "Cool",
+			"Low temperature L-1": "Basse température",
+			"Middle temperature L-2": "Température Moyenne",
+			"High temperature L-3": "Haute température"
+		},
+		"tumbledryerdrylevel": {
+			"Extra Dry H-1": "Séchage extra",
+			"Ready to Store H-2": "Prêt à ranger",
+			"Ready to Iron H-3": "Prêt à repasser"
+		},
+        "washingmachineerror": {
+			"No error": "Pas d'erreur",
+			"E2: Check if the door is closed": "E2: vérifier si la porte est fermée",
+			"E4: Check the water supply": "E4: Vérifier l'alimentation en eau de la machine"
+		},
+		"washingmachinemode": {
+			"Disconnected": "Déconnecté",
+			"Ready": "Prêt",
+			"Running": "En cours",
+			"Paused": "En pause",
+			"Scheduled": "Planifié",
+			"Error": "Erreur",
+			"Finished": "Termnié"
+		}, 
+        "washingmachinedoorlockstatus": {
+            "Locked": "Verrouillée",
+            "Unlocked": "Déverrouillée"
+        }
+	}
+}

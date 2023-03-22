@@ -51,13 +51,6 @@ from .cooler import HonCoolerCoordinator, HonCoolerEntity
 
 from .dish_washer import HonDishWasherEntity, HonDishWasherCoordinator
 
-from .washdryer import (
-    HonWashDryerCoordinator, 
-    HonWashDryerEntity, 
-    HonWashDryerMode, 
-    HonWashDryerTimeRemaining, 
-    HonWashDryerRemoteControl
-)
 from .tumble_dryer import (
     HonTumbleDryerCoordinator, 
     HonTumbleDryerEntity, 
@@ -111,12 +104,12 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
-        
+    
         if appliance.get("macAddress", None) == None:
             _LOGGER.warning("Appliance with no MAC")
             continue
-
-        if appliance["applianceTypeId"] == 1:
+            
+        if appliance["applianceTypeId"] in [1,2]:
             coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
@@ -136,21 +129,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
                     HonWashingMachineTotalWaterUsed(hass, coordinator, entry, appliance),
                     HonWashingMachineWeight(hass, coordinator, entry, appliance),
                     HonWashingMachineDoorLockStatus(hass, coordinator, entry, appliance),
-                ]
-            )
-
-            await coordinator.async_request_refresh()
-
-
-        elif appliance["applianceTypeId"] == 2:
-            coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
-            await coordinator.async_config_entry_first_refresh()
-
-            appliances.extend(
-                [
-                    HonWashDryerTimeRemaining(hass, coordinator, entry, appliance),
-                    HonWashDryerMode(hass, coordinator, entry, appliance),
-                    HonWashDryerRemoteControl(hass, coordinator, entry, appliance),
                 ]
             )
 
