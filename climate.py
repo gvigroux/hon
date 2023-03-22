@@ -26,8 +26,6 @@ from homeassistant.const import (
     DATA_RATE_MEGABITS_PER_SECOND,
 )
 
-from .hon import HonCoordinator
-
 
 #https://github.com/home-assistant/core/blob/a82a1bfd64708a044af7a716b5e9e057b1656f2e/homeassistant/components/climate/const.py#L70
 from homeassistant.components.climate.const import (
@@ -151,6 +149,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         "async_set_wind_direction_vertical",
     )
 
+
+
 # function to return key for any value
 def get_key(dictionnary,val,default):
     for key, value in dictionnary.items():
@@ -174,7 +174,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._model         = appliance['modelName']
         self._series        = appliance['series']
         self._modelId       = appliance['applianceModelId']
-        self._typeName      = appliance['applianceTypeName']
+        self._type_name     = appliance['applianceTypeName']
         self._serialNumber  = appliance['serialNumber']
         self._fwVersion     = appliance['fwVersion']
         self._unique_id     = f"{self._mac}"
@@ -329,7 +329,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         return {
             "identifiers": {
                 # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self._mac)
+                (DOMAIN, self._mac, self._type_name)
             },
             "name": self._name,
             "manufacturer": self._brand,
@@ -425,8 +425,11 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         await self.async_send_command(parameters)
 
 
+    async def async_set(self, parameters):
+        await self._hon.async_set(self._mac, self._type_name, parameters)
+        
     async def async_send_command(self, parameters):
-        await self._hon.async_set(self._mac, self._typeName, self.get_command(parameters))
+        await self._hon.async_set(self._mac, self._type_name, self.get_command(parameters))
         self.start_watcher()
         self.async_write_ha_state()
 

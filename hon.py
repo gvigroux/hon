@@ -4,6 +4,7 @@ import voluptuous as vol
 import aiohttp
 import asyncio
 import json
+import re
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -12,6 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
+
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
 
 
@@ -23,22 +26,23 @@ from .const import (
     CONF_REFRESH_TOKEN,
 )
 
+from .base import HonBaseCoordinator, HonBaseEntity
 
-class HonCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, hon, appliance):
-        """Initialize my coordinator."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name="hOn Coordinator",
-            update_interval=timedelta(seconds=15),
-        )
-        self._hon = hon
-        self._mac       = appliance["macAddress"]
-        self._type_name = appliance["applianceTypeName"]
+#class HonCoordinator(DataUpdateCoordinator):
+#    def __init__(self, hass, hon, appliance):
+#        """Initialize my coordinator."""
+#        super().__init__(
+#            hass,
+#            _LOGGER,
+#            name="hOn Coordinator",
+#            update_interval=timedelta(seconds=15),
+#        )
+#        self._hon = hon
+#        self._mac       = appliance["macAddress"]
+#        self._type_name = appliance["applianceTypeName"]
 
-    async def _async_update_data(self):
-        return await self._hon.async_get_state(self._mac, self._type_name)
+#    async def _async_update_data(self):
+#        return await self._hon.async_get_state(self._mac, self._type_name)
 
 
 
@@ -47,7 +51,7 @@ class HonConnection:
     def __init__(self, hass, entry, email = None, password = None) -> None:
         self._hass = hass
         self._entry = entry
-        self._coordinator_dict = {}
+        self._coordinator_dict  = {}
 
         # Only used during registration (Login/password check)
         if( email != None ) and ( password != None ):
@@ -77,13 +81,17 @@ class HonConnection:
     def appliances(self):
         return self._appliances
 
+    async def async_get_existing_coordinator(self, mac):
+        if mac in self._coordinator_dict:
+            return self._coordinator_dict[mac]
+        return None
+        
     async def async_get_coordinator(self, appliance):
         mac = appliance.get("macAddress", "")
-        
         if mac in self._coordinator_dict:
             return self._coordinator_dict[mac]
 
-        coordinator = HonCoordinator( self._hass, self, appliance)
+        coordinator = HonBaseCoordinator( self._hass, self, appliance)
         self._coordinator_dict[mac] = coordinator
         return coordinator
 
@@ -173,10 +181,21 @@ class HonConnection:
             "https://he-accounts.force.com/SmartHome/services/oauth2/authorize?response_type=token+id_token&client_id=3MVG9QDx8IX8nP5T2Ha8ofvlmjLZl5L_gvfbT9.HJvpHGKoAS_dcMN8LYpTSYeVFCraUnV.2Ag1Ki7m4znVO6&redirect_uri=hon%3A%2F%2Fmobilesdk%2Fdetect%2Foauth%2Fdone&display=touch&scope=api%20openid%20refresh_token%20web&nonce=82e9f4d1-140e-4872-9fad-15e25fbf2b7c"
         ) as resp:
             text = await resp.text()
+            array = []
             try:
                 array = text.split("'", 2)
-                params = urllib.parse.parse_qs(array[1])
-                self._id_token = params["id_token"][0]
+
+                if( len(array) == 1 ):
+                    #Implement a second way to get the token value
+                    m = re.search('id_token\=(.+?)&', text)
+                    if m:
+                        idt = m.group(1)
+                    else:
+                        _LOGGER.error("Unable to get [id_token] during authorization process (tried both options). Full response [" + text + "]")
+                        return False
+                else:
+                    params = urllib.parse.parse_qs(array[1])
+                    self._id_token = params["id_token"][0]
             except:
                 _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
                 return False
@@ -270,8 +289,31 @@ class HonConnection:
                 json_data_lastCon = json.loads(text)["payload"]["lastConnEvent"]
                 json_data.update(json_data_lastCon)
 
+            #_LOGGER.warning(json_data)
+
+            #json_data_activity = json.loads(text)["payload"]["activity"]
+            #if( "attributes" in json_data_activity ):
+            #    _LOGGER.warning(json.loads(text)["payload"]["activity"]["attributes"])
+
             return json_data
         return False
+
+
+
+    #async def async_set_parameter(self, device_id, parameters):
+    #    device_registry = dr.async_get(self._hass)
+    #    device = device_registry.async_get(device_id)
+    #    identifiers = next(iter(device.identifiers))
+
+    #    entity_reg = er.async_get_registry(self._hass)
+    #    entry = entity_reg.async_get(entity_id)
+
+    #    dev_reg = dr.async_get_registry(hass)
+    #    device = dev_reg.async_get(entry.device_id)
+
+        #_LOGGER.warning(data)
+        #return await self.async_set(identifiers[1], identifiers[2], parameters)
+
 
     async def async_set(self, mac, typeName, parameters):
         post_headers = {
@@ -325,11 +367,14 @@ class HonConnection:
                 )
                 return False
 
+            #_LOGGER.error(json_data)
+            
             try:
                 if json_data["payload"]["resultCode"] == "0":
                     return True
             except:
                 return False
+
 
             _LOGGER.error(
                 "hOn command has been rejected. Error message ["

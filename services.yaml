@@ -256,36 +256,6 @@ climate_set_wind_direction_vertical:
 #          step: 1
 #          mode: slider
 
-turn_off_cooler_lights:
-  name: Turn off the cooler lights
-  description: Turn off the cooler lights
-  target:
-    entity:
-  fields:
-    device:
-      name: Wine Cooler
-      description: Haier Wine Cooler
-      required: true
-      advanced: false
-      selector:
-        device:
-          manufacturer: haier
-
-turn_on_cooler_lights:
-  name: Turn on the cooler lights
-  description: Turn on the cooler lights
-  target:
-    entity:
-  fields:
-    device:
-      name: Wine Cooler
-      description: Haier Wine Cooler
-      required: true
-      advanced: false
-      selector:
-        device:
-          manufacturer: haier
-
 turn_on_dishwasher:
   name: Turn on the dishwasher
   description: Start a dishwasher program
@@ -560,16 +530,85 @@ set_max_mode_purifier:
       selector:
         device:
           manufacturer: hoover
+###########################################################################
+# Generic services
 
-turn_on:
-  name: Turn on
-  description: Turn on
+turn_off:
+  name: Turn OFF
+  description: Turn OFF any registered hOn device
   fields:
     device:
-      name: hOn Device
-      description: Select any compatible hOn device
+      description: The hOn device
       required: true
       advanced: false
       selector:
         device:
-          manufacturer: hoover
+          integration: hon
+
+set_mode:
+  name: Set MODE
+  description: Select the mode of the hOn device
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+    mode:
+      name: Mode
+      description: blablabla
+      required: true
+      advanced: false
+      selector:
+        text:
+          type: number
+
+turn_light_on:
+  name: Turn on Light
+  description: "Turn ON the light on hOn device"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+          entity:
+            domain: binary_sensor
+            device_class: light
+
+turn_light_off:
+  name: Turn off Light
+  description: "Turn OFF the light"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+          entity:
+            domain: binary_sensor
+            device_class: light
+
+send_custom_request:
+  name: Send custom request
+  description: "send any parameters to the hOn device"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+    parameters:
+      description: Parameters
+      required: true
+      advanced: false
+      selector:
+        text:

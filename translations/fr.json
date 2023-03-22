@@ -1,0 +1,17 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "hOn",
+                "description": "Merci de saisir vos identifiants",
+                "data": {
+                    "email": "Adresse Email",
+                    "password": "Mot de passe"
+                }
+            }
+        },
+        "error": {
+            "auth_error": "Impossible de ce connecter. Verifiez votre login & password"
+        }
+    }
+}

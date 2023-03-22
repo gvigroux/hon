@@ -6,13 +6,18 @@ import aiohttp
 import asyncio
 import json
 import urllib.parse
+import ast
 
 from datetime import datetime
 from dateutil.tz import gettz
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_EMAIL, CONF_PASSWORD
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
+
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_component as ec
 
 
 from .const import DOMAIN, PLATFORMS
@@ -35,6 +40,18 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
+def update_sensor(hass, device_id, mac, sensor_name, state):
+
+    entity_reg  = er.async_get(hass)
+    entries     = er.async_entries_for_device(entity_reg, device_id)
+
+    # Loop over all entries and update the good ones
+    for entry in entries:
+        if( entry.unique_id == mac + '_' + sensor_name):
+            inputStateObject = hass.states.get(entry.entity_id)
+            hass.states.async_set(entry.entity_id, state, inputStateObject.attributes)
+
+
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hon = HonConnection(hass, entry)
     await hon.async_authorize()
@@ -49,6 +66,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
+
+
+
 
     # Log details on unknown devices
     #for appliance in hon.appliances:
@@ -212,10 +232,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         json = await hon.async_get_state(mac, "WM", True)
 
-        # _LOGGER.warning(
-        #         json
-        #     )
-        
         if json["payload"]["lastConnEvent"]["category"] != "DISCONNECTED":
             return await hon.async_set(mac, "WM", parameters)
         else:
@@ -277,17 +293,130 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         return await hon.async_set(mac, "AP", parameters)
 
 
+    # Generic method to set a mode to any hOn device
+    async def handle_set_mode(call):
+        #parameters = {"onOffStatus": "1", "machMode": call.data.get("mode", 1)}
+        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        parameters = {"onOffStatus": "1", "machMode": call.data.get("mode", 1)}
+        await coordinator.async_set(parameters)
+        await coordinator.async_request_refresh()
+
+    # Generic method to TURN OFF any hOn device
+    async def handle_turn_off(call):
+        #parameters = {"onOffStatus": "0", "machMode": "1" }
+        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        parameters = {"onOffStatus": "0", "machMode": "1" }
+        await coordinator.async_set(parameters)
+        await coordinator.async_request_refresh()
+
+    async def handle_light_on(call):
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        parameters = {"lightStatus": "1"}
+        await coordinator.async_set(parameters)
+        await coordinator.async_request_refresh()
+
+
+        #entity_registry = er.async_get(hass)
+        #entries         = er.async_entries_for_device(entity_registry, device_id)
+
+        #for entry in entries:
+        #    _LOGGER.warning(entry.entity_id)
+        #    parameters  = {"lightStatus": "1"}
+        #    await entity.async_set(parameters)
+        #    break
+        #
+        #device_registry = dr.async_get(hass)
+        #device = device_registry.async_get(device_id)
+        #identifiers = next(iter(device.identifiers))
+        #
+
+        #mac         = identifiers[1]
+        #type_name   = identifiers[2]
+
+        #parameters  = {"lightStatus": "1"}
+        #await hon.async_set(mac, type_name, parameters)
+
+        #update_sensor(hass, device_id, mac, "light_status" , "on")
+
+        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
+
+    async def handle_light_off(call):
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        parameters = {"lightStatus": "1"}
+        await coordinator.async_set(parameters)
+        await coordinator.async_request_refresh()
+
+        #device_id = call.data.get("device_id")[0]
+
+        #
+        #device_registry = dr.async_get(hass)
+        #device = device_registry.async_get(device_id)
+        #identifiers = next(iter(device.identifiers))
+        #
+
+        #mac         = identifiers[1]
+        #type_name   = identifiers[2]
+
+        #parameters  = {"lightStatus": "0"}
+        #await hon.async_set(mac, type_name, parameters)
+
+        #update_sensor(hass, device_id, mac, "light_status" , "off")
+        
+        #update_sensor(hass, call, "light_status" , "on")
+        #parameters = {"lightStatus": "0"}
+        #hass.async_create_task(update_sensor(hass, call, "light_status" , "off"))
+
+        #update_sensor(hass, call, "light_status" , "off")
+        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
+
+
+    async def handle_custom_request(call):
+        _LOGGER.warning(call)
+        #device_id = call.data.get("device")
+        #mac = get_hOn_mac(device_id, hass)
+        #coordinator = await hon.async_get_existing_coordinator(mac)
+        #parameters = {"lightStatus": "1"}
+        #await coordinator.async_set(parameters)
+        #await coordinator.async_request_refresh()
+
+        parameters_str = call.data.get("parameters")
+        _LOGGER.warning(parameters_str)
+        #parameters_str = parameters_str.strip("{}")
+        #parameters = dict(map(str.strip, sub.split(':', 1))
+        #                    for sub in parameters_str.split(', ') if ':' in sub)
+
+        #parameters = json.loads(parameters_str)
+        parameters = ast.literal_eval(parameters_str)
+        # printing result
+        _LOGGER.warning("The converted dictionary is : " + str(parameters))
+
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
-    hass.services.async_register(DOMAIN, "turn_off_washingmachine", handle_washingmachine_stop)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
-    hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
-    hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
-    hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
     hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
-    hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
     hass.services.async_register(DOMAIN, "turn_on_purifier", handle_purifier_start)
     hass.services.async_register(DOMAIN, "set_auto_mode_purifier", handle_purifier_automode)
     hass.services.async_register(DOMAIN, "set_sleep_mode_purifier", handle_purifier_sleepmode)
     hass.services.async_register(DOMAIN, "set_max_mode_purifier", handle_purifier_maxmode)
 
+    hass.services.async_register(DOMAIN, "set_mode", handle_set_mode)
+    hass.services.async_register(DOMAIN, "turn_off", handle_turn_off)
+    hass.services.async_register(DOMAIN, "turn_light_on",   handle_light_on)
+    hass.services.async_register(DOMAIN, "turn_light_off",  handle_light_off)
+    hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
+
+    #hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
+    #hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
+    #hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
+    #hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
+    #hass.services.async_register(DOMAIN, "turn_off_washingmachine", handle_washingmachine_stop)
     return True
