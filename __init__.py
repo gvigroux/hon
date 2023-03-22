@@ -381,24 +381,14 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
 
     async def handle_custom_request(call):
-        _LOGGER.warning(call)
-        #device_id = call.data.get("device")
-        #mac = get_hOn_mac(device_id, hass)
-        #coordinator = await hon.async_get_existing_coordinator(mac)
-        #parameters = {"lightStatus": "1"}
-        #await coordinator.async_set(parameters)
-        #await coordinator.async_request_refresh()
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        coordinator = await hon.async_get_existing_coordinator(mac)
 
         parameters_str = call.data.get("parameters")
-        _LOGGER.warning(parameters_str)
-        #parameters_str = parameters_str.strip("{}")
-        #parameters = dict(map(str.strip, sub.split(':', 1))
-        #                    for sub in parameters_str.split(', ') if ':' in sub)
-
-        #parameters = json.loads(parameters_str)
         parameters = ast.literal_eval(parameters_str)
-        # printing result
-        _LOGGER.warning("The converted dictionary is : " + str(parameters))
+        await coordinator.async_set(parameters)
+        await coordinator.async_request_refresh()
 
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)

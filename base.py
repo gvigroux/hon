@@ -16,7 +16,7 @@ class HonBaseCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="hOn Device",
-            update_interval=timedelta(seconds=120),
+            update_interval=timedelta(seconds=30),
         )
         self._hon       = hon
         self._mac       = appliance["macAddress"]
