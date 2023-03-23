@@ -47,7 +47,7 @@ APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
     "2": "Wah Dryer",
     "4": "Oven",
-    "6": "Wine Cooler"
+    "6": "Wine Cooler",
     "7": "Purifier",
     "8": "Tumble Dryer",
     "9": "Dish Washer",
