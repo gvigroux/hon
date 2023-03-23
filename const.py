@@ -36,6 +36,7 @@ class APPLIANCE_TYPE(IntEnum):
     WASHING_MACHINE = 1,
     WASH_DRYER      = 2,
     OVEN            = 4,
+    WINE_COOLER     = 6,
     PURIFIER        = 7,
     TUMBLE_DRYER    = 8,
     DISH_WASHER     = 9,
@@ -46,6 +47,7 @@ APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
     "2": "Wah Dryer",
     "4": "Oven",
+    "6": "Wine Cooler"
     "7": "Purifier",
     "8": "Tumble Dryer",
     "9": "Dish Washer",
