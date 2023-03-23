@@ -34,7 +34,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         coordinator = await hon.async_get_coordinator(appliance)
         await coordinator.async_config_entry_first_refresh()
 
-        #Every device should have a OnOff status
+        # Every device should have a OnOff status
         appliances.extend([HonBaseOnOff(hass, coordinator, entry, appliance)])
 
         if( "doorStatusZ1" in coordinator.data ):

@@ -147,14 +147,18 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseSpinSpeed(hass, coordinator, entry, appliance)])
 
 
+        # Fridge other values
+        if( "quickModeZ1" in coordinator.data ):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick Mode Zone 1", )])
+        if( "quickModeZ2" in coordinator.data ):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick Mode Zone 2", )])
+        if( "intelligenceMode" in coordinator.data ):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "intelligenceMode", "IntelligenceMode", )])
+        if( "holidayMode" in coordinator.data ):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "holidayMode", "Holiday Mode", )])
+        if( "sterilizationStatus" in coordinator.data ):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization Status", )])
 
-
-        #'quickModeZ1': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 
-        #'intelligenceMode': {'parNewVal': '0', 'lastUpdate': '2023-02-04T10:40:58Z'}, 
-        #'quickModeZ2': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 
-        #'holidayMode': {'parNewVal': '0', 'lastUpdate': '2023-02-01T14:41:33Z'}, 
-        #'sterilizationStatus': {'parNewVal': '0', 'lastUpdate': '2023-03-19T03:49:37Z'}, 
-        
 
         await coordinator.async_request_refresh()
 
@@ -176,6 +180,26 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 def add_temperature_sensor(hass, coordinator, entry, appliances, appliance, parameter, name ) -> None:
     if( coordinator.data.get(parameter, None) != None ):
         appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, parameter, name)])
+
+
+
+class HonBaseInt(SensorEntity, HonBaseEntity):
+    def __init__(self, hass, coordinator, entry, appliance, sensor, name) -> None:
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._sensor = sensor
+        self._attr_unique_id    = f"{self._mac}_{name}"
+        self._attr_name         = f"{self._name} {name}"
+        self._appliance_type_id = appliance["applianceTypeId"]
+        #self._attr_icon         = "mdi:washing-machine"
+
+    @callback
+    def _handle_coordinator_update(self):
+        if self._coordinator.data is False:
+            return
+        self._attr_native_value = self._coordinator.data[self._sensor]["parNewVal"]
+        self.async_write_ha_state()
 
 
 class HonBaseTemperature(SensorEntity, HonBaseEntity):
