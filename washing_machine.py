@@ -15,7 +15,7 @@ from homeassistant.components.binary_sensor import (
 )
 
 from homeassistant.const import (
-    EntityCategory,
+    # EntityCategory,
     UnitOfTime,
     UnitOfEnergy,
     UnitOfTemperature, 
@@ -103,13 +103,13 @@ class HonWashingMachineCurrentElectricityUsed(SensorEntity, HonWashingMachineEnt
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = json["currentElectricityUsed"]["parNewVal"]
+        self._attr_native_value = json.get("currentElectricityUsed", {}).get("parNewVal", 0)
         
         self.async_write_ha_state()
 
@@ -128,13 +128,13 @@ class HonWashingMachineCurrentWaterUsed(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = json["currentWaterUsed"]["parNewVal"]
+        self._attr_native_value = json.get("currentWaterUsed", {}).get("parNewVal", 0)
         
         self.async_write_ha_state()
 
@@ -153,13 +153,13 @@ class HonWashingMachineDoorLockStatus(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
         
-        door = json["doorLockStatus"]["parNewVal"]
+        door = json.get("doorLockStatus", {}).get("parNewVal", "None")
 
         if door in WASHING_MACHINE_DOOR_LOCK_STATUS:
             self._attr_native_value = WASHING_MACHINE_DOOR_LOCK_STATUS[door]
@@ -182,13 +182,13 @@ class HonWashingMachineError(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        error = json["errors"]["parNewVal"]
+        error = json.get("errors", {}).get("parNewVal", "None")
 
         if error in WASHING_MACHINE_ERROR_CODES:
             self._attr_native_value = WASHING_MACHINE_ERROR_CODES[error]
@@ -211,7 +211,7 @@ class HonWashingMachineLastStatus(BinarySensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
@@ -235,13 +235,13 @@ class HonWashingMachineMode(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        mode = json["machMode"]["parNewVal"]
+        mode = json.get("machMode", {}).get("parNewVal", "None")
 
         if mode in WASHING_MACHINE_MODE:
             self._attr_native_value = WASHING_MACHINE_MODE[mode]
@@ -264,16 +264,16 @@ class HonWashingMachineSpinSpeed(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        if json["machMode"]["parNewVal"] in ("1","6"):
+        if json.get("machMode", {}).get("parNewVal", "0") in ("1","6"):
             self._attr_native_value = 0
         else:
-            self._attr_native_value = int(json["spinSpeed"]["parNewVal"])
+            self._attr_native_value = int(json.get("spinSpeed").get("parNewVal", "0"))
 
         self.async_write_ha_state()
 
@@ -293,20 +293,20 @@ class HonWashingMachineTimeRemaining(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        if json["machMode"]["parNewVal"] in ("1","6"):
+        if json.get("machMode", {}).get("parNewVal", "0") in ("1","6"):
             self._attr_native_value = 0
         else:
             if 'delayTime' in json:
-                time = int(json["delayTime"]["parNewVal"])
+                time = int(json.get("delayTime", {}).get("parNewVal", "0"))
             else:
                 time = 0
-            self._attr_native_value = int(json["remainingTimeMM"]["parNewVal"]) 
+            self._attr_native_value = int(json.get("remainingTimeMM", {}).get("parNewVal", "0")) 
             + time
 
         self.async_write_ha_state()
@@ -326,16 +326,16 @@ class HonWashingMachineTemp(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        if json["machMode"]["parNewVal"] in ("1","6"):
+        if json.get("machMode", {}).get("parNewVal", "0") in ("1","6"):
             self._attr_native_value = 0
         else:
-            self._attr_native_value = int(json["temp"]["parNewVal"])
+            self._attr_native_value = int(json.get("temp", {}).get("parNewVal", "0"))
 
         self.async_write_ha_state()
 
@@ -354,16 +354,16 @@ class HonWashingMeanWaterConsumption(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        if int(json["totalWashCycle"]["parNewVal"])-1 == 0:
+        if int(json.get("totalWashCycle", {}).get("parNewVal", "1"))-1 == 0:
             self._attr_native_value = None
         else:
-            self._attr_native_value = round(float(json["totalWaterUsed"]["parNewVal"])/(float(json["totalWashCycle"]["parNewVal"])-1),2)
+            self._attr_native_value = round(float(json.get("totalWaterUsed", {}).get("parNewVal", "1"))/(float(json.get("totalWashCycle", {}).get("parNewVal", "1"))-1),2)
 
         self.async_write_ha_state()
 
@@ -382,13 +382,13 @@ class HonWashingMachineTotalElectricityUsed(SensorEntity, HonWashingMachineEntit
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = float(json["totalElectricityUsed"]["parNewVal"])
+        self._attr_native_value = float(json.get("totalElectricityUsed", {}).get("parNewVal", "0"))
         
         self.async_write_ha_state()
 
@@ -405,13 +405,13 @@ class HonWashingMachineTotalWashCycle(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = int(json["totalWashCycle"]["parNewVal"])-1
+        self._attr_native_value = int(json.get("totalWashCycle", {}).get("parNewVal", "1"))-1
         
         self.async_write_ha_state()
 
@@ -430,13 +430,13 @@ class HonWashingMachineTotalWaterUsed(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = float(json["totalWaterUsed"]["parNewVal"])
+        self._attr_native_value = float(json.get("totalWaterUsed", {}).get("parNewVal", "1"))
         
         self.async_write_ha_state()
 
@@ -455,12 +455,12 @@ class HonWashingMachineWeight(SensorEntity, HonWashingMachineEntity):
     def _handle_coordinator_update(self):
 
         # Get state from the cloud
-        json = self._coordinator.data
+        json: dict = self._coordinator.data
 
         # No data returned by the Get State method (unauthorized...)
         if json is False:
             return
 
-        self._attr_native_value = float(json["actualWeight"]["parNewVal"])
+        self._attr_native_value = float(json.get("actualWeight", {}).get("parNewVal", "1"))
         
         self.async_write_ha_state()
