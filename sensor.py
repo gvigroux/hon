@@ -6,8 +6,6 @@ from dateutil.tz import gettz
 from typing import Optional
 from enum import IntEnum
 
-from sqlalchemy import null
-
 from homeassistant.const import TEMP_CELSIUS, TIME_MINUTES
 
 from homeassistant.components.sensor import (
@@ -113,24 +111,35 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             coordinator = HonWashingMachineCoordinator(hass, hon, appliance)
             await coordinator.async_config_entry_first_refresh()
 
-            appliances.extend(
-                [
-                    HonWashingMachineCurrentElectricityUsed(hass, coordinator, entry, appliance),
-                    HonWashingMachineCurrentWaterUsed(hass, coordinator, entry, appliance),
-                    HonWashingMachineError(hass, coordinator, entry, appliance),
-                    HonWashingMachineLastStatus(hass, coordinator, entry, appliance),
-                    HonWashingMachineMode(hass, coordinator, entry, appliance),
-                    HonWashingMeanWaterConsumption(hass, coordinator, entry, appliance),
-                    HonWashingMachineSpinSpeed(hass, coordinator, entry, appliance),
-                    HonWashingMachineTimeRemaining(hass, coordinator, entry, appliance),
-                    HonWashingMachineTemp(hass, coordinator, entry, appliance),
-                    HonWashingMachineTotalElectricityUsed(hass, coordinator, entry, appliance),
-                    HonWashingMachineTotalWashCycle(hass, coordinator, entry, appliance),
-                    HonWashingMachineTotalWaterUsed(hass, coordinator, entry, appliance),
-                    HonWashingMachineWeight(hass, coordinator, entry, appliance),
-                    HonWashingMachineDoorLockStatus(hass, coordinator, entry, appliance),
-                ]
-            )
+            data: dict = coordinator.data
+            if "currentElectricityUsed" in data.keys():
+                appliances.append(HonWashingMachineCurrentElectricityUsed(hass, coordinator, entry, appliance),)
+            if "currentWaterUsed" in data.keys():
+                appliances.append(HonWashingMachineCurrentWaterUsed(hass, coordinator, entry, appliance),)
+            if "errors" in data.keys():
+                appliances.append(HonWashingMachineError(hass, coordinator, entry, appliance),)
+            if "category" in data.keys():
+                appliances.append(HonWashingMachineLastStatus(hass, coordinator, entry, appliance),)
+            if "machMode" in data.keys():
+                appliances.append(HonWashingMachineMode(hass, coordinator, entry, appliance),)
+            if "totalWaterUsed" in data.keys():
+                appliances.append(HonWashingMeanWaterConsumption(hass, coordinator, entry, appliance),)
+            if "spinSpeed" in data.keys():
+                appliances.append(HonWashingMachineSpinSpeed(hass, coordinator, entry, appliance),)
+            if "remainingTimeMM" in data.keys():
+                appliances.append(HonWashingMachineTimeRemaining(hass, coordinator, entry, appliance),)
+            if "temp" in data.keys():
+                appliances.append(HonWashingMachineTemp(hass, coordinator, entry, appliance),)
+            if "totalElectricityUsed" in data.keys():
+                appliances.append(HonWashingMachineTotalElectricityUsed(hass, coordinator, entry, appliance),)
+            if "totalWashCycle" in data.keys():
+                appliances.append(HonWashingMachineTotalWashCycle(hass, coordinator, entry, appliance),)
+            if "totalWaterUsed" in data.keys():
+                appliances.append(HonWashingMachineTotalWaterUsed(hass, coordinator, entry, appliance),)
+            if "actualWeight" in data.keys():
+                appliances.append(HonWashingMachineWeight(hass, coordinator, entry, appliance),)
+            if "doorLockStatus" in data.keys():
+                appliances.append(HonWashingMachineDoorLockStatus(hass, coordinator, entry, appliance),)
 
             await coordinator.async_request_refresh()
 
