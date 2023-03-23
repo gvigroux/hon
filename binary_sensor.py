@@ -73,7 +73,7 @@ class HonBaseOnOff(BinarySensorEntity, HonBaseEntity):
 
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_on_off"
-        self._attr_name = f"{self._name}"
+        self._attr_name = f"{self._name} Status"
         self._attr_device_class = BinarySensorDeviceClass.POWER
 
     @callback
