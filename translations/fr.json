@@ -9,6 +9,9 @@
                     "password": "Mot de passe"
                 }
             }
+        },
+        "error": {
+            "auth_error": "Impossible de se connecter. Verifiez votre login & password"
         }
     }
 }

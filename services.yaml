@@ -256,36 +256,6 @@ climate_set_wind_direction_vertical:
 #          step: 1
 #          mode: slider
 
-turn_off_cooler_lights:
-  name: Turn off the cooler lights
-  description: Turn off the cooler lights
-  target:
-    entity:
-  fields:
-    device:
-      name: Wine Cooler
-      description: Haier Wine Cooler
-      required: true
-      advanced: false
-      selector:
-        device:
-          manufacturer: haier
-
-turn_on_cooler_lights:
-  name: Turn on the cooler lights
-  description: Turn on the cooler lights
-  target:
-    entity:
-  fields:
-    device:
-      name: Wine Cooler
-      description: Haier Wine Cooler
-      required: true
-      advanced: false
-      selector:
-        device:
-          manufacturer: haier
-
 turn_on_dishwasher:
   name: Turn on the dishwasher
   description: Start a dishwasher program
@@ -563,3 +533,87 @@ set_max_mode_purifier:
       selector:
         device:
           manufacturer: hoover
+
+###########################################################################
+# Generic services
+
+turn_off:
+  name: Turn OFF
+  description: Turn OFF any registered hOn device
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+
+set_mode:
+  name: Set MODE
+  description: Select the mode of the hOn device
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+    mode:
+      name: Mode
+      description: The mode (1 to 10) depending on device type
+      required: true
+      advanced: false
+      selector:
+        text:
+          type: number
+
+turn_light_on:
+  name: Turn on Light
+  description: "Turn ON the light on hOn device"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+          entity:
+            domain: binary_sensor
+            device_class: light
+
+turn_light_off:
+  name: Turn off Light
+  description: "Turn OFF the light"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+          entity:
+            domain: binary_sensor
+            device_class: light
+
+send_custom_request:
+  name: Send custom request
+  description: "send any parameters to the hOn device"
+  fields:
+    device:
+      description: The hOn device
+      required: true
+      advanced: false
+      selector:
+        device:
+          integration: hon
+    parameters:
+      description: 'List of parameters to send to the device. To turn OFF: {"onOffStatus": "0", "machMode": "1"}. Default is a Climate command'
+      default: '{"specialMode":"0","heatAccumulationStatus":"0","echoStatus":"0","healthMode":"0","tempSel":"21.00","humidificationStatus":"0","tempUnit":"0","humiditySel":"30","pmvStatus":"0","screenDisplayStatus":"1","windDirectionVertical":"5","lightStatus":"0","energySavingStatus":"0","lockStatus":"0","machMode":"1","windDirectionHorizontal":"0","freshAirStatus":"0","pm2p5CleaningStatus":"0","windSpeed":"5","ch2oCleaningStatus":"0","electricHeatingStatus":"0","onOffStatus":1,"energySavePeriod":"15","intelligenceStatus":"0","halfDegreeSettingStatus":"0","rapidMode":"0","operationName":"grSetDAC","silentSleepStatus":"0","voiceSignStatus":"0","voiceStatus":"0","muteStatus":"0","10degreeHeatingStatus":"0","windSensingStatus":"0","selfCleaning56Status":"0","humanSensingStatus":"0","selfCleaningStatus":"0"}'
+      required: true
+      advanced: false
+      selector:
+        text:

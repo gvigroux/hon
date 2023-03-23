@@ -29,8 +29,29 @@ CONF_FRAMEWORK = "framework"
 PLATFORMS = [
     "climate",
     "sensor",
+    "binary_sensor"
 ]
 
+class APPLIANCE_TYPE(IntEnum):
+    WASHING_MACHINE = 1,
+    WASH_DRYER      = 2,
+    OVEN            = 4,
+    PURIFIER        = 7,
+    TUMBLE_DRYER    = 8,
+    DISH_WASHER     = 9,
+    CLIMATE         = 11,
+    FRIDGE          = 14
+
+APPLIANCE_DEFAULT_NAME = {
+    "1": "Washing Machine",
+    "2": "Wah Dryer",
+    "4": "Oven",
+    "7": "Purifier",
+    "8": "Tumble Dryer",
+    "9": "Dish Washer",
+    "11": "Climate",
+    "14": "Fridge",
+}
 
 class ClimateFanMode(IntEnum):
     HON_FAN_OFF = 0
@@ -47,6 +68,14 @@ class ClimateHvacMode(IntEnum):
     HON_HVAC_HEAT = 4
     HON_HVAC_FAN_ONLY = 6
 
+
+CLIMATE_MODE = {
+    "0": "Auto",
+    "1": "Cool",
+    "2": "Dry",
+    "4": "Heat",
+    "6": "Fan only",
+}
 
 class ClimateSwingVertical(IntEnum):
     AUTO = 8
