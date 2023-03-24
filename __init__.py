@@ -352,7 +352,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
         coordinator = await hon.async_get_existing_coordinator(mac)
-        parameters = {"lightStatus": "1"}
+        parameters = {"lightStatus": "0"}
         await coordinator.async_set(parameters)
         await coordinator.async_request_refresh()
 

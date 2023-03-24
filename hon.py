@@ -208,10 +208,10 @@ class HonConnection:
             text = await resp.text()
             try:
                 json_data = json.loads(text)
+                self._cognitoToken = json_data["cognitoUser"]["Token"]
             except:
-                _LOGGER.error("No JSON Data after POST: " + text)
+                _LOGGER.error("Invalid JSON Data after POST to https://api-iot.he.services/auth/v1/login: " + text)
                 return False
-            self._cognitoToken = json_data["cognitoUser"]["Token"]
             #_LOGGER.warning(self._cognitoToken)
 
         credential_headers = {
