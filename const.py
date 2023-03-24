@@ -85,7 +85,9 @@ class ClimateSwingVertical(IntEnum):
     LOW = 6
     MIDDLE = 5
     HIGH = 4
+    HEALTH_LOW = 3
     VERY_HIGH = 2
+    HEALTH_HIGH = 1
 
 
 class ClimateSwingHorizontal(IntEnum):

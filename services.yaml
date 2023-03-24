@@ -225,6 +225,10 @@ climate_set_wind_direction_vertical:
               value: 4
             - label: "Very high"
               value: 2
+            - label: "Health high"
+              value: 3
+            - label: "Health low"
+              value: 1
 
 #climate_set_wind_direction:
 #  name: Set wind direction
