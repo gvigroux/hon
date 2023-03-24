@@ -679,6 +679,7 @@ class HonBaseTotalElectricityUsed(SensorEntity, HonBaseEntity):
         self._attr_name = f"{self._name} Total Electricity Used"
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:connection"
 
     @callback
@@ -717,6 +718,7 @@ class HonBaseTotalWaterUsed(SensorEntity, HonBaseEntity):
         self._attr_name = f"{self._name} Total Water Used"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
+        self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water-pump"
 
     @callback
@@ -757,6 +759,7 @@ class HonBaseCurrentWaterUsed(SensorEntity, HonBaseEntity):
         self._attr_name = f"{self._name} Current Water Used"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:water"
 
     @callback
@@ -798,6 +801,7 @@ class HonBaseCurrentElectricityUsed(SensorEntity, HonBaseEntity):
         self._attr_name = f"{self._name} Current Electricity Used"
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:lightning-bolt"
 
     @callback
@@ -818,6 +822,7 @@ class HonBaseSpinSpeed(SensorEntity, HonBaseEntity):
         self._attr_unique_id = f"{self._mac}_spin_Speed"
         self._attr_name = f"{self._name} Spin speed"
         self._attr_native_unit_of_measurement = REVOLUTIONS_PER_MINUTE
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:speedometer"
 
     @callback
