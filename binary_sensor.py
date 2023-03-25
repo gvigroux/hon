@@ -7,7 +7,7 @@ from typing import Optional
 from enum import IntEnum
 
 from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE, APPLIANCE_TYPE
-from .base import HonBaseCoordinator, HonBaseEntity
+from .base import HonBaseCoordinator, HonBaseEntity, HonBaseBinarySensorEntity
 
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
@@ -18,6 +18,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
 )
 
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
 
@@ -58,7 +59,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 
-
     async_add_entities(appliances)
 
     platform = entity_platform.async_get_current_platform()
@@ -67,151 +67,94 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 
-class HonBaseOnOff(BinarySensorEntity, HonBaseEntity):
+class HonBaseOnOff(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "onOffStatus", "Status")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_on_off"
-        self._attr_name = f"{self._name} Status"
         self._attr_device_class = BinarySensorDeviceClass.POWER
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         if( "onOffStatus" in self._coordinator.data ):
             self._attr_is_on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
         else:
             self._attr_is_on = self._coordinator.data["category"] == "CONNECTED"
-        self.async_write_ha_state()
 
 
-class HonBaseDoorStatus(BinarySensorEntity, HonBaseEntity):
+
+class HonBaseDoorStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, zone = "Z1", zone_name = "Zone 1") -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "doorStatus" + self._zone, f"Door Status {zone_name}")
 
-        self._coordinator = coordinator
         self._zone = zone
-        self._attr_name = f"Door Status {zone_name}"
-        self._attr_unique_id = f"{self._mac}_door_status_{zone}"
         self._attr_device_class = BinarySensorDeviceClass.DOOR
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["doorStatus" + self._zone]["parNewVal"] == "1"
-        self.async_write_ha_state()
 
 
 
-class HonBaseLightStatus(BinarySensorEntity, HonBaseEntity):
+class HonBaseLightStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "lightStatus", "Light")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_light_status"
-        self._attr_name = f"{self._name} Light"
         self._attr_device_class = BinarySensorDeviceClass.LIGHT
         self._attr_icon = "mdi:lightbulb"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["lightStatus"]["parNewVal"] == "1"
-        self.async_write_ha_state()
 
-    async def async_set_on(self):
-        parameters  = {"lightStatus": "1"}
-        await self.async_set(parameters)
-        self._attr_is_on = True
-        self.async_write_ha_state()
-
-    async def async_set_off(self):
-        parameters  = {"lightStatus": "0"}
-        await self.async_set(parameters)
-        self._attr_is_on = False
-        self.async_write_ha_state()
-    
-    #def update_value(self, value):
-    #    self._attr_is_on = value
+    #async def async_set_on(self):
+    #    parameters  = {"lightStatus": "1"}
+    #    await self.async_set(parameters)
+    #    self._attr_is_on = True
     #    self.async_write_ha_state()
 
+    #async def async_set_off(self):
+    #    parameters  = {"lightStatus": "0"}
+    #    await self.async_set(parameters)
+    #    self._attr_is_on = False
+    #    self.async_write_ha_state()
+    
 
 
-class HonBaseRemoteControl(BinarySensorEntity, HonBaseEntity):
+class HonBaseRemoteControl(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "remoteCtrValid", "Remote Control")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_remote_control"
-        self._attr_name = f"{self._name} Remote Control"
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:remote"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["remoteCtrValid"]["parNewVal"] == 1
-        self.async_write_ha_state()
 
 
-class HonBaseDoorLockStatus(BinarySensorEntity, HonBaseEntity):
+class HonBaseDoorLockStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "doorLockStatus", "Door Lock")
 
-        self._coordinator = coordinator
-        self._attr_name = f"Door Lock"
-        self._attr_unique_id = f"{self._mac}_door_lock_status"
         self._attr_device_class = BinarySensorDeviceClass.LOCK
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["doorLockStatus"]["parNewVal"] == "0"
-        self.async_write_ha_state()
 
 
-class HonBaseChildLockStatus(BinarySensorEntity, HonBaseEntity):
+class HonBaseChildLockStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "lockStatus", "Child Lock")
 
-        self._coordinator = coordinator
-        self._attr_name = f"Child Lock"
-        self._attr_unique_id = f"{self._mac}_child_lock_status"
         self._attr_device_class = BinarySensorDeviceClass.LOCK
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["lockStatus"]["parNewVal"] == "0"
-        self.async_write_ha_state()
 
 
-
-class HonBasePreheating(BinarySensorEntity, HonBaseEntity):
+class HonBasePreheating(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "preheatStatus", "Preheating")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_preheating"
-        self._attr_name = f"{self._name} Preheating"
         self._attr_device_class = BinarySensorDeviceClass.HEAT
         self._attr_icon = "mdi:thermometer-chevron-up"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
+    def coordinator_update(self):
         self._attr_is_on = json["preheatStatus"]["parNewVal"] == "1"
-        self.async_write_ha_state()

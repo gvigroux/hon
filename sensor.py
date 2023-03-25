@@ -126,7 +126,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
         if( "totalWaterUsed" in coordinator.data and "totalWashCycle" in coordinator.data  ):
             appliances.extend([HonBaseMeanWaterConsumption(hass, coordinator, entry, appliance)])
-        if( "totalElectricityUsed" in coordinator.data and int(coordinator.data["totalElectricityUsed"]["parNewVal"]) > 0):
+        if( "totalElectricityUsed" in coordinator.data and float(coordinator.data["totalElectricityUsed"]["parNewVal"]) > 0):
             appliances.extend([HonBaseTotalElectricityUsed(hass, coordinator, entry, appliance)])
         if( "totalWashCycle" in coordinator.data ):
             appliances.extend([HonBaseTotalWashCycle(hass, coordinator, entry, appliance)])
@@ -191,7 +191,6 @@ class HonBaseInt(SensorEntity, HonBaseEntity):
         self._sensor = sensor
         self._attr_unique_id    = f"{self._mac}_{name}"
         self._attr_name         = f"{self._name} {name}"
-        self._appliance_type_id = appliance["applianceTypeId"]
         #self._attr_icon         = "mdi:washing-machine"
 
     @callback
@@ -253,7 +252,7 @@ class HonBaseMode(SensorEntity, HonBaseEntity):
         self._coordinator = coordinator
         self._attr_unique_id    = f"{self._mac}_machine_mode"
         self._attr_name         = f"{self._name} Mode"
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id           = appliance["applianceTypeId"]
         #self._attr_icon         = "mdi:washing-machine"
 
     @callback
@@ -263,11 +262,11 @@ class HonBaseMode(SensorEntity, HonBaseEntity):
         mode = self._coordinator.data["machMode"]["parNewVal"]
         self._attr_native_value = f"Program {mode}"
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.WASH_DRYER ):
+        if( self._type_id == APPLIANCE_TYPE.WASH_DRYER ):
             if mode in WASHING_MACHINE_MODE:
                 self._attr_native_value = WASHING_MACHINE_MODE[mode]
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.CLIMATE ):
+        if( self._type_id == APPLIANCE_TYPE.CLIMATE ):
             if mode in CLIMATE_MODE:
                 self._attr_native_value = CLIMATE_MODE[mode]
 
@@ -281,7 +280,7 @@ class HonBaseRemainingTime(SensorEntity, HonBaseEntity):
         self._coordinator = coordinator
         self._attr_unique_id    = f"{self._mac}_remaining_time"
         self._attr_name         = f"{self._name} Remaining Time"
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
 
         self._attr_native_unit_of_measurement = TIME_MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
@@ -298,14 +297,14 @@ class HonBaseRemainingTime(SensorEntity, HonBaseEntity):
             delay = int(self._coordinator.data["delayTime"]["parNewVal"])
 
         # Logic from WASHING_MACHINE implementation
-        if( self._appliance_type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
+        if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._coordinator.data["machMode"]["parNewVal"] in ("1","6"):
                 self._attr_native_value = 0
             else:
                 self._attr_native_value = remainingTime
 
         # Logic from WASH_DRYER implementation
-        elif( self._appliance_type_id == APPLIANCE_TYPE.WASH_DRYER ):
+        elif( self._type_id == APPLIANCE_TYPE.WASH_DRYER ):
             time = delay
             if int(self._coordinator.data["machMode"]["parNewVal"]) != 7:
                 time = delay + remainingTime
@@ -367,7 +366,7 @@ class HonBaseIndoorVOC(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_indoor_VOC"
         self._attr_name = f"{self._name} Indoor VOC"
         self._attr_icon = "mdi:chemical-weapon"
@@ -379,7 +378,7 @@ class HonBaseIndoorVOC(SensorEntity, HonBaseEntity):
 
         ivoc = self._coordinator.data["vocValueIndoor"]["parNewVal"]
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.PURIFIER ):
+        if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
             if ivoc in PURIFIER_VOC_VALUE:
                 self._attr_native_value = PURIFIER_VOC_VALUE[ivoc]
             else:
@@ -394,7 +393,7 @@ class HonBaseCOlevel(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_co_level"
         self._attr_name = f"{self._name} CO LEVEL"
         self._attr_device_class = SensorDeviceClass.CO2
@@ -415,7 +414,6 @@ class HonBaseAIRquality(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_air_quality"
         self._attr_name = f"{self._name} Air Quality"
         self._attr_device_class = SensorDeviceClass.AQI
@@ -479,7 +477,7 @@ class HonBaseProgram(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_program"
         self._attr_name = f"{self._name} Program"
         self._attr_icon = "mdi:tumble-dryer"
@@ -494,7 +492,7 @@ class HonBaseProgram(SensorEntity, HonBaseEntity):
 
         self._attr_native_value = f"{program}"
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
             if program in TUMBLE_DRYER_PROGRAMS:
                 self._attr_native_value = TUMBLE_DRYER_PROGRAMS[program]
             else:
@@ -507,7 +505,7 @@ class HonBaseProgramPhase(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_program_phase"
         self._attr_name = f"{self._name} Program Phase"
         self._attr_icon = "mdi:tumble-dryer"
@@ -521,7 +519,7 @@ class HonBaseProgramPhase(SensorEntity, HonBaseEntity):
         programPhase = self._coordinator.data["prPhase"]["parNewVal"]
         self._attr_native_value = programPhase
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
             if programPhase in TUMBLE_DRYER_PROGRAMS_PHASE:
                 self._attr_native_value = TUMBLE_DRYER_PROGRAMS_PHASE[programPhase]
             else:
@@ -553,7 +551,7 @@ class HonBaseDryLevel(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_drylevel"
         self._attr_name = f"{self._name} Dry level"
         self._attr_icon = "mdi:hair-dryer"
@@ -567,7 +565,7 @@ class HonBaseDryLevel(SensorEntity, HonBaseEntity):
         drylevel = self._coordinator.data["dryLevel"]["parNewVal"]
         self._attr_native_value = drylevel
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
             if drylevel in TUMBLE_DRYER_DRYL:
                 self._attr_native_value = TUMBLE_DRYER_DRYL[drylevel]
             else:
@@ -818,7 +816,7 @@ class HonBaseSpinSpeed(SensorEntity, HonBaseEntity):
         super().__init__(hass, entry, coordinator, appliance)
 
         self._coordinator = coordinator
-        self._appliance_type_id = appliance["applianceTypeId"]
+        self._type_id = appliance["applianceTypeId"]
         self._attr_unique_id = f"{self._mac}_spin_Speed"
         self._attr_name = f"{self._name} Spin speed"
         self._attr_native_unit_of_measurement = REVOLUTIONS_PER_MINUTE
@@ -832,7 +830,7 @@ class HonBaseSpinSpeed(SensorEntity, HonBaseEntity):
         
         self._attr_native_value = int(self._coordinator.data["spinSpeed"]["parNewVal"])
 
-        if( self._appliance_type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
+        if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._coordinator.data["machMode"]["parNewVal"] in ("1","6"):
                 self._attr_native_value = 0
 
