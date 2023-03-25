@@ -47,7 +47,8 @@ class HonBaseCoordinator(DataUpdateCoordinator):
         return self.data.get(key, "")
 
     def addKey(self, key):
-        _LOGGER.warning(key)
+        #_LOGGER.information(key)
+        return True
 
 
 class HonBaseEntity(CoordinatorEntity):
@@ -86,7 +87,6 @@ class HonBaseEntity(CoordinatorEntity):
 
 class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     def __init__(self, coordinator, appliance, key, sensor_name) -> None:
-        _LOGGER.warning(coordinator)
         super().__init__(coordinator)
         self._coordinator = coordinator
         self._coordinator.addKey(key)
@@ -100,7 +100,6 @@ class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
 
         #Generate unique ID from key
         self._attr_unique_id = self._mac + "_" + re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
-        _LOGGER.error(self._attr_unique_id)
         self._attr_name = self._name + " " + sensor_name
 
     @property
