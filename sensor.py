@@ -313,12 +313,9 @@ class HonBaseRemainingTime(SensorEntity, HonBaseEntity):
         else:
             self._attr_native_value = delay + remainingTime
 
-        self._attr_native_value = time
         self.async_write_ha_state()
 
-
-
-
+        
 class HonBaseIndoorPM2p5(SensorEntity, HonBaseEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(hass, entry, coordinator, appliance)
@@ -591,8 +588,11 @@ class HonBaseStart(SensorEntity, HonBaseEntity):
             return
 
         previous = self._on
-        self._on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
-
+        if( "onOffStatus" in self._coordinator.data ):
+            self._on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
+        else:
+            self._on = self._coordinator.data["category"] == "CONNECTED"
+            
         delay = 0
         if( "delayTime" in self._coordinator.data ):
             delay = int(self._coordinator.data["delayTime"]["parNewVal"])
@@ -757,7 +757,7 @@ class HonBaseCurrentWaterUsed(SensorEntity, HonBaseEntity):
         self._attr_name = f"{self._name} Current Water Used"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water"
 
     @callback
