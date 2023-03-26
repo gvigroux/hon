@@ -262,7 +262,7 @@ class HonBaseMode(SensorEntity, HonBaseEntity):
         mode = self._coordinator.data["machMode"]["parNewVal"]
         self._attr_native_value = f"Program {mode}"
 
-        if( self._type_id == APPLIANCE_TYPE.WASH_DRYER ):
+        if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
             if mode in WASHING_MACHINE_MODE:
                 self._attr_native_value = WASHING_MACHINE_MODE[mode]
 
@@ -696,6 +696,7 @@ class HonBaseTotalWashCycle(SensorEntity, HonBaseEntity):
         self._coordinator = coordinator
         self._attr_unique_id = f"{self._mac}_total_wash_cycle"
         self._attr_name = f"{self._name} Total Wash Cycle"
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_icon = "mdi:counter"
 
     @callback
