@@ -45,7 +45,7 @@ class APPLIANCE_TYPE(IntEnum):
 
 APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
-    "2": "Wah Dryer",
+    "2": "Wash Dryer",
     "4": "Oven",
     "6": "Wine Cooler",
     "7": "Purifier",

@@ -82,14 +82,10 @@ class HonBaseOnOff(HonBaseBinarySensorEntity):
 
 
 class HonBaseDoorStatus(HonBaseBinarySensorEntity):
-    def __init__(self, hass, coordinator, entry, appliance, zone = "Z1", zone_name = "Zone 1") -> None:
-        super().__init__(coordinator, appliance, "doorStatus" + self._zone, f"Door Status {zone_name}")
+    def __init__(self, hass, coordinator, entry, appliance, zone, zone_name) -> None:
+        super().__init__(coordinator, appliance, "doorStatus" + zone, f"Door status {zone_name}")
 
-        self._zone = zone
         self._attr_device_class = BinarySensorDeviceClass.DOOR
-
-    def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data["doorStatus" + self._zone]["parNewVal"] == "1"
 
 
 
@@ -99,9 +95,6 @@ class HonBaseLightStatus(HonBaseBinarySensorEntity):
 
         self._attr_device_class = BinarySensorDeviceClass.LIGHT
         self._attr_icon = "mdi:lightbulb"
-
-    def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data["lightStatus"]["parNewVal"] == "1"
 
     #async def async_set_on(self):
     #    parameters  = {"lightStatus": "1"}
@@ -123,9 +116,6 @@ class HonBaseRemoteControl(HonBaseBinarySensorEntity):
 
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:remote"
-
-    def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data["remoteCtrValid"]["parNewVal"] == 1
 
 
 class HonBaseDoorLockStatus(HonBaseBinarySensorEntity):
@@ -155,6 +145,3 @@ class HonBasePreheating(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.HEAT
         self._attr_icon = "mdi:thermometer-chevron-up"
 
-
-    def coordinator_update(self):
-        self._attr_is_on = json["preheatStatus"]["parNewVal"] == "1"

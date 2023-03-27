@@ -3,9 +3,9 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorEntity
-)
+from homeassistant.components.binary_sensor import ( BinarySensorEntity )
+from homeassistant.components.sensor import ( SensorEntity )
+
 
 from homeassistant.core import callback
 import logging
@@ -97,10 +97,16 @@ class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self._model         = appliance["modelName"]
         self._fw_version    = appliance["fwVersion"]
         self._type_name     = appliance["applianceTypeName"]
+        self._key           = key
 
         #Generate unique ID from key
-        self._attr_unique_id = self._mac + "_" + re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
+        key_formatted = re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
+        if( len(key_formatted) <= 0 ): 
+            key_formatted = re.sub(r'(?<!^)(?=[A-Z])', '_', sensor_name).lower()
+        self._attr_unique_id = self._mac + "_" + key_formatted
+        
         self._attr_name = self._name + " " + sensor_name
+        self.coordinator_update()
 
     @property
     def device_info(self):
@@ -120,3 +126,52 @@ class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
             return
         self.coordinator_update()
         self.async_write_ha_state()
+
+    def coordinator_update(self):
+        self._attr_is_on = self._coordinator.data[self._key]["parNewVal"] == "1"
+        
+class HonBaseSensorEntity(CoordinatorEntity, SensorEntity):
+    def __init__(self, coordinator, appliance, key, sensor_name) -> None:
+        super().__init__(coordinator)
+        self._coordinator = coordinator
+        self._coordinator.addKey(key)
+        self._mac           = appliance["macAddress"]
+        self._type_id       = appliance["applianceTypeId"]
+        self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
+        self._brand         = appliance["brand"]
+        self._model         = appliance["modelName"]
+        self._fw_version    = appliance["fwVersion"]
+        self._type_name     = appliance["applianceTypeName"]
+        self._key           = key
+
+
+        #Generate unique ID from key
+        key_formatted = re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
+        if( len(key_formatted) <= 0 ): 
+            key_formatted = re.sub(r'(?<!^)(?=[A-Z])', '_', sensor_name).lower()
+        self._attr_unique_id = self._mac + "_" + key_formatted
+        
+        self._attr_name = self._name + " " + sensor_name
+        self.coordinator_update()
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self._mac, self._type_name)
+            },
+            "name": self._name,
+            "manufacturer": self._brand,
+            "model": self._model,
+            "sw_version": self._fw_version,
+        }
+
+    @callback
+    def _handle_coordinator_update(self):
+        if self._coordinator.data is False:
+            return
+        self.coordinator_update()
+        self.async_write_ha_state()
+
+    def coordinator_update(self):
+        self._attr_native_value = self._coordinator.data[self._key]["parNewVal"]

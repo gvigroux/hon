@@ -1,10 +1,8 @@
 import logging
-import asyncio
 from datetime import datetime, timedelta, timezone
 from dateutil.tz import gettz
-from typing import Optional
 from enum import IntEnum
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+#from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 
 from homeassistant.const import TEMP_CELSIUS, TIME_MINUTES
@@ -23,7 +21,6 @@ from homeassistant.components.binary_sensor import (
 
 from homeassistant.core import callback
 
-from homeassistant.helpers              import entity_platform
 
 from .const import DOMAIN, APPLIANCE_TYPE
 from .const import OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE
@@ -32,23 +29,17 @@ from .const import WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES
 from homeassistant.const import (
     UnitOfTime,
     UnitOfEnergy,
+    UnitOfPower,
     UnitOfTemperature, 
     UnitOfMass,
     UnitOfVolume,
     REVOLUTIONS_PER_MINUTE,
     PERCENTAGE,
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_MILLION
 )
 
-
-from .base import HonBaseCoordinator, HonBaseEntity
-
-from homeassistant.helpers.typing import StateType
-
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
+from .base import HonBaseCoordinator, HonBaseEntity, HonBaseSensorEntity
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -73,12 +64,12 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseMode(hass, coordinator, entry, appliance)])
 
         add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "temp",        "Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempEnv",     "Environment Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempIndoor",  "Indoor Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempOutdoor", "Outdoor Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSel",     "Selected Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ1",   "Selected Temperature Zone 1")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ2",   "Selected Temperature Zone 2")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempEnv",     "Environment temperature")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempIndoor",  "Indoor temperature")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempOutdoor", "Outdoor temperature")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSel",     "Selected temperature")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ1",   "Selected temperature Zone 1")
+        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ2",   "Selected temperature Zone 2")
         add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempZ1",      "Temperature Zone 1")
         add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempZ2",      "Temperature Zone 2")
 
@@ -111,9 +102,9 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if( "airQuality" in coordinator.data and float(coordinator.data["airQuality"]["parNewVal"]) > 0 ):
             appliances.extend([HonBaseAIRquality(hass, coordinator, entry, appliance)])
         if( "mainFilterStatus" in coordinator.data ):
-            appliances.extend([HonBaseAIRpurifyFilterLifePercentage(hass, coordinator, entry, appliance)])
+            appliances.extend([HonBaseMainFilter(hass, coordinator, entry, appliance)])
         if( "preFilterStatus" in coordinator.data ):
-            appliances.extend([HonBaseAIRpurifyFilterDirtPercentage(hass, coordinator, entry, appliance)])
+            appliances.extend([HonBasePreFilter(hass, coordinator, entry, appliance)])
 
         if( "dryLevel" in coordinator.data ):
             appliances.extend([HonBaseDryLevel(hass, coordinator, entry, appliance)])
@@ -149,15 +140,15 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
         # Fridge other values
         if( "quickModeZ1" in coordinator.data ):
-            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick Mode Zone 1", )])
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick mode Zone 1", )])
         if( "quickModeZ2" in coordinator.data ):
-            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick Mode Zone 2", )])
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ2", "Quick mode Zone 2", )])
         if( "intelligenceMode" in coordinator.data ):
-            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "intelligenceMode", "IntelligenceMode", )])
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "intelligenceMode", "Intelligence mode", )])
         if( "holidayMode" in coordinator.data ):
-            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "holidayMode", "Holiday Mode", )])
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "holidayMode", "Holiday mode", )])
         if( "sterilizationStatus" in coordinator.data ):
-            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization Status", )])
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
 
         await coordinator.async_request_refresh()
@@ -182,87 +173,16 @@ def add_temperature_sensor(hass, coordinator, entry, appliances, appliance, para
         appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, parameter, name)])
 
 
-
-class HonBaseInt(SensorEntity, HonBaseEntity):
-    def __init__(self, hass, coordinator, entry, appliance, sensor, name) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._sensor = sensor
-        self._attr_unique_id    = f"{self._mac}_{name}"
-        self._attr_name         = f"{self._name} {name}"
-        #self._attr_icon         = "mdi:washing-machine"
-
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-        self._attr_native_value = self._coordinator.data[self._sensor]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseTemperature(SensorEntity, HonBaseEntity):
-    def __init__(self, hass, coordinator, entry, appliance, parameter, name) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._parameter = parameter
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_{parameter}"
-        self._attr_name = f"{self._name} {name}"
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
-        self._attr_device_class = SensorDeviceClass.TEMPERATURE
-
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
-        self._attr_native_value = self._coordinator.data[self._parameter]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseHumidity(SensorEntity, HonBaseEntity):
-    def __init__(self, hass, coordinator, entry, appliance, zone = "Z1", zone_name = "Zone 1") -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._zone = zone
-        self._attr_name = f"Humidity {zone_name}"
-        self._attr_unique_id = f"{self._mac}_humidity_{zone}"
-        self._attr_device_class = SensorDeviceClass.HUMIDITY
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = PERCENTAGE
-        self._attr_icon = "mdi:water-percent"
-        
-    @callback
-    def _handle_coordinator_update(self):
-
-        if self._coordinator.data is False:
-            return
-
-        self._attr_native_value = self._coordinator.data["humidity" + self._zone]["parNewVal"]
-        self.async_write_ha_state()	
-
-
-
-class HonBaseMode(SensorEntity, HonBaseEntity):
+class HonBaseMode(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id    = f"{self._mac}_machine_mode"
-        self._attr_name         = f"{self._name} Mode"
-        self._type_id           = appliance["applianceTypeId"]
+        super().__init__(coordinator, appliance, "machMode", "Mode")
         #self._attr_icon         = "mdi:washing-machine"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
         mode = self._coordinator.data["machMode"]["parNewVal"]
         self._attr_native_value = f"Program {mode}"
 
-        if( self._type_id == APPLIANCE_TYPE.WASH_DRYER ):
+        if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
             if mode in WASHING_MACHINE_MODE:
                 self._attr_native_value = WASHING_MACHINE_MODE[mode]
 
@@ -270,35 +190,53 @@ class HonBaseMode(SensorEntity, HonBaseEntity):
             if mode in CLIMATE_MODE:
                 self._attr_native_value = CLIMATE_MODE[mode]
 
-        self.async_write_ha_state()
+
+class HonBaseTemperature(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+
+        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_device_class = SensorDeviceClass.TEMPERATURE
 
 
-class HonBaseRemainingTime(SensorEntity, HonBaseEntity):
+class HonBaseHumidity(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, zone = "Z1", zone_name = "Zone 1") -> None:
+        super().__init__(coordinator, appliance, "humidity" + zone, f"Humidity {zone_name}")
+
+        self._attr_device_class = SensorDeviceClass.HUMIDITY
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = PERCENTAGE
+        self._attr_icon = "mdi:water-percent"
+        
+
+
+class HonBaseInt(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+        #self._attr_icon         = "mdi:washing-machine"
+
+
+class HonBaseRemainingTime(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id    = f"{self._mac}_remaining_time"
-        self._attr_name         = f"{self._name} Remaining Time"
-        self._type_id = appliance["applianceTypeId"]
+        super().__init__(coordinator, appliance, "remainingTimeMM", "Remaining Time")
 
         self._attr_native_unit_of_measurement = TIME_MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:progress-clock"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         delay           = 0
         remainingTime   = int(self._coordinator.data["remainingTimeMM"]["parNewVal"])
         if( "delayTime" in self._coordinator.data ):
             delay = int(self._coordinator.data["delayTime"]["parNewVal"])
 
+        mach_mode = 0
+        if( "machMode" in self._coordinator.data ):
+            mach_mode = int(self._coordinator.data["machMode"]["parNewVal"])
+
         # Logic from WASHING_MACHINE implementation
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
-            if self._coordinator.data["machMode"]["parNewVal"] in ("1","6"):
+            if mach_mode in ("1","6"):
                 self._attr_native_value = 0
             else:
                 self._attr_native_value = remainingTime
@@ -306,72 +244,41 @@ class HonBaseRemainingTime(SensorEntity, HonBaseEntity):
         # Logic from WASH_DRYER implementation
         elif( self._type_id == APPLIANCE_TYPE.WASH_DRYER ):
             time = delay
-            if int(self._coordinator.data["machMode"]["parNewVal"]) != 7:
+            if mach_mode != 7:
                 time = delay + remainingTime
             self._attr_native_value = time
 
         else:
             self._attr_native_value = delay + remainingTime
 
-        self.async_write_ha_state()
 
-        
-class HonBaseIndoorPM2p5(SensorEntity, HonBaseEntity):
+class HonBaseIndoorPM2p5(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "pm2p5ValueIndoor", "Indoor PM 2.5")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_indoor_pm2p5"
-        self._attr_name = f"{self._name} Indoor PM 2.5"
         self._attr_device_class = SensorDeviceClass.PM25
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
         self._attr_icon = "mdi:blur"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
-        self._attr_native_value = self._coordinator.data["pm2p5ValueIndoor"]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseIndoorPM10(SensorEntity, HonBaseEntity):
+class HonBaseIndoorPM10(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "pm10ValueIndoor", "Indoor PM 10")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_indoor_pm10"
-        self._attr_name = f"{self._name} Indoor PM 10"
         self._attr_device_class = SensorDeviceClass.PM10
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
         self._attr_icon = "mdi:blur"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
-        self._attr_native_value = self._coordinator.data["pm10ValueIndoor"]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseIndoorVOC(SensorEntity, HonBaseEntity):
+class HonBaseIndoorVOC(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "vocValueIndoor", "Indoor VO")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_indoor_VOC"
-        self._attr_name = f"{self._name} Indoor VOC"
         self._attr_icon = "mdi:chemical-weapon"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
 
         ivoc = self._coordinator.data["vocValueIndoor"]["parNewVal"]
 
@@ -382,137 +289,82 @@ class HonBaseIndoorVOC(SensorEntity, HonBaseEntity):
                 self._attr_native_value = f"Unknown value {ivoc}"
         else:
             self._attr_native_value = f"{ivoc}"
-        self.async_write_ha_state()
 
 
-class HonBaseCOlevel(SensorEntity, HonBaseEntity):
+class HonBaseCOlevel(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "coLevel", "CO Level")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_co_level"
-        self._attr_name = f"{self._name} CO LEVEL"
         self._attr_device_class = SensorDeviceClass.CO2
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
         self._attr_icon = "mdi:molecule-co2"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
-        self._attr_native_value = self._coordinator.data["coLevel"]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseAIRquality(SensorEntity, HonBaseEntity):
+class HonBaseAIRquality(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "airQuality", "Air Quality")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_air_quality"
-        self._attr_name = f"{self._name} Air Quality"
         self._attr_device_class = SensorDeviceClass.AQI
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:air-filter"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
-        self._attr_native_value = self._coordinator.data["airQuality"]["parNewVal"]
-        self.async_write_ha_state()
-
-
-class HonBaseAIRpurifyFilterDirtPercentage(SensorEntity, HonBaseEntity):
+class HonBasePreFilter(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "preFilterStatus", "Pre filter")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_air_purify_filter_dirty_percentage"
-        self._attr_name = f"{self._name} FILTER DIRTY PERCENTAGE"
         self._attr_native_unit_of_measurement = PERCENTAGE
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:air-filter"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
+        lifeperc = 100
+        lifepercvaluee = self._coordinator.data["preFilterStatus"]["parNewVal"]
+        lifepercfinale = lifeperc - float(lifepercvaluee)
+        self._attr_native_value = float(lifepercfinale)
 
-        self._attr_native_value = self._coordinator.data["preFilterStatus"]["parNewVal"]
-        self.async_write_ha_state()
-    
 
-class HonBaseAIRpurifyFilterLifePercentage(SensorEntity, HonBaseEntity):
+class HonBaseMainFilter(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "mainFilterStatus", "Main filter")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_air_purify_filter_life_percentage"
-        self._attr_name = f"{self._name} FILTER LIFE PERCENTAGE"
         self._attr_native_unit_of_measurement = PERCENTAGE
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:air-filter"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
         lifeperc = 100
         lifepercvaluee = self._coordinator.data["mainFilterStatus"]["parNewVal"]
         lifepercfinale = lifeperc - float(lifepercvaluee)
         self._attr_native_value = float(lifepercfinale)
-        self.async_write_ha_state()
-        
 
 
-class HonBaseProgram(SensorEntity, HonBaseEntity):
+class HonBaseProgram(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "prCode", "Program")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_program"
-        self._attr_name = f"{self._name} Program"
         self._attr_icon = "mdi:tumble-dryer"
         self._attr_device_class = "tumbledryerprogram"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         program = self._coordinator.data["prCode"]["parNewVal"]
-
         self._attr_native_value = f"{program}"
-
         if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
             if program in TUMBLE_DRYER_PROGRAMS:
                 self._attr_native_value = TUMBLE_DRYER_PROGRAMS[program]
             else:
-                self._attr_native_value = f"Unknown program {program}"
+                self._attr_native_value = f"Program {program}"
 
-        self.async_write_ha_state()
 
-class HonBaseProgramPhase(SensorEntity, HonBaseEntity):
+class HonBaseProgramPhase(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "prPhase", "Program phase")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_program_phase"
-        self._attr_name = f"{self._name} Program Phase"
         self._attr_icon = "mdi:tumble-dryer"
         self._attr_device_class = "tumbledryerprogramphase"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         programPhase = self._coordinator.data["prPhase"]["parNewVal"]
         self._attr_native_value = programPhase
 
@@ -520,45 +372,27 @@ class HonBaseProgramPhase(SensorEntity, HonBaseEntity):
             if programPhase in TUMBLE_DRYER_PROGRAMS_PHASE:
                 self._attr_native_value = TUMBLE_DRYER_PROGRAMS_PHASE[programPhase]
             else:
-                self._attr_native_value = f"Unknown program phase {programPhase}"
+                self._attr_native_value = f"Phase {programPhase}"
 
-        self.async_write_ha_state()
 
-class HonBaseProgramDuration(SensorEntity, HonBaseEntity):
+class HonBaseProgramDuration(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "prTime", "Program duration")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_duration"
-        self._attr_name = f"{self._name} Program Duration"
         self._attr_native_unit_of_measurement = TIME_MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:timelapse"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
-        self._attr_native_value = self._coordinator.data["prTime"]["parNewVal"]
-        self.async_write_ha_state()
-
-class HonBaseDryLevel(SensorEntity, HonBaseEntity):
+class HonBaseDryLevel(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "dryLevel", "Dry level")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_drylevel"
-        self._attr_name = f"{self._name} Dry level"
         self._attr_icon = "mdi:hair-dryer"
-        self._attr_device_class = "tumbledryerdrylevel"
+        self._attr_device_class = "tumbledryerdrylevel" #TODO: find better value
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
 
+    def coordinator_update(self):
         drylevel = self._coordinator.data["dryLevel"]["parNewVal"]
         self._attr_native_value = drylevel
 
@@ -566,26 +400,20 @@ class HonBaseDryLevel(SensorEntity, HonBaseEntity):
             if drylevel in TUMBLE_DRYER_DRYL:
                 self._attr_native_value = TUMBLE_DRYER_DRYL[drylevel]
             else:
-                self._attr_native_value = f"Unknown dry level {drylevel}"
-
-        self.async_write_ha_state()
+                self._attr_native_value = f"Dry level {drylevel}"
 
 
-class HonBaseStart(SensorEntity, HonBaseEntity):
+class HonBaseStart(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "", "Start time")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_start"
-        self._attr_name = f"{self._name} Start Time"
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_icon = "mdi:clock-start"
-        self._on = False
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
+
+        if(not hasattr(self, "_on")):
+            self._on = False
 
         previous = self._on
         if( "onOffStatus" in self._coordinator.data ):
@@ -608,23 +436,16 @@ class HonBaseStart(SensorEntity, HonBaseEntity):
                 second=0
             ) + timedelta(minutes=delay)
 
-        self.async_write_ha_state()
 
 
-class HonBaseEnd(SensorEntity, HonBaseEntity):
+class HonBaseEnd(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "", "End time")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_end"
-        self._attr_name = f"{self._name} End Time"
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_icon = "mdi:clock-end"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+    def coordinator_update(self):
 
         delay = 0
         if( "delayTime" in self._coordinator.data ):
@@ -640,198 +461,127 @@ class HonBaseEnd(SensorEntity, HonBaseEntity):
         self._attr_native_value = datetime.now(timezone.utc).replace(
             second=0
         ) + timedelta(minutes=delay + remaining)
-        self.async_write_ha_state()
 
 
 ##############################################################################
 
-class HonBaseMeanWaterConsumption(SensorEntity, HonBaseEntity):
+class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "", "Mean Water Consumption")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_mean_water_consumption"
-        self._attr_name = f"{self._name} Mean Water Consumption"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_icon = "mdi:water-sync"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
+        #TODO: keys totalWashCycle, totalWaterUsed must be in the list
 
-        if int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1 == 0:
+    def coordinator_update(self):
+        if int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1 <= 0:
             self._attr_native_value = None
         else:
             self._attr_native_value = round(float(self._coordinator.data["totalWaterUsed"]["parNewVal"])/(float(self._coordinator.data["totalWashCycle"]["parNewVal"])-1),2)
-        self.async_write_ha_state()
 
 
-class HonBaseTotalElectricityUsed(SensorEntity, HonBaseEntity):
+class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "totalElectricityUsed", "Total electricity used")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_total_electricity_used"
-        self._attr_name = f"{self._name} Total Electricity Used"
         self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
         self._attr_device_class = SensorDeviceClass.ENERGY
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:connection"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = float(self._coordinator.data["totalElectricityUsed"]["parNewVal"])
-        self.async_write_ha_state()
 
 
-class HonBaseTotalWashCycle(SensorEntity, HonBaseEntity):
+class HonBaseTotalWashCycle(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
-
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_total_wash_cycle"
-        self._attr_name = f"{self._name} Total Wash Cycle"
+        super().__init__(coordinator, appliance, "totalWashCycle", "Total wash cycle")
         self._attr_icon = "mdi:counter"
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1
-        self.async_write_ha_state()
 
 
-class HonBaseTotalWaterUsed(SensorEntity, HonBaseEntity):
+class HonBaseTotalWaterUsed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "totalWaterUsed", "Total water used")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_total_water_used"
-        self._attr_name = f"{self._name} Total Water Used"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water-pump"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = float(self._coordinator.data["totalWaterUsed"]["parNewVal"])
-        self.async_write_ha_state()
 
 
-class HonBaseWeight(SensorEntity, HonBaseEntity):
+class HonBaseWeight(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "actualWeight", "Estimated Weight")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_weight"
-        self._attr_name = f"{self._name} Estimated Weight"
         self._attr_native_unit_of_measurement = UnitOfMass.KILOGRAMS
         self._attr_device_class = SensorDeviceClass.WEIGHT
         self._attr_icon = "mdi:weight-kilogram"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = float(self._coordinator.data["actualWeight"]["parNewVal"])
-        self.async_write_ha_state()
 
 
-class HonBaseCurrentWaterUsed(SensorEntity, HonBaseEntity):
+class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "currentWaterUsed", "Current water used")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_current_water_used"
-        self._attr_name = f"{self._name} Current Water Used"
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.VOLUME
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = self._coordinator.data["currentWaterUsed"]["parNewVal"]
-        self.async_write_ha_state()
 
-class HonBaseError(SensorEntity, HonBaseEntity):
+
+class HonBaseError(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "errors", "Error")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_error"
-        self._attr_name = f"{self._name} Error"
         self._attr_icon = "mdi:math-log"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         error = self._coordinator.data["errors"]["parNewVal"]
         if error in WASHING_MACHINE_ERROR_CODES:
             self._attr_native_value = WASHING_MACHINE_ERROR_CODES[error]
         else:
-            self._attr_native_value = f"Unkwon error {error}"
-        self.async_write_ha_state()
+            self._attr_native_value = f"Error {error}"
 
 
-class HonBaseCurrentElectricityUsed(SensorEntity, HonBaseEntity):
+class HonBaseCurrentElectricityUsed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "currentElectricityUsed", "Current electricity used")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_current_electricity_used"
-        self._attr_name = f"{self._name} Current Electricity Used"
-        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-        self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
+        self._attr_device_class = SensorDeviceClass.POWER
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:lightning-bolt"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-
+    def coordinator_update(self):
         self._attr_native_value = self._coordinator.data["currentElectricityUsed"]["parNewVal"]
-        self.async_write_ha_state()
 
 
-class HonBaseSpinSpeed(SensorEntity, HonBaseEntity):
+class HonBaseSpinSpeed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "spinSpeed", "Spin speed")
 
-        self._coordinator = coordinator
-        self._type_id = appliance["applianceTypeId"]
-        self._attr_unique_id = f"{self._mac}_spin_Speed"
-        self._attr_name = f"{self._name} Spin speed"
         self._attr_native_unit_of_measurement = REVOLUTIONS_PER_MINUTE
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_icon = "mdi:speedometer"
 
-    @callback
-    def _handle_coordinator_update(self):
-        if self._coordinator.data is False:
-            return
-        
+    def coordinator_update(self):
         self._attr_native_value = int(self._coordinator.data["spinSpeed"]["parNewVal"])
 
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._coordinator.data["machMode"]["parNewVal"] in ("1","6"):
                 self._attr_native_value = 0
 
-        self.async_write_ha_state()

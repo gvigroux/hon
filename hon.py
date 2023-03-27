@@ -5,6 +5,8 @@ import aiohttp
 import asyncio
 import json
 import re
+import ast
+import time
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -25,6 +27,8 @@ from .const import (
     CONF_COGNITO_TOKEN,
     CONF_REFRESH_TOKEN,
 )
+
+SESSION_TIMEOUT     = 60
 
 from .base import HonBaseCoordinator, HonBaseEntity
 
@@ -67,11 +71,12 @@ class HonConnection:
             self._cognitoToken = entry.data.get(CONF_COGNITO_TOKEN, "")
 
         self._frontdoor_url = ""
+        self._start_time    = time.time()
 
-        headers = {
+        self._header = headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
-        self._session = aiohttp.ClientSession(headers=headers)
+        self._session = aiohttp.ClientSession(headers=self._header)
         self._appliances = []
 
     async def async_close(self):
@@ -120,9 +125,7 @@ class HonConnection:
             text = await resp.text()
             try:
                 json_data = json.loads(text)
-                self._frontdoor_url = json_data["events"][0]["attributes"]["values"][
-                    "url"
-                ]
+                self._frontdoor_url = json_data["events"][0]["attributes"]["values"]["url"]
             except:
                 """
                 Maybe it's a framework update. Typical messages:
@@ -155,7 +158,8 @@ class HonConnection:
     async def async_authorize(self):
 
         """async with self._session.get("https://he-accounts.force.com/SmartHome/s/login/?language=fr") as resp:
-        wait_data = await resp.text()"""
+            wait_data = await resp.text()
+            _LOGGER.warning(wait_data)"""
 
         """ **** Get FRONTDOOR URL *** """
         if await self.async_get_frontdoor_url(self._session) == 1:
@@ -230,15 +234,48 @@ class HonConnection:
                 return False
 
             self._appliances = json_data["payload"]["appliances"]
-            #_LOGGER.warning(self._appliances)
-
+            
+            # Add fake devices
+            #self._appliances.append(ast.literal_eval("{'fwVersion': '3.8.0', 'applianceTypeId': 14, 'firstEnrollment': False, 'attributes': [{'parValue': '03.12.00', 'id': 98537740, 'parName': 'acuVersion', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}, {'parValue': 'ESP32D0WDQ5', 'id': 98537739, 'parName': 'chipset', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}, {'parValue': '167', 'id': 98538146, 'parName': 'dictionaryId', 'status': 1, 'lastUpdate': '2023-02-01T09:48:21Z'}, {'parValue': 'it-IT', 'id': 98537738, 'parName': 'lang', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}], 'applianceModelId': 813, 'series': 'romania', 'firstEnrollmentTBC': False, 'code': '34004960', 'SK': 'app#34-86-xx-xx-34-90', 'macAddress': 'FAKE1', 'eepromName': 'no_eeprom', 'applianceId': '34-86-xx-xx-34-90#2023-02-01T09:46:20Z', 'id': 813, 'modelName': 'CCE4T620EB', 'applianceTypeName': 'REF', 'connectivity': 'wifi|ble', 'serialNumber': '340xxxxxxxx094', 'enrollmentDate': '2023-02-01T09:46:20.530Z', 'brand': 'candy', 'lastUpdate': '2023-02-01T09:46:32Z', 'eepromId': 41, 'applianceStatus': 1, 'coords': {'lng': 23.1265361, 'lat': 53.1144253}, 'PK': 'user#eu-west-1:75acd8ec-2457-47e8-82ef-d04bbbad9f72', 'sections': {'chatbot': True, 'epp_enabled': True, 'double_pairing_hidden': True}, 'topics': {'publish': [], 'subscribe': ['$aws/events/presence/disconnected/34-86-xx-xx-34-90', '$aws/events/presence/connected/34-86-xx-xx-34-90', 'haier/things/34-86-xx-xx-34-90/event/appliancestatus/update', 'haier/things/34-86-xx-xx-34-90/event/discovery/update']}}"))
+            #self._appliances.append(ast.literal_eval("{'fwVersion': '3.8.0', 'applianceTypeId': 2, 'applianceModelId': 813, 'series': 'romania', 'code': '34004960', 'macAddress': 'FAKE2', 'eepromName': 'no_eeprom', 'applianceId': '34-86-xx-xx-34-90#2023-02-01T09:46:20Z', 'id': 813, 'modelName': 'CCE4T620EB', 'applianceTypeName': 'REF', 'connectivity': 'wifi|ble', 'serialNumber': '340xxxxxxxx094', 'enrollmentDate': '2023-02-01T09:46:20.530Z', 'brand': 'candy', 'lastUpdate': '2023-02-01T09:46:32Z', 'eepromId': 41, 'applianceStatus': 1}"))
+            
+            self._start_time = time.time()
             """for appliance in json_data['payload']['appliances']:
                 _LOGGER.warning(appliance)
                 if appliance.applianceTypeId == 11 :
                     self._appliances[]"""
+        
         return True
 
     async def async_get_state(self, mac, typeName, returnAllData = False, loop=False):
+
+        # Create a new hOn session to avoid going to expiration
+        elapsed_time = time.time() - self._start_time
+        if( elapsed_time > SESSION_TIMEOUT ):
+            #TODO: async_get_frontdoor_url fails. I think because the session is already open.
+            #I need to find a way to close or start a new session
+            #await self.async_authorize()
+            self._start_time = time.time()
+
+        """
+        if( mac == "FAKE1"):
+            tmp = ast.literal_eval("{'payload': {'resultCode': '0', 'shadow': {'parameters': {'quickModeZ1': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'intelligenceMode': {'parNewVal': '1', 'lastUpdate': '2023-02-01T09:50:05Z'}, 'quickModeZ2': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'tempSelZ2': {'parNewVal': '-20', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'holidayMode': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'tempSelZ1': {'parNewVal': '4', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'errors': {'parNewVal': '00', 'lastUpdate': '2023-02-01T09:49:16Z'}, 'tempEnv': {'parNewVal': '21', 'lastUpdate': '2023-02-01T09:47:21Z'}, 'sterilizationStatus': {'parNewVal': '1', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'doorStatusZ1': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:50:20Z'}}}, 'activity': {}, 'commandHistory': {'command': {'macAddress': 'FAKE2', 'commandName': 'startProgram', 'applianceOptions': {}, 'ancillaryParameters': {'programRules': {'fixedValue': {'tempSelZ1': {'@quickModeZ1': {'1': {'fixedValue': '1', 'typology': 'fixed'}}, '@intelligenceMode': {'1': {'fixedValue': '5', 'typology': 'fixed'}}, '@holidayMode': {'1': {'fixedValue': '17', 'typology': 'fixed'}}, '@quickModeZ2': {'1': {'fixedValue': '@tempSelZ1', 'typology': 'fixed'}}}, 'tempSelZ2': {'@quickModeZ1': {'1': {'fixedValue': '@tempSelZ2', 'typology': 'fixed'}}, '@intelligenceMode': {'1': {'fixedValue': '-18', 'typology': 'fixed'}}, '@holidayMode': {'1': {'fixedValue': '@tempSelZ2', 'typology': 'fixed'}}, '@quickModeZ2': {'1': {'fixedValue': '-24', 'typology': 'fixed'}}}}, 'typology': 'fixed', 'category': 'rule', 'mandatory': 0}}, 'applianceType': 'REF', 'attributes': {'prStr': 'PROGRAMS.REF.AUTO_SET', 'channel': 'mobileApp', 'origin': 'standardProgram'}, 'device': {'appVersion': '1.51.9', 'deviceModel': 'sdm845', 'osVersion': '29', 'mobileId': '814efd566ca3456a', 'mobileOs': 'android'}, 'parameters': {'intelligenceMode': '1'}, 'transactionId': '34-86-xx-xx-34-90_2023-02-01T09:49:58.494Z', 'timestamp': '2023-02-01T09:49:58.493Z'}, 'timestampAccepted': '2023-02-01T09:50:01.1Z', 'timestampExecuted': '2023-02-01T09:50:02.1Z'}, 'lastConnEvent': {'macAddress': 'FAKE1', 'category': 'CONNECTED', 'instantTime': '2023-02-01T09:49:09Z', 'timestampEvent': 1675244949030}}, 'authInfo': {}}")
+            json_data = tmp["payload"]["shadow"]["parameters"]
+            json_data_pay = tmp["payload"]
+            if "lastConnEvent" in json_data_pay:
+                json_data_lastCon = tmp["payload"]["lastConnEvent"]
+                json_data.update(json_data_lastCon)
+            return json_data
+        if( mac == "FAKE2"):
+            tmp = ast.literal_eval("{'payload': {'resultCode': '0', 'shadow': {'parameters': {'prCode': {'parNewVal': '0'}, 'prPhase': {'parNewVal': '1'}, 'prTime': {'parNewVal': '0'}, 'totalElectricityUsed': {'parNewVal': '-20'}, 'totalWashCycle': {'parNewVal': '0'}, 'totalWaterUsed': {'parNewVal': '4'}, 'actualWeight': {'parNewVal': '00'}, 'currentWaterUsed': {'parNewVal': '21'}, 'currentElectricityUsed': {'parNewVal': '10'}, 'dryLevel': {'parNewVal': '10'}, 'preFilterStatus': {'parNewVal': '10'}, 'mainFilterStatus': {'parNewVal': '10'},'airQuality': {'parNewVal': '10'}, 'coLevel': {'parNewVal': '10'}, 'vocValueIndoor': {'parNewVal': '10'}, 'pm2p5ValueIndoor': {'parNewVal': '10'}, 'pm10ValueIndoor': {'parNewVal': '10'}, 'humidityOutdoor': {'parNewVal': '10'}, 'humidityIndoor': {'parNewVal': '10'}, 'humidityZ1': {'parNewVal': '10'}, 'humidityZ2': {'parNewVal': '10'}, 'humidity': {'parNewVal': '10'}, 'remainingTimeMM': {'parNewVal': '10'}, 'tempZ2': {'parNewVal': '10'}, 'tempZ1': {'parNewVal': '10'}, 'temp': {'parNewVal': '10'}, 'spinSpeed': {'parNewVal': '10'}}},'lastConnEvent': {'macAddress': 'FAKE2', 'category': 'CONNECTED', 'instantTime': '2023-02-01T09:49:09Z', 'timestampEvent': 1675244949030}}}")
+            json_data = tmp["payload"]["shadow"]["parameters"]
+            json_data_pay = tmp["payload"]
+            if "lastConnEvent" in json_data_pay:
+                json_data_lastCon = tmp["payload"]["lastConnEvent"]
+                json_data.update(json_data_lastCon)
+            return json_data
+        """
+
         credential_headers = {
             "cognito-token": self._cognitoToken,
             "id-token": self._id_token,
