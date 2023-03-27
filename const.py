@@ -142,7 +142,7 @@ WASHING_MACHINE_ERROR_CODES = {
     "100000000000": "E2: Check if the door is closed",
     "8000000000000": "E4: Check the water supply",
     #"CLRF": "Error Clear Filter: Check the filter of the washing machine",
-    #"Unb": "Error Unb: Check the laundry, the washing machine might be overloaded",
+    "400000000000000": "Error Unb: Check the laundry, the washing machine might be overloaded",
     #"F3": "Error F3: Temperature sensor error",
     #"F4": "Error F4: Heating error",
     #"F7": "Error F7: Motor error",

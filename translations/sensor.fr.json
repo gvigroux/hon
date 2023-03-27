@@ -36,7 +36,8 @@
         "washingmachineerror": {
 			"No error": "Pas d'erreur",
 			"E2: Check if the door is closed": "E2: vérifier si la porte est fermée",
-			"E4: Check the water supply": "E4: Vérifier l'alimentation en eau de la machine"
+			"E4: Check the water supply": "E4: Vérifier l'alimentation en eau de la machine",
+			"Error Unb: Check the laundry, the washing machine might be overloaded": "Unb: Vérifier le linge, la machine semble être trop chargée"
 		},
 		"washingmachinemode": {
 			"Disconnected": "Déconnecté",

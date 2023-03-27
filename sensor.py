@@ -497,7 +497,12 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "totalWashCycle", "Total wash cycle")
+        super().__init__(hass, entry, coordinator, appliance)
+
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{self._mac}_total_wash_cycle"
+        self._attr_name = f"{self._name} Total Wash Cycle"
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_icon = "mdi:counter"
         self._attr_state_class = SensorStateClass.TOTAL_INCREASING
 
