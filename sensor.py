@@ -30,7 +30,7 @@ from homeassistant.const import (
     UnitOfTime,
     UnitOfEnergy,
     UnitOfPower,
-    UnitOfTemperature, 
+    UnitOfTemperature,
     UnitOfMass,
     UnitOfVolume,
     REVOLUTIONS_PER_MINUTE,
@@ -52,11 +52,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
-    
+
         if appliance.get("macAddress", None) == None:
             _LOGGER.warning("Appliance with no MAC")
             continue
-        
+
         coordinator = await hon.async_get_coordinator(appliance)
         await coordinator.async_config_entry_first_refresh()
 
@@ -207,7 +207,7 @@ class HonBaseHumidity(HonBaseSensorEntity):
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = PERCENTAGE
         self._attr_icon = "mdi:water-percent"
-        
+
 
 
 class HonBaseInt(HonBaseSensorEntity):
@@ -420,7 +420,7 @@ class HonBaseStart(HonBaseSensorEntity):
             self._on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
         else:
             self._on = self._coordinator.data["category"] == "CONNECTED"
-            
+
         delay = 0
         if( "delayTime" in self._coordinator.data ):
             delay = int(self._coordinator.data["delayTime"]["parNewVal"])
@@ -497,14 +497,10 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(hass, entry, coordinator, appliance)
+        super().__init__(coordinator, appliance, "totalWashCycle", "Total Wash Cycle")
 
-        self._coordinator = coordinator
-        self._attr_unique_id = f"{self._mac}_total_wash_cycle"
-        self._attr_name = f"{self._name} Total Wash Cycle"
         self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_icon = "mdi:counter"
-        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     def coordinator_update(self):
         self._attr_native_value = int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1
