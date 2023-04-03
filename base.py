@@ -47,7 +47,7 @@ class HonBaseCoordinator(DataUpdateCoordinator):
         return self.data.get(key, "")
 
     def addKey(self, key):
-        #_LOGGER.information(key)
+        #_LOGGER.debug(key)
         return True
 
 

@@ -40,12 +40,13 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
+# This method will update a sensor value with the targetted one for a better user experience
 def update_sensor(hass, device_id, mac, sensor_name, state):
 
     entity_reg  = er.async_get(hass)
     entries     = er.async_entries_for_device(entity_reg, device_id)
 
-    # Loop over all entries and update the good ones
+    # Loop over all entries and update the good one
     for entry in entries:
         if( entry.unique_id == mac + '_' + sensor_name):
             inputStateObject = hass.states.get(entry.entity_id)
@@ -57,7 +58,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     await hon.async_authorize()
 
     # Log all appliances
-    _LOGGER.info(hon.appliances)
+    _LOGGER.debug(hon.appliances)
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
@@ -114,29 +115,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         return await hon.async_set(mac, "OV", paramaters)
 
-    async def handle_oven_stop(call):
-
-        parameters = {"onOffStatus": "0"}
-
-        mac = get_hOn_mac(call.data.get("device"), hass)
-
-        return await hon.async_set(mac, "OV", parameters)
-    
-    async def handle_cooler_lights_off(call):
-
-        parameters = {"lightStatus": "0"}
-
-        mac = get_hOn_mac(call.data.get("device"), hass)
-
-        return await hon.async_set(mac, "WC", parameters)
-        
-    async def handle_cooler_lights_on(call):
-
-        parameters = {"lightStatus": "1"}
-
-        mac = get_hOn_mac(call.data.get("device"), hass)
-
-        return await hon.async_set(mac, "WC", parameters)
     
     async def handle_dishwasher_start(call):
 
@@ -240,22 +218,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
                     + mac
                     + "]"
                 )
-        
-    async def handle_washingmachine_stop(call):
 
-        parameters = {"onOffStatus":"0"}
-        
-        mac = get_hOn_mac(call.data.get("device"), hass)
-
-        return await hon.async_set(mac, "WM", parameters)
-
-    async def handle_purifier_stop(call):
-
-        parameters = {"onOffStatus": "0"}
-
-        mac = get_hOn_mac(call.data.get("device"), hass)
-
-        return await hon.async_set(mac, "AP", parameters)
 
     async def handle_purifier_start(call):
 
@@ -306,8 +269,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
     # Generic method to TURN OFF any hOn device
     async def handle_turn_off(call):
-        #parameters = {"onOffStatus": "0", "machMode": "1" }
-        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
         coordinator = await hon.async_get_existing_coordinator(mac)
@@ -318,9 +279,10 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     async def handle_light_on(call):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
+        update_sensor(hass, device_id, mac, "light_status" , "on")
+
         coordinator = await hon.async_get_existing_coordinator(mac)
-        parameters = {"lightStatus": "1"}
-        await coordinator.async_set(parameters)
+        await coordinator.async_set({"lightStatus": "1"})
         await coordinator.async_request_refresh()
 
 
@@ -351,10 +313,12 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     async def handle_light_off(call):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
+        update_sensor(hass, device_id, mac, "light_status" , "off")
+
         coordinator = await hon.async_get_existing_coordinator(mac)
-        parameters = {"lightStatus": "0"}
-        await coordinator.async_set(parameters)
+        await coordinator.async_set({"lightStatus": "0"})
         await coordinator.async_request_refresh()
+
 
         #device_id = call.data.get("device_id")[0]
 

@@ -28,7 +28,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
 )
 
-SESSION_TIMEOUT     = 60
+SESSION_TIMEOUT     = 21600 # 6 hours session
 
 from .base import HonBaseCoordinator, HonBaseEntity
 
@@ -117,9 +117,7 @@ class HonConnection:
             data=data,
         ) as resp:
             if resp.status != 200:
-                _LOGGER.error(
-                    "Unable to connect to the login service: " + str(resp.status)
-                )
+                _LOGGER.error("Unable to connect to the login service: " + str(resp.status))
                 return False
 
             text = await resp.text()
@@ -135,7 +133,7 @@ class HonConnection:
                 if text.find("clientOutOfSync") > 0 and error_code != 2:
                     start = text.find("Expected: ") + 10
                     end = text.find(" ", start)
-                    _LOGGER.info(
+                    _LOGGER.debug(
                         "Framework update from ["
                         + self._framework
                         + "] to ["
@@ -162,15 +160,13 @@ class HonConnection:
             _LOGGER.warning(wait_data)"""
 
         """ **** Get FRONTDOOR URL *** """
-        if await self.async_get_frontdoor_url(self._session) == 1:
+        if await self.async_get_frontdoor_url(0) == 1:
             return False
 
         """ **** Connect to FRONTDOOR URL *** """
         async with self._session.get(self._frontdoor_url) as resp:
             if resp.status != 200:
-                _LOGGER.error(
-                    "Unable to connect to the login service: " + str(resp.status)
-                )
+                _LOGGER.error("Unable to connect to the login service: " + str(resp.status))
                 return False
             wait_data = await resp.text()
 
@@ -216,7 +212,6 @@ class HonConnection:
             except:
                 _LOGGER.error("Invalid JSON Data after POST to https://api-iot.he.services/auth/v1/login: " + text)
                 return False
-            #_LOGGER.warning(self._cognitoToken)
 
         credential_headers = {
             "cognito-token": self._cognitoToken,
@@ -249,12 +244,11 @@ class HonConnection:
 
     async def async_get_state(self, mac, typeName, returnAllData = False, loop=False):
 
-        # Create a new hOn session to avoid going to expiration
+        # Create a new hOn session to avoid reaching the expiration
         elapsed_time = time.time() - self._start_time
         if( elapsed_time > SESSION_TIMEOUT ):
-            #TODO: async_get_frontdoor_url fails. I think because the session is already open.
-            #I need to find a way to close or start a new session
-            #await self.async_authorize()
+            self._session.cookie_jar.clear()
+            await self.async_authorize()
             self._start_time = time.time()
 
         """
@@ -302,6 +296,8 @@ class HonConnection:
                         + "]"
                     )
                     return False
+                
+                # Let's do a retry!
                 await self.async_authorize()
                 return await self.async_get_state(mac, typeName, returnAllData, True)
 
@@ -315,7 +311,7 @@ class HonConnection:
                 )
                 return False
             #_LOGGER.warning(text)
-            _LOGGER.info(text)
+            _LOGGER.debug(text)
 
             if returnAllData:
                 return json.loads(text)

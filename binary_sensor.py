@@ -47,8 +47,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
         if( "lockStatus" in coordinator.data ):
             appliances.extend([HonBaseChildLockStatus(hass, coordinator, entry, appliance)])
-
-
         if( "lightStatus" in coordinator.data ):
             appliances.extend([HonBaseLightStatus(hass, coordinator, entry, appliance)])
         if( "remoteCtrValid" in coordinator.data ):
@@ -57,13 +55,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBasePreheating(hass, coordinator, entry, appliance)])
 
 
-
-
     async_add_entities(appliances)
 
-    platform = entity_platform.async_get_current_platform()
-    #platform.async_register_entity_service("turn_lights_on",{},"async_set_on",)
-    #platform.async_register_entity_service("turn_lights_off",{},"async_set_off",)
 
 
 
@@ -96,19 +89,6 @@ class HonBaseLightStatus(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.LIGHT
         self._attr_icon = "mdi:lightbulb"
 
-    #async def async_set_on(self):
-    #    parameters  = {"lightStatus": "1"}
-    #    await self.async_set(parameters)
-    #    self._attr_is_on = True
-    #    self.async_write_ha_state()
-
-    #async def async_set_off(self):
-    #    parameters  = {"lightStatus": "0"}
-    #    await self.async_set(parameters)
-    #    self._attr_is_on = False
-    #    self.async_write_ha_state()
-    
-
 
 class HonBaseRemoteControl(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
@@ -137,6 +117,8 @@ class HonBaseChildLockStatus(HonBaseBinarySensorEntity):
     def coordinator_update(self):
         self._attr_is_on = self._coordinator.data["lockStatus"]["parNewVal"] == "0"
 
+    async def async_set_on(self):
+        _LOGGER.warning("HonBaseChildLockStatus::async_set_on WTF")
 
 class HonBasePreheating(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
