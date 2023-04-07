@@ -1,7 +1,4 @@
 import logging
-from .device import HonDevice
-from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
-from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 
 from homeassistant.core import callback
 from homeassistant.const import UnitOfTemperature, UnitOfTime, REVOLUTIONS_PER_MINUTE
@@ -10,6 +7,10 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers import translation
+
+from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
+from .device import HonDevice
+from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 
 
 _LOGGER = logging.getLogger(__name__)
