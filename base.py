@@ -12,6 +12,7 @@ import logging
 import re
 from datetime import timedelta
 from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
+from .command import HonCommand
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,49 +26,40 @@ class HonBaseCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=30),
         )
         self._hon       = hon
+        self._device    = None
+        self._appliance = appliance
         self._mac       = appliance["macAddress"]
         self._type_name = appliance["applianceTypeName"]
+        
+        self._type_id       = appliance["applianceTypeId"]
+        self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
+        self._brand         = appliance["brand"]
+        self._model         = appliance["modelName"]
+        self._fw_version    = appliance["fwVersion"]
 
     async def _async_update_data(self):
-        return await self._hon.async_get_state(self._mac, self._type_name)
+        #data = await self._hon.async_get_context(self._device)
+        await self._device.load_context()
+
+        #data = await self._hon.async_get_state(self._mac, self._type_name)
+        #if( self._device != None ):
+        #    self._device.load_context(data)
+        #return data
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, value):
+        self._device = value
 
     async def async_set(self, parameters):
         await self._hon.async_set(self._mac, self._type_name, parameters)
         
-    def has_int_data(self, key):
-        if self.data is False:
-            return False
-        if key not in self.dataFalse:
-            return False
-        if( int(data[key]["parNewVal"]) > 0 ):
-            return True
-        return False
-
     def get(self, key):
         return self.data.get(key, "")
 
-    def addKey(self, key):
-        #_LOGGER.debug(key)
-        return True
-
-
-class HonBaseEntity(CoordinatorEntity):
-    def __init__(self, hass, entry, coordinator, appliance) -> None:
-        super().__init__(coordinator)
-
-        self._hon       = hass.data[DOMAIN][entry.unique_id]
-        self._hass      = hass
-        self._brand     = appliance["brand"]
-        self._type_name = appliance["applianceTypeName"]
-        self._type_id = appliance["applianceTypeId"]
-        self._name      = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
-        self._mac       = appliance["macAddress"]
-        self._connectivity = appliance["connectivity"]
-        self._model         = appliance["modelName"]
-        self._series        = appliance["series"]
-        self._model_id      = appliance["applianceModelId"]
-        self._serial_number = appliance["serialNumber"]
-        self._fw_version    = appliance["fwVersion"]
 
     @property
     def device_info(self):
@@ -80,16 +72,11 @@ class HonBaseEntity(CoordinatorEntity):
             "model": self._model,
             "sw_version": self._fw_version,
         }
-
-    async def async_set(self, parameters):
-        await self._hon.async_set(self._mac, self._type_name, parameters)
-
 
 class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     def __init__(self, coordinator, appliance, key, sensor_name) -> None:
         super().__init__(coordinator)
-        self._coordinator = coordinator
-        self._coordinator.addKey(key)
+        self._coordinator   = coordinator
         self._mac           = appliance["macAddress"]
         self._type_id       = appliance["applianceTypeId"]
         self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
@@ -98,6 +85,7 @@ class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self._fw_version    = appliance["fwVersion"]
         self._type_name     = appliance["applianceTypeName"]
         self._key           = key
+        self._device        = coordinator.device
 
         #Generate unique ID from key
         key_formatted = re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
@@ -128,13 +116,12 @@ class HonBaseBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self.async_write_ha_state()
 
     def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data[self._key]["parNewVal"] == "1"
-        
+        self._attr_is_on = self._device.get(self._key) == "1"
+
 class HonBaseSensorEntity(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, appliance, key, sensor_name) -> None:
         super().__init__(coordinator)
-        self._coordinator = coordinator
-        self._coordinator.addKey(key)
+        self._coordinator   = coordinator
         self._mac           = appliance["macAddress"]
         self._type_id       = appliance["applianceTypeId"]
         self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
@@ -143,6 +130,7 @@ class HonBaseSensorEntity(CoordinatorEntity, SensorEntity):
         self._fw_version    = appliance["fwVersion"]
         self._type_name     = appliance["applianceTypeName"]
         self._key           = key
+        self._device        = coordinator.device
 
 
         #Generate unique ID from key
@@ -174,4 +162,4 @@ class HonBaseSensorEntity(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     def coordinator_update(self):
-        self._attr_native_value = self._coordinator.data[self._key]["parNewVal"]
+        self._attr_native_value = self._device.get(self._key)

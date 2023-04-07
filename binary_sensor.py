@@ -7,7 +7,7 @@ from typing import Optional
 from enum import IntEnum
 
 from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE, APPLIANCE_TYPE
-from .base import HonBaseCoordinator, HonBaseEntity, HonBaseBinarySensorEntity
+from .base import HonBaseCoordinator, HonBaseBinarySensorEntity
 
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
@@ -31,29 +31,29 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             _LOGGER.warning("Appliance with no MAC")
             continue
 
-        # Get or Create Coordinator
         coordinator = await hon.async_get_coordinator(appliance)
-        await coordinator.async_config_entry_first_refresh()
+        device = coordinator.device
 
         # Every device should have a OnOff status
         appliances.extend([HonBaseOnOff(hass, coordinator, entry, appliance)])
 
-        if( "doorStatusZ1" in coordinator.data ):
+        if device.has("doorStatusZ1"):
             appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
-        if( "doorStatusZ2" in coordinator.data ):
+        if device.has("doorStatusZ2"):
             appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
-        if( "doorLockStatus" in coordinator.data ):
+        if device.has("doorLockStatus"):
             appliances.extend([HonBaseDoorLockStatus(hass, coordinator, entry, appliance)])
 
-        if( "lockStatus" in coordinator.data ):
+        if device.has("lockStatus"):
             appliances.extend([HonBaseChildLockStatus(hass, coordinator, entry, appliance)])
-        if( "lightStatus" in coordinator.data ):
+        if device.has("lightStatus"):
             appliances.extend([HonBaseLightStatus(hass, coordinator, entry, appliance)])
-        if( "remoteCtrValid" in coordinator.data ):
+        if device.has("remoteCtrValid"):
             appliances.extend([HonBaseRemoteControl(hass, coordinator, entry, appliance)])
-        if( "preheatStatus" in coordinator.data ):
+        if device.has("preheatStatus"):
             appliances.extend([HonBasePreheating(hass, coordinator, entry, appliance)])
-
+        if device.has("healthMode"):
+            appliances.extend([HonBaseHealthMode(hass, coordinator, entry, appliance)])
 
     async_add_entities(appliances)
 
@@ -67,12 +67,10 @@ class HonBaseOnOff(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.POWER
 
     def coordinator_update(self):
-        if( "onOffStatus" in self._coordinator.data ):
-            self._attr_is_on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
+        if self._device.has("onOffStatus"):
+            self._attr_is_on = self._device.get("onOffStatus") == "1"
         else:
-            self._attr_is_on = self._coordinator.data["category"] == "CONNECTED"
-
-
+            self._attr_is_on = self._device.get("attributes.lastConnEvent.category") == "CONNECTED"
 
 class HonBaseDoorStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, zone, zone_name) -> None:
@@ -105,20 +103,18 @@ class HonBaseDoorLockStatus(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.LOCK
 
     def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data["doorLockStatus"]["parNewVal"] == "0"
+        self._attr_is_on = self._device.get("doorLockStatus") == "0"
 
 
 class HonBaseChildLockStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "lockStatus", "Child Lock")
 
+        translation_key = "lockStatus"
         self._attr_device_class = BinarySensorDeviceClass.LOCK
 
     def coordinator_update(self):
-        self._attr_is_on = self._coordinator.data["lockStatus"]["parNewVal"] == "0"
-
-    async def async_set_on(self):
-        _LOGGER.warning("HonBaseChildLockStatus::async_set_on WTF")
+        self._attr_is_on = self._device.get("lockStatus") == "0"
 
 class HonBasePreheating(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
@@ -127,3 +123,10 @@ class HonBasePreheating(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.HEAT
         self._attr_icon = "mdi:thermometer-chevron-up"
 
+
+class HonBaseHealthMode(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "healthMode", "Health Mode")
+
+        self._attr_device_class = BinarySensorDeviceClass.RUNNING
+        self._attr_icon = "mdi:doctor"

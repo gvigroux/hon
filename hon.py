@@ -3,6 +3,7 @@ import logging
 import voluptuous as vol
 import aiohttp
 import asyncio
+import secrets
 import json
 import re
 import ast
@@ -26,28 +27,17 @@ from .const import (
     CONF_FRAMEWORK,
     CONF_COGNITO_TOKEN,
     CONF_REFRESH_TOKEN,
+    AUTH_API,
+    API_URL,
+    APP_VERSION,
+    OS_VERSION,
+    OS,
+    DEVICE_MODEL,
 )
 
 SESSION_TIMEOUT     = 21600 # 6 hours session
 
-from .base import HonBaseCoordinator, HonBaseEntity
-
-#class HonCoordinator(DataUpdateCoordinator):
-#    def __init__(self, hass, hon, appliance):
-#        """Initialize my coordinator."""
-#        super().__init__(
-#            hass,
-#            _LOGGER,
-#            name="hOn Coordinator",
-#            update_interval=timedelta(seconds=15),
-#        )
-#        self._hon = hon
-#        self._mac       = appliance["macAddress"]
-#        self._type_name = appliance["applianceTypeName"]
-
-#    async def _async_update_data(self):
-#        return await self._hon.async_get_state(self._mac, self._type_name)
-
+from .base import HonBaseCoordinator
 
 
 
@@ -56,6 +46,7 @@ class HonConnection:
         self._hass = hass
         self._entry = entry
         self._coordinator_dict  = {}
+        self._mobile_id = secrets.token_hex(8)
 
         # Only used during registration (Login/password check)
         if( email != None ) and ( password != None ):
@@ -95,7 +86,6 @@ class HonConnection:
         mac = appliance.get("macAddress", "")
         if mac in self._coordinator_dict:
             return self._coordinator_dict[mac]
-
         coordinator = HonBaseCoordinator( self._hass, self, appliance)
         self._coordinator_dict[mac] = coordinator
         return coordinator
@@ -125,21 +115,11 @@ class HonConnection:
                 json_data = json.loads(text)
                 self._frontdoor_url = json_data["events"][0]["attributes"]["values"]["url"]
             except:
-                """
-                Maybe it's a framework update. Typical messages:
-                */{"event":{"descriptor":"markup://aura:clientOutOfSync","eventDef":{"descriptor":"markup://aura:clientOutOfSync","t":"APPLICATION","xs":"I"}},"exceptionMessage":"Framework has been updated. Expected: tc2v9XbdIcEZ5G8cPbfJNQ Actual: 2yRFfs4WfGnFrNGn9C_dGg","exceptionEvent":true}/*ERROR*/
-                */{"event":{"descriptor":"markup://aura:clientOutOfSync","eventDef":{"descriptor":"markup://aura:clientOutOfSync","t":"APPLICATION","xs":"I"}},"exceptionMessage":"Framework has been updated. Expected: -SjNAdgW9yv96YgKI8MiFA Actual: ","exceptionEvent":true}/*ERROR*/
-                """
+                # Framework must be updated
                 if text.find("clientOutOfSync") > 0 and error_code != 2:
                     start = text.find("Expected: ") + 10
                     end = text.find(" ", start)
-                    _LOGGER.debug(
-                        "Framework update from ["
-                        + self._framework
-                        + "] to ["
-                        + text[start:end]
-                        + "]"
-                    )
+                    _LOGGER.debug("Framework update from ["+ self._framework+ "] to ["+ text[start:end]+ "]")
                     self._framework = text[start:end]
                     return await self.async_get_frontdoor_url(2)
                 _LOGGER.error("Unable to retreive the frontdoor URL. Message: " + text)
@@ -155,31 +135,21 @@ class HonConnection:
 
     async def async_authorize(self):
 
-        """async with self._session.get("https://he-accounts.force.com/SmartHome/s/login/?language=fr") as resp:
-            wait_data = await resp.text()
-            _LOGGER.warning(wait_data)"""
-
-        """ **** Get FRONTDOOR URL *** """
         if await self.async_get_frontdoor_url(0) == 1:
             return False
 
-        """ **** Connect to FRONTDOOR URL *** """
         async with self._session.get(self._frontdoor_url) as resp:
             if resp.status != 200:
                 _LOGGER.error("Unable to connect to the login service: " + str(resp.status))
                 return False
-            wait_data = await resp.text()
+            await resp.text()
 
-        """ **** Connect to ProgressiveLogin *** """
-        async with self._session.get(
-            "https://he-accounts.force.com/SmartHome/apex/ProgressiveLogin?retURL=%2FSmartHome%2Fapex%2FCustomCommunitiesLanding"
-        ) as resp:
-            wait_data = await resp.text()
+        url = f"{AUTH_API}/apex/ProgressiveLogin?retURL=%2FSmartHome%2Fapex%2FCustomCommunitiesLanding"
+        async with self._session.get(url) as resp:
+            await resp.text()
 
-        """ **** Get token *** """
-        async with self._session.get(
-            "https://he-accounts.force.com/SmartHome/services/oauth2/authorize?response_type=token+id_token&client_id=3MVG9QDx8IX8nP5T2Ha8ofvlmjLZl5L_gvfbT9.HJvpHGKoAS_dcMN8LYpTSYeVFCraUnV.2Ag1Ki7m4znVO6&redirect_uri=hon%3A%2F%2Fmobilesdk%2Fdetect%2Foauth%2Fdone&display=touch&scope=api%20openid%20refresh_token%20web&nonce=82e9f4d1-140e-4872-9fad-15e25fbf2b7c"
-        ) as resp:
+        url = f"{AUTH_API}/services/oauth2/authorize?response_type=token+id_token&client_id=3MVG9QDx8IX8nP5T2Ha8ofvlmjLZl5L_gvfbT9.HJvpHGKoAS_dcMN8LYpTSYeVFCraUnV.2Ag1Ki7m4znVO6&redirect_uri=hon%3A%2F%2Fmobilesdk%2Fdetect%2Foauth%2Fdone&display=touch&scope=api%20openid%20refresh_token%20web&nonce=82e9f4d1-140e-4872-9fad-15e25fbf2b7c"
+        async with self._session.get(url) as resp:
             text = await resp.text()
             array = []
             try:
@@ -189,7 +159,7 @@ class HonConnection:
                     #Implement a second way to get the token value
                     m = re.search('id_token\=(.+?)&', text)
                     if m:
-                        idt = m.group(1)
+                        self._id_token = m.group(1)
                     else:
                         _LOGGER.error("Unable to get [id_token] during authorization process (tried both options). Full response [" + text + "]")
                         return False
@@ -201,159 +171,123 @@ class HonConnection:
                 return False
 
         post_headers = {"Content-Type": "application/json", "id-token": self._id_token}
-        data = '{"appVersion": "1.39.2","mobileId": "xxxxxxxxxxxxxxxxxx","osVersion": 30,"os": "android","deviceModel": "goldfish_x86"}'
-        async with self._session.post(
-            "https://api-iot.he.services/auth/v1/login", headers=post_headers, data=data
-        ) as resp:
-            text = await resp.text()
+        data = {"mobileId": self._mobile_id,
+                "os": OS,
+                "osVersion": OS_VERSION,
+                "appVersion": APP_VERSION,
+                "deviceModel": DEVICE_MODEL}
+        url = f"{API_URL}/auth/v1/login"
+        async with self._session.post(url, headers=post_headers, json=data) as resp:
             try:
-                json_data = json.loads(text)
+                json_data = await resp.json()
                 self._cognitoToken = json_data["cognitoUser"]["Token"]
             except:
-                _LOGGER.error("Invalid JSON Data after POST to https://api-iot.he.services/auth/v1/login: " + text)
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers []" + str(post_headers) + "]")
                 return False
 
-        credential_headers = {
-            "cognito-token": self._cognitoToken,
-            "id-token": self._id_token,
-        }
-        async with self._session.get(
-            "https://api-iot.he.services/commands/v1/appliance",
-            headers=credential_headers,
-        ) as resp:
-            text = await resp.text()
+
+        url = f"{API_URL}/commands/v1/appliance"
+        async with self._session.get(url,headers=self._headers) as resp:
             try:
-                json_data = json.loads(text)
+                json_data = await resp.json()
             except:
-                _LOGGER.error("No JSON Data after GET: " + text)
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after GET [" + url + "]")
                 return False
 
             self._appliances = json_data["payload"]["appliances"]
-            
-            # Add fake devices
-            #self._appliances.append(ast.literal_eval("{'fwVersion': '3.8.0', 'applianceTypeId': 14, 'firstEnrollment': False, 'attributes': [{'parValue': '03.12.00', 'id': 98537740, 'parName': 'acuVersion', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}, {'parValue': 'ESP32D0WDQ5', 'id': 98537739, 'parName': 'chipset', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}, {'parValue': '167', 'id': 98538146, 'parName': 'dictionaryId', 'status': 1, 'lastUpdate': '2023-02-01T09:48:21Z'}, {'parValue': 'it-IT', 'id': 98537738, 'parName': 'lang', 'status': 1, 'lastUpdate': '2023-02-01T09:46:32Z'}], 'applianceModelId': 813, 'series': 'romania', 'firstEnrollmentTBC': False, 'code': '34004960', 'SK': 'app#34-86-xx-xx-34-90', 'macAddress': 'FAKE1', 'eepromName': 'no_eeprom', 'applianceId': '34-86-xx-xx-34-90#2023-02-01T09:46:20Z', 'id': 813, 'modelName': 'CCE4T620EB', 'applianceTypeName': 'REF', 'connectivity': 'wifi|ble', 'serialNumber': '340xxxxxxxx094', 'enrollmentDate': '2023-02-01T09:46:20.530Z', 'brand': 'candy', 'lastUpdate': '2023-02-01T09:46:32Z', 'eepromId': 41, 'applianceStatus': 1, 'coords': {'lng': 23.1265361, 'lat': 53.1144253}, 'PK': 'user#eu-west-1:75acd8ec-2457-47e8-82ef-d04bbbad9f72', 'sections': {'chatbot': True, 'epp_enabled': True, 'double_pairing_hidden': True}, 'topics': {'publish': [], 'subscribe': ['$aws/events/presence/disconnected/34-86-xx-xx-34-90', '$aws/events/presence/connected/34-86-xx-xx-34-90', 'haier/things/34-86-xx-xx-34-90/event/appliancestatus/update', 'haier/things/34-86-xx-xx-34-90/event/discovery/update']}}"))
-            #self._appliances.append(ast.literal_eval("{'fwVersion': '3.8.0', 'applianceTypeId': 2, 'applianceModelId': 813, 'series': 'romania', 'code': '34004960', 'macAddress': 'FAKE2', 'eepromName': 'no_eeprom', 'applianceId': '34-86-xx-xx-34-90#2023-02-01T09:46:20Z', 'id': 813, 'modelName': 'CCE4T620EB', 'applianceTypeName': 'REF', 'connectivity': 'wifi|ble', 'serialNumber': '340xxxxxxxx094', 'enrollmentDate': '2023-02-01T09:46:20.530Z', 'brand': 'candy', 'lastUpdate': '2023-02-01T09:46:32Z', 'eepromId': 41, 'applianceStatus': 1}"))
-            
-            self._start_time = time.time()
-            """for appliance in json_data['payload']['appliances']:
-                _LOGGER.warning(appliance)
-                if appliance.applianceTypeId == 11 :
-                    self._appliances[]"""
-        
+
+        self._start_time = time.time()
         return True
 
-    async def async_get_state(self, mac, typeName, returnAllData = False, loop=False):
+    '''
+    async def async_get_state(self, mac, typeName, loop=False):
 
         # Create a new hOn session to avoid reaching the expiration
         elapsed_time = time.time() - self._start_time
         if( elapsed_time > SESSION_TIMEOUT ):
             self._session.cookie_jar.clear()
             await self.async_authorize()
-            self._start_time = time.time()
 
-        """
-        if( mac == "FAKE1"):
-            tmp = ast.literal_eval("{'payload': {'resultCode': '0', 'shadow': {'parameters': {'quickModeZ1': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'intelligenceMode': {'parNewVal': '1', 'lastUpdate': '2023-02-01T09:50:05Z'}, 'quickModeZ2': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'tempSelZ2': {'parNewVal': '-20', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'holidayMode': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'tempSelZ1': {'parNewVal': '4', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'errors': {'parNewVal': '00', 'lastUpdate': '2023-02-01T09:49:16Z'}, 'tempEnv': {'parNewVal': '21', 'lastUpdate': '2023-02-01T09:47:21Z'}, 'sterilizationStatus': {'parNewVal': '1', 'lastUpdate': '2023-02-01T09:37:54Z'}, 'doorStatusZ1': {'parNewVal': '0', 'lastUpdate': '2023-02-01T09:50:20Z'}}}, 'activity': {}, 'commandHistory': {'command': {'macAddress': 'FAKE2', 'commandName': 'startProgram', 'applianceOptions': {}, 'ancillaryParameters': {'programRules': {'fixedValue': {'tempSelZ1': {'@quickModeZ1': {'1': {'fixedValue': '1', 'typology': 'fixed'}}, '@intelligenceMode': {'1': {'fixedValue': '5', 'typology': 'fixed'}}, '@holidayMode': {'1': {'fixedValue': '17', 'typology': 'fixed'}}, '@quickModeZ2': {'1': {'fixedValue': '@tempSelZ1', 'typology': 'fixed'}}}, 'tempSelZ2': {'@quickModeZ1': {'1': {'fixedValue': '@tempSelZ2', 'typology': 'fixed'}}, '@intelligenceMode': {'1': {'fixedValue': '-18', 'typology': 'fixed'}}, '@holidayMode': {'1': {'fixedValue': '@tempSelZ2', 'typology': 'fixed'}}, '@quickModeZ2': {'1': {'fixedValue': '-24', 'typology': 'fixed'}}}}, 'typology': 'fixed', 'category': 'rule', 'mandatory': 0}}, 'applianceType': 'REF', 'attributes': {'prStr': 'PROGRAMS.REF.AUTO_SET', 'channel': 'mobileApp', 'origin': 'standardProgram'}, 'device': {'appVersion': '1.51.9', 'deviceModel': 'sdm845', 'osVersion': '29', 'mobileId': '814efd566ca3456a', 'mobileOs': 'android'}, 'parameters': {'intelligenceMode': '1'}, 'transactionId': '34-86-xx-xx-34-90_2023-02-01T09:49:58.494Z', 'timestamp': '2023-02-01T09:49:58.493Z'}, 'timestampAccepted': '2023-02-01T09:50:01.1Z', 'timestampExecuted': '2023-02-01T09:50:02.1Z'}, 'lastConnEvent': {'macAddress': 'FAKE1', 'category': 'CONNECTED', 'instantTime': '2023-02-01T09:49:09Z', 'timestampEvent': 1675244949030}}, 'authInfo': {}}")
-            json_data = tmp["payload"]["shadow"]["parameters"]
-            json_data_pay = tmp["payload"]
-            if "lastConnEvent" in json_data_pay:
-                json_data_lastCon = tmp["payload"]["lastConnEvent"]
-                json_data.update(json_data_lastCon)
-            return json_data
-        if( mac == "FAKE2"):
-            tmp = ast.literal_eval("{'payload': {'resultCode': '0', 'shadow': {'parameters': {'prCode': {'parNewVal': '0'}, 'prPhase': {'parNewVal': '1'}, 'prTime': {'parNewVal': '0'}, 'totalElectricityUsed': {'parNewVal': '-20'}, 'totalWashCycle': {'parNewVal': '0'}, 'totalWaterUsed': {'parNewVal': '4'}, 'actualWeight': {'parNewVal': '00'}, 'currentWaterUsed': {'parNewVal': '21'}, 'currentElectricityUsed': {'parNewVal': '10'}, 'dryLevel': {'parNewVal': '10'}, 'preFilterStatus': {'parNewVal': '10'}, 'mainFilterStatus': {'parNewVal': '10'},'airQuality': {'parNewVal': '10'}, 'coLevel': {'parNewVal': '10'}, 'vocValueIndoor': {'parNewVal': '10'}, 'pm2p5ValueIndoor': {'parNewVal': '10'}, 'pm10ValueIndoor': {'parNewVal': '10'}, 'humidityOutdoor': {'parNewVal': '10'}, 'humidityIndoor': {'parNewVal': '10'}, 'humidityZ1': {'parNewVal': '10'}, 'humidityZ2': {'parNewVal': '10'}, 'humidity': {'parNewVal': '10'}, 'remainingTimeMM': {'parNewVal': '10'}, 'tempZ2': {'parNewVal': '10'}, 'tempZ1': {'parNewVal': '10'}, 'temp': {'parNewVal': '10'}, 'spinSpeed': {'parNewVal': '10'}}},'lastConnEvent': {'macAddress': 'FAKE2', 'category': 'CONNECTED', 'instantTime': '2023-02-01T09:49:09Z', 'timestampEvent': 1675244949030}}}")
-            json_data = tmp["payload"]["shadow"]["parameters"]
-            json_data_pay = tmp["payload"]
-            if "lastConnEvent" in json_data_pay:
-                json_data_lastCon = tmp["payload"]["lastConnEvent"]
-                json_data.update(json_data_lastCon)
-            return json_data
-        """
-
-        credential_headers = {
-            "cognito-token": self._cognitoToken,
-            "id-token": self._id_token,
-        }
-        async with self._session.get(
-            "https://api-iot.he.services/commands/v1/context?macAddress="
-            + mac
-            + "&applianceType="
-            + typeName
-            + "&category=CYCLE",
-            headers=credential_headers,
-        ) as resp:
+        url = f"{API_URL}/commands/v1/context?macAddress={mac}&applianceType={typeName}&category=CYCLE"
+        async with self._session.get(url, headers=self._headers) as resp:
             text = await resp.text()
 
             # Authentication has expired
             if resp.status == 403:
-                # Do only one retry
                 if loop == True:
-                    _LOGGER.error(
-                        "Unable to get the state of the hOn device. HTTP code: "
-                        + str(resp.status)
-                        + " and text["
-                        + text
-                        + "]"
-                    )
+                    _LOGGER.error(f"Unable to get the state of the hOn device. HTTP code: {str(resp.status)} and text [{text}]")
                     return False
-                
-                # Let's do a retry!
                 await self.async_authorize()
-                return await self.async_get_state(mac, typeName, returnAllData, True)
+                return await self.async_get_state(mac, typeName, True)
 
             elif resp.status != 200:
-                _LOGGER.error(
-                    "Unable to get the state of the hOn device. HTTP code: "
-                    + str(resp.status)
-                    + " and text["
-                    + text
-                    + "]"
-                )
+                _LOGGER.error(f"Unable to get the state of the hOn device. HTTP code: {str(resp.status)} and text [{text}]")
                 return False
-            #_LOGGER.warning(text)
-            _LOGGER.debug(text)
 
-            if returnAllData:
-                return json.loads(text)
-            
-            json_data = json.loads(text)["payload"]["shadow"]["parameters"]
-            json_data_pay = json.loads(text)["payload"]
-            if "lastConnEvent" in json_data_pay:
-                json_data_lastCon = json.loads(text)["payload"]["lastConnEvent"]
-                json_data.update(json_data_lastCon)
-
-            #_LOGGER.warning(json_data)
-
-            #json_data_activity = json.loads(text)["payload"]["activity"]
-            #if( "attributes" in json_data_activity ):
-            #    _LOGGER.warning(json.loads(text)["payload"]["activity"]["attributes"])
-
+            full_json_data = json.loads(text)
+            json_data = full_json_data["payload"]["shadow"]["parameters"]
+            if "lastConnEvent" in full_json_data["payload"]:
+                json_data["category"] = full_json_data["payload"]["lastConnEvent"].get("category")
             return json_data
         return False
+        '''
 
 
 
-    #async def async_set_parameter(self, device_id, parameters):
-    #    device_registry = dr.async_get(self._hass)
-    #    device = device_registry.async_get(device_id)
-    #    identifiers = next(iter(device.identifiers))
+    async def load_commands(self, appliance):
+        params = {
+            "applianceType": appliance["applianceTypeId"],
+            "code": appliance["code"],
+            "applianceModelId": appliance["applianceModelId"],
+            "firmwareId": appliance["eepromId"],
+            "macAddress": appliance["macAddress"],
+            "fwVersion": appliance["fwVersion"],
+            "os": OS,
+            "appVersion": APP_VERSION,
+            "series": appliance["series"],
+        }
+        url = f"{API_URL}/commands/v1/retrieve"
+        async with self._session.get(url, params=params, headers=self._headers) as resp:
+            result = (await resp.json()).get("payload", {})
+            if not result or result.pop("resultCode") != "0":
+                return {}
+            return result
 
-    #    entity_reg = er.async_get_registry(self._hass)
-    #    entry = entity_reg.async_get(entity_id)
+    async def async_get_context(self, device):
 
-    #    dev_reg = dr.async_get_registry(hass)
-    #    device = dev_reg.async_get(entry.device_id)
+        # Create a new hOn session to avoid reaching the expiration
+        elapsed_time = time.time() - self._start_time
+        if( elapsed_time > SESSION_TIMEOUT ):
+            self._session.cookie_jar.clear()
+            await self.async_authorize()
 
-        #_LOGGER.warning(data)
-        #return await self.async_set(identifiers[1], identifiers[2], parameters)
+        params = {
+            "macAddress": device.mac_address,
+            "applianceType": device.appliance_type,
+            "category": "CYCLE"
+        }
+        url = f"{API_URL}/commands/v1/context"
+        async with self._session.get(url, params=params, headers=self._headers) as response:
+            return (await response.json()).get("payload", {})
 
+    async def load_statistics(self, device):
+        params = {
+            "macAddress": device.mac_address,
+            "applianceType": device.appliance_type
+        }
+        url = f"{API_URL}/commands/v1/statistics"
+        async with self._session.get(url, params=params, headers=self._headers) as response:
+            return (await response.json()).get("payload", {})
 
-    async def async_set(self, mac, typeName, parameters):
-        post_headers = {
+    @property
+    def _headers(self):
+        return {
             "Content-Type": "application/json",
             "cognito-token": self._cognitoToken,
             "id-token": self._id_token,
         }
+
+    async def async_set(self, mac, typeName, parameters):
 
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         data = json.loads("{}")
@@ -379,44 +313,56 @@ class HonConnection:
         data["timestamp"] = timestamp
         data["transactionId"] = mac + "_" + data["timestamp"]
 
-        #_LOGGER.warning(data)
-        async with self._session.post(
-            "https://api-iot.he.services/commands/v1/send",
-            headers=post_headers,
-            json=data,
-        ) as resp:
-            #_LOGGER.warning(resp.status)
-            text = await resp.text()
-            # _LOGGER.warning(text)
+        async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=data,) as resp:
             try:
-                json_data = json.loads(text)
-            except:
-                _LOGGER.error(
-                    "hOn Invalid Data ["
-                    + text
-                    + "] after sending command ["
-                    + str(data)
-                    + "]"
-                )
+                json_data = await resp.json()
+            except json.JSONDecodeError:
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
                 return False
-
-            #_LOGGER.error(json_data)
-            
-            try:
-                if json_data["payload"]["resultCode"] == "0":
-                    return True
-            except:
-                return False
-
-
-            _LOGGER.error(
-                "hOn command has been rejected. Error message ["
-                + text
-                + "] sent data ["
-                + str(data)
-                + "]"
-            )
+            if json_data["payload"]["resultCode"] == "0":
+                return True
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json_data) + "] sent data ["+ str(data)+ "]")
         return False
+
+
+
+    async def send_command(self, device, command, parameters, ancillary_parameters):
+        now = datetime.utcnow().isoformat()
+        data = {
+            "macAddress": device.mac_address,
+            "timestamp": f"{now[:-3]}Z",
+            "commandName": command,
+            "transactionId": f"{device.mac_address}_{now[:-3]}Z",
+            "applianceOptions": device.commands_options,
+            "device": {
+                "mobileId": self._mobile_id,
+                "mobileOs": OS,
+                "osVersion": OS_VERSION,
+                "appVersion": APP_VERSION,
+                "deviceModel": DEVICE_MODEL
+            },
+            "attributes": {
+                "channel": "mobileApp",
+                "origin": "standardProgram",
+                "energyLabel": "0"
+            },
+            "ancillaryParameters": ancillary_parameters,
+            "parameters": parameters,
+            "applianceType": device.appliance_type
+        }
+
+        url = f"{API_URL}/commands/v1/send"
+        async with self._session.post(url, headers=self._headers, json=data) as resp:
+            try:
+                json_data = await resp.json()
+            except json.JSONDecodeError:
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
+                return False
+            if json_data["payload"]["resultCode"] == "0":
+                return True
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json_data) + "] sent data ["+ str(data)+ "]")
+        return False
+
 
 def get_hOn_mac(device_id, hass):
     device_registry = dr.async_get(hass)

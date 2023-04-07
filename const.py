@@ -27,10 +27,23 @@ CONF_REFRESH_TOKEN = "refresh_token"
 CONF_FRAMEWORK = "framework"
 
 PLATFORMS = [
-    "climate",
+    "climate", 
     "sensor",
     "binary_sensor"
 ]
+'''
+    "select",
+    "number" '''
+
+
+AUTH_API        = "https://he-accounts.force.com/SmartHome"
+API_URL         = "https://api-iot.he.services"
+APP_VERSION     = "1.53.7"
+OS_VERSION      = 31
+OS              = "android"
+DEVICE_MODEL    = "goldfish_x86"
+
+
 
 class APPLIANCE_TYPE(IntEnum):
     WASHING_MACHINE = 1,
@@ -56,19 +69,19 @@ APPLIANCE_DEFAULT_NAME = {
 }
 
 class ClimateFanMode(IntEnum):
-    HON_FAN_OFF = 0
-    HON_FAN_AUTO = 5
-    HON_FAN_LOW = 3
-    HON_FAN_MEDIUM = 2
-    HON_FAN_HIGH = 1
+    HON_FAN_OFF = "0"
+    HON_FAN_AUTO = "5"
+    HON_FAN_LOW = "3"
+    HON_FAN_MEDIUM = "2"
+    HON_FAN_HIGH = "1"
 
 
 class ClimateHvacMode(IntEnum):
-    HON_HVAC_AUTO = 0
-    HON_HVAC_COOL = 1
-    HON_HVAC_DRY = 2
-    HON_HVAC_HEAT = 4
-    HON_HVAC_FAN_ONLY = 6
+    HON_HVAC_AUTO = "0"
+    HON_HVAC_COOL = "1"
+    HON_HVAC_DRY = "2"
+    HON_HVAC_HEAT = "4"
+    HON_HVAC_FAN_ONLY = "6"
 
 
 CLIMATE_MODE = {
@@ -80,23 +93,23 @@ CLIMATE_MODE = {
 }
 
 class ClimateSwingVertical(IntEnum):
-    AUTO = 8
-    VERY_LOW = 7
-    LOW = 6
-    MIDDLE = 5
-    HIGH = 4
-    HEALTH_LOW = 3
-    VERY_HIGH = 2
-    HEALTH_HIGH = 1
+    AUTO = "8"
+    VERY_LOW = "7"
+    LOW = "6"
+    MIDDLE = "5"
+    HIGH = "4"
+    HEALTH_LOW = "3"
+    VERY_HIGH = "2"
+    HEALTH_HIGH = "1"
 
 
 class ClimateSwingHorizontal(IntEnum):
-    AUTO = 7
-    MIDDLE = 0
-    FAR_LEFT = 3
-    LEFT = 4
-    RIGHT = 5
-    FAR_RIGHT = 6
+    AUTO = "7"
+    MIDDLE = "0"
+    FAR_LEFT = "3"
+    LEFT = "4"
+    RIGHT = "5"
+    FAR_RIGHT = "6"
     
 CLIMATE_FAN_MODE = {
     FAN_LOW: ClimateFanMode.HON_FAN_LOW.value,

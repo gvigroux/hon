@@ -52,23 +52,5 @@
             "Locked": "Locked",
             "Unlocked": "Unlocked"
         }
-	},
-	"washingmachineerror": {
-		"No error": "No error",
-		"E2: Check if the door is closed": "E2: Check if the door is closed",
-		"E4: Check the water supply": "E4: Check the water supply"
-	},
-	"washingmachinemode": {
-		"Disconnected": "Disconnected",
-		"Ready": "Ready",
-		"Running": "Running",
-		"Paused": "Paused",
-		"Scheduled": "Scheduled",
-		"Error": "Error",
-		"Finished": "Finished"
-	}, 
-	"washingmachinedoorlockstatus": {
-		"Locked": "Locked",
-		"Unlocked": "Unlocked"
 	}
 }

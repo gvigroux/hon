@@ -24,7 +24,7 @@ from homeassistant.core import callback
 
 from .const import DOMAIN, APPLIANCE_TYPE
 from .const import OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE
-from .const import WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES
+from .const import WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES, TUMBLE_DRYER_DRYL
 
 from homeassistant.const import (
     UnitOfTime,
@@ -39,7 +39,7 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION
 )
 
-from .base import HonBaseCoordinator, HonBaseEntity, HonBaseSensorEntity
+from .base import HonBaseCoordinator, HonBaseSensorEntity
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -57,97 +57,110 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             _LOGGER.warning("Appliance with no MAC")
             continue
 
+
         coordinator = await hon.async_get_coordinator(appliance)
-        await coordinator.async_config_entry_first_refresh()
+        #await coordinator.async_config_entry_first_refresh()
+        device = coordinator.device
 
-        if( "machMode" in coordinator.data ):
+
+        #_LOGGER.warning(device.get("attributes.lastConnEvent.category"))
+
+        if device.has("machMode"):
             appliances.extend([HonBaseMode(hass, coordinator, entry, appliance)])
+        
+        if device.has("temp"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "temp",        "Temperature")])
+        if device.has("tempEnv"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempEnv",     "Environment temperature")])
+        if device.has("tempIndoor"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempIndoor",  "Indoor temperature")])
+        if device.has("tempOutdoor"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempOutdoor", "Outdoor temperature")])
+        if device.has("tempSel"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSel",     "Selected temperature")])
+        if device.has("tempSelZ1"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ1",   "Selected temperature Zone 1")])
+        if device.has("tempSelZ2"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature Zone 2")])
+        if device.has("tempZ1"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature Zone 1")])
+        if device.has("tempZ2"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature Zone 2")])
 
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "temp",        "Temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempEnv",     "Environment temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempIndoor",  "Indoor temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempOutdoor", "Outdoor temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSel",     "Selected temperature")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ1",   "Selected temperature Zone 1")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempSelZ2",   "Selected temperature Zone 2")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempZ1",      "Temperature Zone 1")
-        add_temperature_sensor(hass, coordinator, entry, appliances, appliance, "tempZ2",      "Temperature Zone 2")
-
-        if( "remainingTimeMM" in coordinator.data ):
+        if device.has("remainingTimeMM"):
             appliances.extend([HonBaseStart(hass, coordinator, entry, appliance)])
             appliances.extend([HonBaseEnd(hass, coordinator, entry, appliance)])
             appliances.extend([HonBaseRemainingTime(hass, coordinator, entry, appliance)])
 
-        if( "humidity" in coordinator.data and int(coordinator.data["humidity"]["parNewVal"]) > 0):
+        if device.has("humidity") and device.getInt("humidity") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "", "")])
-        if( "humidityZ1" in coordinator.data and int(coordinator.data["humidityZ1"]["parNewVal"]) > 0):
+        if device.has("humidityZ1") and device.getInt("humidityZ1") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
-        if( "humidityZ2" in coordinator.data and int(coordinator.data["humidityZ2"]["parNewVal"]) > 0):
+        if device.has("humidityZ2") and device.getInt("humidityZ2") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
-        if( "humidityIndoor" in coordinator.data and int(coordinator.data["humidityIndoor"]["parNewVal"]) > 0):
+        if device.has("humidityIndoor") and device.getInt("humidityIndoor") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Indoor", "Indoor")])
-        if( "humidityOutdoor" in coordinator.data and int(coordinator.data["humidityOutdoor"]["parNewVal"]) > 0):
+        if device.has("humidityOutdoor") and device.getInt("humidityOutdoor") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Outdoor", "Outdoor")])
 
-        if( "pm2p5ValueIndoor" in coordinator.data and float(coordinator.data["pm2p5ValueIndoor"]["parNewVal"]) > 0):
+        if device.has("pm2p5ValueIndoor") and device.getFloat("pm2p5ValueIndoor") > 0:
             appliances.extend([HonBaseIndoorPM2p5(hass, coordinator, entry, appliance)])
-        if( "pm10ValueIndoor" in coordinator.data and float(coordinator.data["pm10ValueIndoor"]["parNewVal"]) > 0):
+        if device.has("pm10ValueIndoor") and device.getFloat("pm10ValueIndoor") > 0:
             appliances.extend([HonBaseIndoorPM10(hass, coordinator, entry, appliance)])
 
-        if( "vocValueIndoor" in coordinator.data and float(coordinator.data["vocValueIndoor"]["parNewVal"]) > 0 ):
+        if device.has("vocValueIndoor") and device.getFloat("vocValueIndoor") > 0:
             appliances.extend([HonBaseIndoorVOC(hass, coordinator, entry, appliance)])
 
-        if( "coLevel" in coordinator.data ):
+        if device.has("coLevel"):
             appliances.extend([HonBaseCOlevel(hass, coordinator, entry, appliance)])
-        if( "airQuality" in coordinator.data and float(coordinator.data["airQuality"]["parNewVal"]) > 0 ):
+        if device.has("airQuality") and device.getFloat("airQuality") > 0:
             appliances.extend([HonBaseAIRquality(hass, coordinator, entry, appliance)])
-        if( "mainFilterStatus" in coordinator.data ):
+        if device.has("mainFilterStatus"):
             appliances.extend([HonBaseMainFilter(hass, coordinator, entry, appliance)])
-        if( "preFilterStatus" in coordinator.data ):
+        if device.has("preFilterStatus"):
             appliances.extend([HonBasePreFilter(hass, coordinator, entry, appliance)])
 
-        if( "dryLevel" in coordinator.data ):
+        if device.has("dryLevel"):
             appliances.extend([HonBaseDryLevel(hass, coordinator, entry, appliance)])
-        if( "prCode" in coordinator.data ):
+        if device.has("prCode"):
             appliances.extend([HonBaseProgram(hass, coordinator, entry, appliance)])
-        if( "prPhase" in coordinator.data ):
+        if device.has("prPhase"):
             appliances.extend([HonBaseProgramPhase(hass, coordinator, entry, appliance)])
-        if( "prTime" in coordinator.data ):
+        if device.has("prTime"):
             appliances.extend([HonBaseProgramDuration(hass, coordinator, entry, appliance)])
 
-        if( "totalWaterUsed" in coordinator.data and "totalWashCycle" in coordinator.data  ):
+        if device.has("totalWaterUsed") and device.has("totalWashCycle"):
             appliances.extend([HonBaseMeanWaterConsumption(hass, coordinator, entry, appliance)])
-        if( "totalElectricityUsed" in coordinator.data and float(coordinator.data["totalElectricityUsed"]["parNewVal"]) > 0):
+        if device.has("totalElectricityUsed") and device.getFloat("totalElectricityUsed") > 0:
             appliances.extend([HonBaseTotalElectricityUsed(hass, coordinator, entry, appliance)])
-        if( "totalWashCycle" in coordinator.data ):
+        if device.has("totalWashCycle"):
             appliances.extend([HonBaseTotalWashCycle(hass, coordinator, entry, appliance)])
-        if( "totalWaterUsed" in coordinator.data ):
+        if device.has("totalWaterUsed"):
             appliances.extend([HonBaseTotalWaterUsed(hass, coordinator, entry, appliance)])
-        if( "actualWeight" in coordinator.data ):
+        if device.has("actualWeight"):
             appliances.extend([HonBaseWeight(hass, coordinator, entry, appliance)])
 
 
-        if( "currentWaterUsed" in coordinator.data ):
+        if device.has("currentWaterUsed"):
             appliances.extend([HonBaseCurrentWaterUsed(hass, coordinator, entry, appliance)])
-        if( "errors" in coordinator.data ):
+        if device.has("errors"):
             appliances.extend([HonBaseError(hass, coordinator, entry, appliance)])
-        if( "currentElectricityUsed" in coordinator.data ):
+        if device.has("currentElectricityUsed"):
             appliances.extend([HonBaseCurrentElectricityUsed(hass, coordinator, entry, appliance)])
-
-        if( "spinSpeed" in coordinator.data ):
+        if device.has("spinSpeed"):
             appliances.extend([HonBaseSpinSpeed(hass, coordinator, entry, appliance)])
 
 
         # Fridge other values
-        if( "quickModeZ1" in coordinator.data ):
+        if device.has("quickModeZ1"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick mode Zone 1", )])
-        if( "quickModeZ2" in coordinator.data ):
+        if device.has("quickModeZ2"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ2", "Quick mode Zone 2", )])
-        if( "intelligenceMode" in coordinator.data ):
+        if device.has("intelligenceMode"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "intelligenceMode", "Intelligence mode", )])
-        if( "holidayMode" in coordinator.data ):
+        if device.has("holidayMode"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "holidayMode", "Holiday mode", )])
-        if( "sterilizationStatus" in coordinator.data ):
+        if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
 
@@ -157,20 +170,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 
-    #async def async_my_custom_service_handler(call):
-    #    _LOGGER.warning(call.data)
-    #    entity_id = call.data.get('entity_id')
-    #    new_state = call.data.get('new_state')
-    #    _LOGGER.warning(entity_id)
-    #    _LOGGER.warning(new_state)
-    #    async_dispatcher_connect(hass, f"state_changed.{entity_id}", lambda event: hass.async_create_task(hass.states.async_set(entity_id, new_state)))
-    #hass.services.async_register(DOMAIN, 'my_custom_service', async_my_custom_service_handler)
-
-
-
-def add_temperature_sensor(hass, coordinator, entry, appliances, appliance, parameter, name ) -> None:
-    if( coordinator.data.get(parameter, None) != None ):
-        appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, parameter, name)])
 
 
 class HonBaseMode(HonBaseSensorEntity):
@@ -179,7 +178,7 @@ class HonBaseMode(HonBaseSensorEntity):
         #self._attr_icon         = "mdi:washing-machine"
 
     def coordinator_update(self):
-        mode = self._coordinator.data["machMode"]["parNewVal"]
+        mode = self._device.get("machMode")
         self._attr_native_value = f"Program {mode}"
 
         if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
@@ -226,17 +225,17 @@ class HonBaseRemainingTime(HonBaseSensorEntity):
 
     def coordinator_update(self):
         delay           = 0
-        remainingTime   = int(self._coordinator.data["remainingTimeMM"]["parNewVal"])
-        if( "delayTime" in self._coordinator.data ):
-            delay = int(self._coordinator.data["delayTime"]["parNewVal"])
+        remainingTime   = self._device.getInt("remainingTimeMM")
+        if self._device.has("delayTime"):
+            delay = self._device.getInt("delayTime")
 
         mach_mode = 0
-        if( "machMode" in self._coordinator.data ):
-            mach_mode = int(self._coordinator.data["machMode"]["parNewVal"])
+        if self._device.has("machMode"):
+            mach_mode = self._device.getInt("machMode")
 
         # Logic from WASHING_MACHINE implementation
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
-            if mach_mode in ("1","6"):
+            if mach_mode in (1,6):
                 self._attr_native_value = 0
             else:
                 self._attr_native_value = remainingTime
@@ -280,7 +279,7 @@ class HonBaseIndoorVOC(HonBaseSensorEntity):
 
     def coordinator_update(self):
 
-        ivoc = self._coordinator.data["vocValueIndoor"]["parNewVal"]
+        ivoc = self._device.get("vocValueIndoor")
 
         if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
             if ivoc in PURIFIER_VOC_VALUE:
@@ -320,7 +319,7 @@ class HonBasePreFilter(HonBaseSensorEntity):
 
     def coordinator_update(self):
         lifeperc = 100
-        lifepercvaluee = self._coordinator.data["preFilterStatus"]["parNewVal"]
+        lifepercvaluee = self._device.getFloat("preFilterStatus")
         lifepercfinale = lifeperc - float(lifepercvaluee)
         self._attr_native_value = float(lifepercfinale)
 
@@ -335,7 +334,7 @@ class HonBaseMainFilter(HonBaseSensorEntity):
 
     def coordinator_update(self):
         lifeperc = 100
-        lifepercvaluee = self._coordinator.data["mainFilterStatus"]["parNewVal"]
+        lifepercvaluee = self._device.getFloat("mainFilterStatus")
         lifepercfinale = lifeperc - float(lifepercvaluee)
         self._attr_native_value = float(lifepercfinale)
 
@@ -348,7 +347,7 @@ class HonBaseProgram(HonBaseSensorEntity):
         self._attr_device_class = "tumbledryerprogram"
 
     def coordinator_update(self):
-        program = self._coordinator.data["prCode"]["parNewVal"]
+        program = self._device.get("prCode")
         self._attr_native_value = f"{program}"
         if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
             if program in TUMBLE_DRYER_PROGRAMS:
@@ -365,7 +364,7 @@ class HonBaseProgramPhase(HonBaseSensorEntity):
         self._attr_device_class = "tumbledryerprogramphase"
 
     def coordinator_update(self):
-        programPhase = self._coordinator.data["prPhase"]["parNewVal"]
+        programPhase = self._device.get("prPhase")
         self._attr_native_value = programPhase
 
         if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
@@ -393,7 +392,7 @@ class HonBaseDryLevel(HonBaseSensorEntity):
 
 
     def coordinator_update(self):
-        drylevel = self._coordinator.data["dryLevel"]["parNewVal"]
+        drylevel = self._device.get("dryLevel")
         self._attr_native_value = drylevel
 
         if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
@@ -416,14 +415,14 @@ class HonBaseStart(HonBaseSensorEntity):
             self._on = False
 
         previous = self._on
-        if( "onOffStatus" in self._coordinator.data ):
-            self._on = self._coordinator.data["onOffStatus"]["parNewVal"] == "1"
+        if self._device.has("onOffStatus"):
+            self._on = self._device.get("onOffStatus") == "1"
         else:
-            self._on = self._coordinator.data["category"] == "CONNECTED"
+            self._on = self._device.get("attributes.lastConnEvent.category") == "CONNECTED"
 
         delay = 0
-        if( "delayTime" in self._coordinator.data ):
-            delay = int(self._coordinator.data["delayTime"]["parNewVal"])
+        if self._device.has("delayTime"):
+            delay = self._device.getInt("delayTime")
 
         if delay == 0:
             if self._on is True and previous is False:
@@ -448,9 +447,9 @@ class HonBaseEnd(HonBaseSensorEntity):
     def coordinator_update(self):
 
         delay = 0
-        if( "delayTime" in self._coordinator.data ):
-            delay = int(self._coordinator.data["delayTime"]["parNewVal"])
-        remaining = int(self._coordinator.data["remainingTimeMM"]["parNewVal"])
+        if self._device.has("delayTime"):
+            delay = self._device.getInt("delayTime")
+        remaining = self._device.getInt("remainingTimeMM")
 
         if remaining == 0:
             self._attr_native_value = None
@@ -458,9 +457,7 @@ class HonBaseEnd(HonBaseSensorEntity):
             return
 
         self._attr_available = True
-        self._attr_native_value = datetime.now(timezone.utc).replace(
-            second=0
-        ) + timedelta(minutes=delay + remaining)
+        self._attr_native_value = datetime.now(timezone.utc).replace(second=0) + timedelta(minutes=delay + remaining)
 
 
 ##############################################################################
@@ -476,10 +473,10 @@ class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
         #TODO: keys totalWashCycle, totalWaterUsed must be in the list
 
     def coordinator_update(self):
-        if int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1 <= 0:
+        if self._device.getInt("totalWashCycle")-1 <= 0:
             self._attr_native_value = None
         else:
-            self._attr_native_value = round(float(self._coordinator.data["totalWaterUsed"]["parNewVal"])/(float(self._coordinator.data["totalWashCycle"]["parNewVal"])-1),2)
+            self._attr_native_value = round(self._device.getFloat("totalWaterUsed")/(self._device.getFloat("totalWashCycle")-1),2)
 
 
 class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
@@ -492,7 +489,7 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:connection"
 
     def coordinator_update(self):
-        self._attr_native_value = float(self._coordinator.data["totalElectricityUsed"]["parNewVal"])
+        self._attr_native_value =self._device.getFloat("totalElectricityUsed")
 
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
@@ -503,7 +500,7 @@ class HonBaseTotalWashCycle(HonBaseSensorEntity):
         self._attr_icon = "mdi:counter"
 
     def coordinator_update(self):
-        self._attr_native_value = int(self._coordinator.data["totalWashCycle"]["parNewVal"])-1
+        self._attr_native_value = self._device.getInt("totalWashCycle")-1
 
 
 class HonBaseTotalWaterUsed(HonBaseSensorEntity):
@@ -516,7 +513,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water-pump"
 
     def coordinator_update(self):
-        self._attr_native_value = float(self._coordinator.data["totalWaterUsed"]["parNewVal"])
+        self._attr_native_value = self._device.getFloat("totalWaterUsed")
 
 
 class HonBaseWeight(HonBaseSensorEntity):
@@ -528,7 +525,7 @@ class HonBaseWeight(HonBaseSensorEntity):
         self._attr_icon = "mdi:weight-kilogram"
 
     def coordinator_update(self):
-        self._attr_native_value = float(self._coordinator.data["actualWeight"]["parNewVal"])
+        self._attr_native_value = self._device.getFloat("actualWeight")
 
 
 class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
@@ -541,7 +538,7 @@ class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water"
 
     def coordinator_update(self):
-        self._attr_native_value = self._coordinator.data["currentWaterUsed"]["parNewVal"]
+        self._attr_native_value = self._device.get("currentWaterUsed")
 
 
 class HonBaseError(HonBaseSensorEntity):
@@ -551,7 +548,7 @@ class HonBaseError(HonBaseSensorEntity):
         self._attr_icon = "mdi:math-log"
 
     def coordinator_update(self):
-        error = self._coordinator.data["errors"]["parNewVal"]
+        error = self._device.get("errors")
         if error in WASHING_MACHINE_ERROR_CODES:
             self._attr_native_value = WASHING_MACHINE_ERROR_CODES[error]
         else:
@@ -568,7 +565,7 @@ class HonBaseCurrentElectricityUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:lightning-bolt"
 
     def coordinator_update(self):
-        self._attr_native_value = self._coordinator.data["currentElectricityUsed"]["parNewVal"]
+        self._attr_native_value = self._device.get("currentElectricityUsed")
 
 
 class HonBaseSpinSpeed(HonBaseSensorEntity):
@@ -580,9 +577,9 @@ class HonBaseSpinSpeed(HonBaseSensorEntity):
         self._attr_icon = "mdi:speedometer"
 
     def coordinator_update(self):
-        self._attr_native_value = int(self._coordinator.data["spinSpeed"]["parNewVal"])
+        self._attr_native_value = self._device.getInt("spinSpeed")
 
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
-            if self._coordinator.data["machMode"]["parNewVal"] in ("1","6"):
+            if self._device.get("machMode") in ("1","6"):
                 self._attr_native_value = 0
 

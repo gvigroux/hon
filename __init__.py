@@ -22,6 +22,7 @@ from homeassistant.helpers import entity_component as ec
 
 from .const import DOMAIN, PLATFORMS
 from .hon import HonConnection, get_hOn_mac
+from .device import HonDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -63,26 +64,22 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
 
+
+    for appliance in hon.appliances:
+        
+        coordinator = await hon.async_get_coordinator(appliance)
+        coordinator.device = HonDevice(hon, coordinator, appliance)
+        await coordinator.async_config_entry_first_refresh()
+
+        await coordinator.device.load_commands()
+        await coordinator.device.load_statistics()
+
+
     for platform in PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
 
-
-
-
-    # Log details on unknown devices
-    #for appliance in hon.appliances:
-
-        #if appliance.get("macAddress", None) == None:
-        #    continue
-
-        #if appliance['applianceTypeId'] not in [1, 2, 4, 6, 7, 8, 9, 11, 14]:
-        #    try:
-        #        status = await hon.async_get_state(appliance["macAddress"], appliance["applianceTypeName"], True)
-        #    except:
-        #        status = "Unable to get latest status"
-        #    _LOGGER.warning("Unknown device detected [%s] with latest status [%s]", appliance, status)
 
 
     async def handle_oven_start(call):
@@ -99,7 +96,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
             duration = call.data.get("duration")
             delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
 
-        paramaters = {
+        parameters = {
             "delayTime": delay_time,
             "onOffStatus": "1",
             "prCode": call.data.get("program"),
@@ -113,7 +110,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         mac = get_hOn_mac(call.data.get("device"), hass)
 
-        return await hon.async_set(mac, "OV", paramaters)
+        return await hon.async_set(mac, "OV", parameters)
 
     
     async def handle_dishwasher_start(call):
@@ -130,7 +127,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
             duration = call.data.get("duration")
             delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
 
-        paramaters = {
+        parameters = {
             "delayTime": delay_time,
             "onOffStatus": "1",
             "prCode": call.data.get("program"),
@@ -144,7 +141,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         mac = get_hOn_mac(call.data.get("device"), hass)
 
-        return await hon.async_set(mac, "DW", paramaters)
+        return await hon.async_set(mac, "DW", parameters)
     
     async def handle_washingmachine_start(call):
 
@@ -208,16 +205,11 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 
         mac = get_hOn_mac(call.data.get("device"), hass)
 
-        json = await hon.async_get_state(mac, "WM", True)
+        json = await hon.async_get_state(mac, "WM")
 
-        if json["payload"]["lastConnEvent"]["category"] != "DISCONNECTED":
+        if json["category"] != "DISCONNECTED":
             return await hon.async_set(mac, "WM", parameters)
-        else:
-            _LOGGER.error(
-                    "This hOn device is disconnected - Mac address ["
-                    + mac
-                    + "]"
-                )
+        _LOGGER.error(f"This hOn device is disconnected - Mac address [{mac}]")
 
 
     async def handle_purifier_start(call):
@@ -354,6 +346,28 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         await coordinator.async_set(parameters)
         await coordinator.async_request_refresh()
 
+
+
+    async def handle_health_mode_on(call):
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        update_sensor(hass, device_id, mac, "health_mode" , "on")
+
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        await coordinator.async_set({"healthMode": "1"})
+        await coordinator.async_request_refresh()
+
+
+    async def handle_health_mode_off(call):
+        device_id = call.data.get("device")
+        mac = get_hOn_mac(device_id, hass)
+        update_sensor(hass, device_id, mac, "health_mode" , "off")
+
+        coordinator = await hon.async_get_existing_coordinator(mac)
+        await coordinator.async_set({"healthMode": "0"})
+        await coordinator.async_request_refresh()
+
+
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
@@ -367,6 +381,8 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.services.async_register(DOMAIN, "turn_light_on",   handle_light_on)
     hass.services.async_register(DOMAIN, "turn_light_off",  handle_light_off)
     hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
+    hass.services.async_register(DOMAIN, "climate_turn_health_mode_on",   handle_health_mode_on)
+    hass.services.async_register(DOMAIN, "climate_turn_health_mode_off",  handle_health_mode_off)
 
     #hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     #hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
