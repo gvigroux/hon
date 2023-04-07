@@ -5,5 +5,6 @@
   "version": "0.1.1",
   "codeowners": ["@gvigroux","@MiguelAngelLV"],
   "iot_class": "cloud_polling",
-  "documentation": "https://github.com/gvigroux/hon"
+  "documentation": "https://github.com/gvigroux/hon",
+  "issue_tracker": "https://github.com/gvigroux/hon/issues"
 }
