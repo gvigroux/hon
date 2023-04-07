@@ -4,8 +4,6 @@ from homeassistant.core import callback
 from homeassistant.const import UnitOfTemperature, UnitOfTime, REVOLUTIONS_PER_MINUTE
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
-from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers import translation
 
 from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
