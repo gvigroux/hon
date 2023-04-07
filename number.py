@@ -62,11 +62,11 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
             and key.startswith("startProgram.")):
 
                 default_value = default_values.get(parameter.key, {})
-                translation_key = coordinator.device.appliance_type + '_' + parameter.key
+                translation_key = coordinator.device.appliance_type.lower() + '_' + parameter.key.capitalize()
 
                 description = NumberEntityDescription(
                     key=key,
-                    name=translations.get(f"component.hon.entity.select.{translation_key}.name", parameter.key),
+                    name=translations.get(f"component.hon.entity.number.{translation_key}.name", parameter.key),
                     entity_category=EntityCategory.CONFIG,
                     translation_key = translation_key,
                     icon=default_value.get("icon", None),

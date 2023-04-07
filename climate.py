@@ -134,14 +134,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
     )
 
     platform.async_register_entity_service(
-        "climate_set_wind_direction_horizontal",
-        {
-            vol.Required('value'): cv.positive_int,
-        },
-        "async_set_wind_direction_horizontal",
-    )
-    
-    platform.async_register_entity_service(
         "climate_set_wind_direction_vertical",
         {
             vol.Required('value'): cv.positive_int,
@@ -149,6 +141,13 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         "async_set_wind_direction_vertical",
     )
 
+    platform.async_register_entity_service(
+        "climate_set_wind_direction_horizontal",
+        {
+            vol.Required('value'): cv.positive_int,
+        },
+        "async_set_wind_direction_horizontal",
+    )
 
 
 # function to return key for any value

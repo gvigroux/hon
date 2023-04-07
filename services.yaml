@@ -170,34 +170,6 @@ climate_set_silent_mode:
       selector:
         boolean:
 
-climate_set_wind_direction_horizontal:
-  name: Set wind direction horizontal
-  description: Set wind direction horizontal
-  target:
-    entity:
-      domain: climate
-  fields:
-    value:
-      name: Wind direction horizontal
-      description: Direction can be from "Far left" to "Far right". "Auto" means swing
-      required: true
-      advanced: false
-      selector:
-        select:
-          options:
-            - label: "Auto"
-              value: 7
-            - label: "Far left"
-              value: 3
-            - label: "Left"
-              value: 4
-            - label: "Middle"
-              value: 0
-            - label: "Right"
-              value: 5
-            - label: "Far right"
-              value: 6
-
 climate_set_wind_direction_vertical:
   name: Set wind direction vertical
   description: Set wind direction vertical
@@ -229,6 +201,34 @@ climate_set_wind_direction_vertical:
               value: 3
             - label: "Health low"
               value: 1
+
+climate_set_wind_direction_horizontal:
+  name: Set wind direction horizontal
+  description: Set wind direction horizontal
+  target:
+    entity:
+      domain: climate
+  fields:
+    value:
+      name: Wind direction horizontal
+      description: Direction can be from "Far left" to "Far right". "Auto" means swing
+      required: true
+      advanced: false
+      selector:
+        select:
+          options:
+            - label: "Auto"
+              value: 7
+            - label: "Far left"
+              value: 3
+            - label: "Left"
+              value: 4
+            - label: "Middle"
+              value: 0
+            - label: "Right"
+              value: 5
+            - label: "Far right"
+              value: 6
 
 #climate_set_wind_direction:
 #  name: Set wind direction

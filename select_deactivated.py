@@ -50,7 +50,7 @@ async def async_setup_entry(hass, entry , async_add_entities) -> None:
             and key.startswith("startProgram.")):
 
                 default_value = default_values.get(parameter.key, {})
-                translation_key = coordinator.device.appliance_type + '_' + parameter.key
+                translation_key = coordinator.device.appliance_type.lower() + '_' + parameter.key.capitalize()
 
                 description = SelectEntityDescription(
                     key=key,
