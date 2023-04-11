@@ -185,22 +185,22 @@ climate_set_wind_direction_vertical:
       selector:
         select:
           options:
-            - label: "Auto"
-              value: 8
-            - label: "Very low"
-              value: 7
-            - label: "Low"
-              value: 6
-            - label: "Middle"
-              value: 5
-            - label: "High"
-              value: 4
-            - label: "Very high"
-              value: 2
-            - label: "Health high"
-              value: 3
-            - label: "Health low"
-              value: 1
+            - label: Auto
+              value: "8"
+            - label: Very low
+              value: "7"
+            - label: Low
+              value: "6"
+            - label: Middle
+              value: "5"
+            - label: High
+              value: "4"
+            - label: Very high
+              value: "2"
+            - label: Health high
+              value: "3"
+            - label: Health low
+              value: "1"
 
 climate_set_wind_direction_horizontal:
   name: Set wind direction horizontal
