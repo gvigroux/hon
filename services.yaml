@@ -484,7 +484,7 @@ turn_off_purifier:
       advanced: false
       selector:
         device:
-          manufacturer:
+          manufacturer: hoover
 
 turn_on_purifier:
   name: Turn on the Air Purifier
