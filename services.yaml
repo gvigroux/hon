@@ -218,17 +218,17 @@ climate_set_wind_direction_horizontal:
         select:
           options:
             - label: Auto
-              value: 7
+              value: "7"
             - label: Far left
-              value: 3
+              value: "3"
             - label: Left
-              value: 4
+              value: "4"
             - label: Middle
-              value: 0
+              value: "0"
             - label: Right
-              value: 5
+              value: "5"
             - label: Far right
-              value: 6
+              value: "6"
 
 #climate_set_wind_direction:
 #  name: Set wind direction
