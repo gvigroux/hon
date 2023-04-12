@@ -138,7 +138,7 @@ class HonDevice(CoordinatorEntity):
     def settings_command(self, parameters = {}):
         if( "settings" in self._commands ):
             command = self._commands.get("settings")
-            self.update_command(command, self._current_parameters)
+            #self.update_command(command, self._current_parameters)
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to update settings of the device")
@@ -149,7 +149,7 @@ class HonDevice(CoordinatorEntity):
             command.set_program(program)
             # Return the new default command
             command = self._commands.get("startProgram")
-            self.update_command(command, self._current_parameters)
+            #self.update_command(command, self._current_parameters)
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to start the device")
@@ -157,7 +157,7 @@ class HonDevice(CoordinatorEntity):
     def stop_command(self, parameters = {}):
         if( "stopProgram" in self._commands ):
             command = self._commands.get("stopProgram")
-            self.update_command(command, self._current_parameters)
+            #self.update_command(command, self._current_parameters)
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to stop the device")

@@ -67,7 +67,6 @@ from .const import(
     DOMAIN, 
     CLIMATE_FAN_MODE,
     CLIMATE_HVAC_MODE,
-    ClimateFanMode,
     ClimateHvacMode,
     ClimateSwingHorizontal,
     ClimateSwingVertical)
@@ -150,8 +149,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 # function to return key for any value
-def get_key(dictionnary,val,default):
-    for key, value in dictionnary.items():
+def get_key(dictionary,val,default):
+    for key, value in dictionary.items():
         if val == value:
             return key
     return default
@@ -185,15 +184,38 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         #Not working for Farenheit
         self._attr_temperature_unit     = TEMP_CELSIUS
 
-        attributes = self._device.attributes
-        #_LOGGER.warning(attributes)
 
 
-        self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
+
+        self._attr_precision            = PRECISION_WHOLE
+        self._attr_fan_modes            = []
+        #self._attr_fan_modes            = [FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
         self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
         self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
         
+        ''' hon specific values '''
+        parameters = self._device.settings_command().parameters
+        self._hon_fan_modes = parameters.get('windSpeed').values
+        for fan_mode in self._hon_fan_modes:
+            self._attr_fan_modes.append(get_key(CLIMATE_FAN_MODE, fan_mode, FAN_OFF))
+
+
+        parameters.get('windSpeed').value  = CLIMATE_FAN_MODE.get("auto")
+
+        '''
+        if "5" == ClimateFanMode.HON_FAN_AUTO :
+            _LOGGER.warning("ok")
+        else: 
+            _LOGGER.warning("ko")
+
+
+        if "5" in parameters.get('windSpeed').values :
+            self._attr_fan_modes.extend(FAN_AUTO)'''
+
+
+
+
         self._handle_coordinator_update(False)
 
 
@@ -249,7 +271,9 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._attr_target_temperature   = int(float(self._device.get('tempSel')))
         self._attr_current_temperature  = float(self._device.get('tempIndoor'))
 
-        self.update_fan_mode(self._device.get('windSpeed'))
+        self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_mode[0])
+
+
         self.update_hvac_mode(self._device.get('onOffStatus'),self._device.get('machMode'))
         self.update_swing_mode(self._device.get('windDirectionHorizontal'), self._device.get('windDirectionVertical'))
 
@@ -344,11 +368,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         elif hvac_mode == HVACMode.AUTO:
             await self._device.start_command('iot_auto').send()
         elif hvac_mode == HVACMode.FAN_ONLY:
-            if self._attr_fan_mode == FAN_AUTO:
-                self.update_fan_mode(FAN_MEDIUM)
-                await self._device.start_command('iot_fan', {'windSpeed': ClimateFanMode.HON_FAN_MEDIUM} ).send()
-            else:
-                await self._device.start_command('iot_fan').send()
+            await self._device.start_command('iot_fan').send()
         self._attr_hvac_mode = hvac_mode
         self.start_watcher()
 

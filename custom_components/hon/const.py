@@ -2,6 +2,7 @@
 
 from enum import IntEnum
 from homeassistant.components.climate.const import (
+    FAN_OFF,
     FAN_AUTO,
     FAN_LOW,
     FAN_MEDIUM,
@@ -13,12 +14,8 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 
-
 DOMAIN = "hon"
 
-# to store the cookie
-STORAGE_KEY = DOMAIN
-STORAGE_VERSION = 1
 
 
 CONF_ID_TOKEN = "token"
@@ -68,14 +65,6 @@ APPLIANCE_DEFAULT_NAME = {
     "14": "Fridge",
 }
 
-class ClimateFanMode(IntEnum):
-    HON_FAN_OFF = "0"
-    HON_FAN_AUTO = "5"
-    HON_FAN_LOW = "3"
-    HON_FAN_MEDIUM = "2"
-    HON_FAN_HIGH = "1"
-
-
 class ClimateHvacMode(IntEnum):
     HON_HVAC_AUTO = "0"
     HON_HVAC_COOL = "1"
@@ -112,11 +101,13 @@ class ClimateSwingHorizontal(IntEnum):
     FAR_RIGHT = "6"
     
 CLIMATE_FAN_MODE = {
-    FAN_LOW: ClimateFanMode.HON_FAN_LOW.value,
-    FAN_MEDIUM: ClimateFanMode.HON_FAN_MEDIUM.value,
-    FAN_HIGH: ClimateFanMode.HON_FAN_HIGH.value,
-    FAN_AUTO: ClimateFanMode.HON_FAN_AUTO.value,
+    FAN_OFF: "0",
+    FAN_LOW: "3",
+    FAN_MEDIUM: "2",
+    FAN_HIGH: "1",
+    FAN_AUTO: "5",
 }
+
 
 CLIMATE_HVAC_MODE = {
     HVACMode.AUTO: ClimateHvacMode.HON_HVAC_AUTO,
