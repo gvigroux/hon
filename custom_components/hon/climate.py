@@ -186,7 +186,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._attr_temperature_unit     = TEMP_CELSIUS
 
         attributes = self._device.attributes
-        _LOGGER.warning(attributes)
+        #_LOGGER.warning(attributes)
 
 
         self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
