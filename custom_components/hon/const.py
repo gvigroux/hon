@@ -65,12 +65,6 @@ APPLIANCE_DEFAULT_NAME = {
     "14": "Fridge",
 }
 
-class ClimateHvacMode(IntEnum):
-    HON_HVAC_AUTO = "0"
-    HON_HVAC_COOL = "1"
-    HON_HVAC_DRY = "2"
-    HON_HVAC_HEAT = "4"
-    HON_HVAC_FAN_ONLY = "6"
 
 
 CLIMATE_MODE = {
@@ -108,13 +102,20 @@ CLIMATE_FAN_MODE = {
     FAN_AUTO: "5",
 }
 
+'''
+class ClimateHvacMode(IntEnum):
+    HON_HVAC_AUTO = "0"
+    HON_HVAC_COOL = "1"
+    HON_HVAC_DRY = "2"
+    HON_HVAC_HEAT = "4"
+    HON_HVAC_FAN_ONLY = "6"'''
 
 CLIMATE_HVAC_MODE = {
-    HVACMode.AUTO: ClimateHvacMode.HON_HVAC_AUTO,
-    HVACMode.COOL: ClimateHvacMode.HON_HVAC_COOL,
-    HVACMode.HEAT: ClimateHvacMode.HON_HVAC_HEAT,
-    HVACMode.DRY: ClimateHvacMode.HON_HVAC_DRY,
-    HVACMode.FAN_ONLY: ClimateHvacMode.HON_HVAC_FAN_ONLY,
+    HVACMode.AUTO: "0",
+    HVACMode.COOL: "1",
+    HVACMode.HEAT: "4",
+    HVACMode.DRY: "2",
+    HVACMode.FAN_ONLY: "6",
 }
 
 CLIMATE_SWING_MODE_HORIZONTAL = {

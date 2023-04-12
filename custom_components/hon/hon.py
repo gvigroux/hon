@@ -269,7 +269,9 @@ class HonConnection:
         }
         url = f"{API_URL}/commands/v1/context"
         async with self._session.get(url, params=params, headers=self._headers) as response:
-            return (await response.json()).get("payload", {})
+            json = await response.json()
+            _LOGGER.debug(f"Context for mac[{device.mac_address}] type [{device.appliance_type}] {json}")
+            return json.get("payload", {})
 
     async def load_statistics(self, device):
         params = {

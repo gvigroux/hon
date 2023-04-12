@@ -67,7 +67,6 @@ from .const import(
     DOMAIN, 
     CLIMATE_FAN_MODE,
     CLIMATE_HVAC_MODE,
-    ClimateHvacMode,
     ClimateSwingHorizontal,
     ClimateSwingVertical)
 
@@ -153,8 +152,8 @@ def get_key(dictionary,val,default):
     for key, value in dictionary.items():
         if val == value:
             return key
+    _LOGGER.warning(f"Value {value} is not in dictionary {dictionary}")
     return default
-
 
 
 
@@ -178,18 +177,12 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._available     = True
         self._watcher       = None
         self._device        = coordinator.device
-        
-        #self._default_command = {"specialMode":"0","heatAccumulationStatus":"0","echoStatus":"0","healthMode":"0","tempSel":"21.00","humidificationStatus":"0","tempUnit":"0","humiditySel":"30","pmvStatus":"0","screenDisplayStatus":"1","windDirectionVertical":"5","lightStatus":"0","energySavingStatus":"0","lockStatus":"0","machMode":"1","windDirectionHorizontal":"0","freshAirStatus":"0","pm2p5CleaningStatus":"0","windSpeed":"5","ch2oCleaningStatus":"0","electricHeatingStatus":"0","onOffStatus":1,"energySavePeriod":"15","intelligenceStatus":"0","halfDegreeSettingStatus":"0","rapidMode":"0","operationName":"grSetDAC","silentSleepStatus":"0","voiceSignStatus":"0","voiceStatus":"0","muteStatus":"0","10degreeHeatingStatus":"0","windSensingStatus":"0","selfCleaning56Status":"0","humanSensingStatus":"0","selfCleaningStatus":"0"}
 
         #Not working for Farenheit
-        self._attr_temperature_unit     = TEMP_CELSIUS
+        self._attr_temperature_unit         = TEMP_CELSIUS
+        self._attr_target_temperature_step  = PRECISION_WHOLE
 
-
-
-
-        self._attr_precision            = PRECISION_WHOLE
-        self._attr_fan_modes            = []
-        #self._attr_fan_modes            = [FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
+        self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
         self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
         self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
@@ -199,21 +192,6 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._hon_fan_modes = parameters.get('windSpeed').values
         for fan_mode in self._hon_fan_modes:
             self._attr_fan_modes.append(get_key(CLIMATE_FAN_MODE, fan_mode, FAN_OFF))
-
-
-        parameters.get('windSpeed').value  = CLIMATE_FAN_MODE.get("auto")
-
-        '''
-        if "5" == ClimateFanMode.HON_FAN_AUTO :
-            _LOGGER.warning("ok")
-        else: 
-            _LOGGER.warning("ko")
-
-
-        if "5" in parameters.get('windSpeed').values :
-            self._attr_fan_modes.extend(FAN_AUTO)'''
-
-
 
 
         self._handle_coordinator_update(False)
@@ -271,10 +249,14 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._attr_target_temperature   = int(float(self._device.get('tempSel')))
         self._attr_current_temperature  = float(self._device.get('tempIndoor'))
 
-        self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_mode[0])
+        self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_modes[0])
+
+        if self._device.get('onOffStatus') == "0":
+            self._attr_hvac_mode = HVACMode.OFF
+        else:
+            self._attr_hvac_mode = get_key(CLIMATE_HVAC_MODE, self._device.get('machMode'), HVACMode.OFF)
 
 
-        self.update_hvac_mode(self._device.get('onOffStatus'),self._device.get('machMode'))
         self.update_swing_mode(self._device.get('windDirectionHorizontal'), self._device.get('windDirectionVertical'))
 
         self._sleep_mode    = self._device.get('silentSleepStatus') == "1"
@@ -287,12 +269,6 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         
         if update: self.async_write_ha_state()
 
-    def update_hvac_mode(self, onOff, hvac_mode):
-        if onOff == "0":
-            self._attr_hvac_mode = HVACMode.OFF
-        else:
-            self._attr_hvac_mode = get_key(CLIMATE_HVAC_MODE, hvac_mode, HVACMode.OFF)
-
 
     def update_swing_mode(self, swing_horizontal, swing_vertical):
         self._attr_swing_mode = SWING_OFF
@@ -302,9 +278,6 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
             self._attr_swing_mode = SWING_HORIZONTAL
         elif swing_vertical == ClimateSwingVertical.AUTO:
             self._attr_swing_mode = SWING_VERTICAL
-
-    def update_fan_mode(self, wind_speed):
-        self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, wind_speed, FAN_MEDIUM)
 
     @property
     def unique_id(self) -> str:

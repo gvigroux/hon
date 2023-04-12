@@ -4,7 +4,7 @@ from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,Coor
 
 from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
 from .command import HonCommand
-from .parameter import HonParameterFixed
+from .parameter import HonParameterFixed, HonParameterEnum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,6 @@ class HonDevice(CoordinatorEntity):
 
         self._commands              = {}
         self._appliance_model       = {}
-        self._current_parameters    = {}
         self._attributes            = {}
         self._statistics            = {}
 
@@ -69,11 +68,6 @@ class HonDevice(CoordinatorEntity):
         self._attributes = data
         for name, values in self._attributes.pop("shadow").get("parameters").items():
             self._attributes.setdefault("parameters", {})[name] = values["parNewVal"]
-
-    #def update_current_parameters(self, parameters):
-    #    for key in parameters.keys():
-    #        if( not isinstance(parameters[key], str) and len(parameters[key].get("parNewVal")) > 0):
-    #            self._current_parameters[key] = parameters[key].get("parNewVal")
 
     @property
     def data(self):
@@ -133,12 +127,16 @@ class HonDevice(CoordinatorEntity):
             if( key in parameters 
                 and command.parameters.get(key).value != parameters.get(key) 
                 and not isinstance(command.parameters.get(key), HonParameterFixed)):
-                command.parameters.get(key).value = parameters.get(key)
+
+                if( isinstance(command.parameters.get(key), HonParameterEnum) and parameters.get(key) not in command.parameters.get(key).values): 
+                    _LOGGER.warning(f"Unable to update parameter [{key}] with value [{parameters.get(key)}] because not in range [{command.parameters.get(key).values}]. Use default instead.")
+                else:
+                    command.parameters.get(key).value = parameters.get(key)
 
     def settings_command(self, parameters = {}):
         if( "settings" in self._commands ):
             command = self._commands.get("settings")
-            #self.update_command(command, self._current_parameters)
+            self.update_command(command, self.attributes["parameters"])
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to update settings of the device")
@@ -149,7 +147,7 @@ class HonDevice(CoordinatorEntity):
             command.set_program(program)
             # Return the new default command
             command = self._commands.get("startProgram")
-            #self.update_command(command, self._current_parameters)
+            self.update_command(command, self.attributes["parameters"])
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to start the device")
@@ -157,7 +155,7 @@ class HonDevice(CoordinatorEntity):
     def stop_command(self, parameters = {}):
         if( "stopProgram" in self._commands ):
             command = self._commands.get("stopProgram")
-            #self.update_command(command, self._current_parameters)
+            self.update_command(command, self.attributes["parameters"])
             self.update_command(command, parameters)
             return command
         raise ValueError("No command to stop the device")

@@ -107,7 +107,7 @@ class HonParameterEnum(HonParameter):
         if value in self.values:
             self._value = value
         else:
-            raise ValueError(f"Invalid value: {value} Allowed values: {self.values}")
+            raise ValueError(f"ParameterEnum [{self.key}] Invalid value: {value} Allowed values: {self.values}")
 
 
 class HonParameterProgram(HonParameterEnum):
