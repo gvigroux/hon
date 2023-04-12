@@ -12,16 +12,11 @@ supported device: Haier Climate tested
 ## Installation
 
 1. Create a directory ‘hon’ containing the code of the custom_components/hon folder in your `custom_components` directory. 
-1. ALTERNATE METHOD. After creating the hon directory, you can navigate inside and type:
-- git init
-- git remote add -f origin https://github.com/gvigroux/hon
-- git config core.sparseCheckout true
-- echo "custom_components/hon/*" > .git/info/sparse-checkout
-- git pull origin master
-2. Restart HA
-3. Go to `Settings` - `Devices and Services` and `Add integration`. Search for `hOn` in search bar and select it
-4. Configure the integration with your hOn username and password
-5. Now you can see one new integration named with your email account with the entities and devices registered with hOn App. You can now add this entities in you panel
+2. OR you can add it through HACS > Integration > ... (top right) > Add custom depot > https://github.com/gvigroux/hon
+3. Restart HA
+4. Go to `Settings` - `Devices and Services` and `Add integration`. Search for `hOn` in search bar and select it
+5. Configure the integration with your hOn username and password
+6. Now you can see one new integration named with your email account with the entities and devices registered with hOn App. You can now add this entities in you panel
 
 ## Tested devices
 This integration has been tested with the following devices.

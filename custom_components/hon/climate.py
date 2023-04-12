@@ -27,7 +27,6 @@ from homeassistant.const import (
 )
 
 
-#https://github.com/home-assistant/core/blob/a82a1bfd64708a044af7a716b5e9e057b1656f2e/homeassistant/components/climate/const.py#L70
 from homeassistant.components.climate.const import (
 
     FAN_ON,
