@@ -1,8 +1,9 @@
 # hOn
 Home Assistant component supporting hOn cloud.
-2023/03/23 - I've decided to upgrade the main branch from the 'Full-Rework' branch. The old code is inside the legacy branch.
+- 2023/03/23 - I've decided to upgrade the main branch from the 'Full-Rework' branch. The old code is inside the legacy branch.
 This move is mandatory to be able maange all devices (even unknown).
 I hope that all the peoples that added their devices will test and upgrade this branch. Thanks :)
+- 2023/04/12 - Change directory structure to be HACS compliant
 
 ## pre-requisite
 Your appliances must be controlled by the hOn mobile application
