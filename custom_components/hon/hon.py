@@ -251,6 +251,7 @@ class HonConnection:
             result = (await resp.json()).get("payload", {})
             if not result or result.pop("resultCode") != "0":
                 return {}
+            _LOGGER.debug(f"Commands: {result}")
             return result
 
     async def async_get_context(self, device):

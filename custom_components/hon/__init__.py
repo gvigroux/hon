@@ -59,7 +59,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     await hon.async_authorize()
 
     # Log all appliances
-    _LOGGER.debug(hon.appliances)
+    _LOGGER.debug(f"Appliances: {hon.appliances}")
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon

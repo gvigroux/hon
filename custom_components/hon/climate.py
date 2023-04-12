@@ -185,6 +185,10 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         #Not working for Farenheit
         self._attr_temperature_unit     = TEMP_CELSIUS
 
+        attributes = self._device.attributes
+        _LOGGER.warning(attributes)
+
+
         self._attr_fan_modes            = [FAN_OFF, FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
         self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
