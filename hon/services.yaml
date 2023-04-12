@@ -625,7 +625,6 @@ climate_turn_health_mode_on:
       advanced: false
       selector:
         device:
-          integration: hon
           domain: climate
 
 climate_turn_health_mode_off:
@@ -638,5 +637,4 @@ climate_turn_health_mode_off:
       advanced: false
       selector:
         device:
-          integration: hon
           domain: climate
