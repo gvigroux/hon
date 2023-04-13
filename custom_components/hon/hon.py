@@ -196,6 +196,9 @@ class HonConnection:
 
             self._appliances = json_data["payload"]["appliances"]
 
+            ''' Remove appliances with no mac'''
+            self._appliances = [appliance for appliance in self._appliances if "macAddress" in appliance]
+    
         self._start_time = time.time()
         return True
 

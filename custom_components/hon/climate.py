@@ -347,7 +347,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode: str):
         self._attr_fan_mode = fan_mode
-        await self._device.settings_command({'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, ClimateFanMode.HON_FAN_OFF)}).send()
+        await self._device.settings_command({'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, CLIMATE_FAN_MODE.FAN_MEDIUM)}).send()
 
 
     async def async_set_swing_mode(self, swing_mode: str):

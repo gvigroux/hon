@@ -50,10 +50,16 @@ class HonParameterFixed(HonParameter):
 class HonParameterRange(HonParameter):
     def __init__(self, key, attributes):
         super().__init__(key, attributes)
-        self._min = int(attributes["minimumValue"])
-        self._max = int(attributes["maximumValue"])
-        self._step = int(attributes["incrementValue"])
-        self._default = int(attributes.get("defaultValue", self._min))
+        try:
+            self._min = int(attributes["minimumValue"])
+            self._max = int(attributes["maximumValue"])
+            self._step = int(attributes["incrementValue"])
+            self._default = int(attributes.get("defaultValue", self._min))
+        except (TypeError, ValueError):
+            self._min = float(attributes["minimumValue"])
+            self._max = float(attributes["maximumValue"])
+            self._step = float(attributes["incrementValue"])
+            self._default = float(attributes.get("defaultValue", self._min))
         self._value = self._default
 
     def __repr__(self):

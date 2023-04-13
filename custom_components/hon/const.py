@@ -1,6 +1,6 @@
 """hOn component constants."""
 
-from enum import IntEnum
+from enum import Enum, IntEnum
 from homeassistant.components.climate.const import (
     FAN_OFF,
     FAN_AUTO,
@@ -66,7 +66,6 @@ APPLIANCE_DEFAULT_NAME = {
 }
 
 
-
 CLIMATE_MODE = {
     "0": "Auto",
     "1": "Cool",
@@ -75,25 +74,6 @@ CLIMATE_MODE = {
     "6": "Fan only",
 }
 
-class ClimateSwingVertical(IntEnum):
-    AUTO = "8"
-    VERY_LOW = "7"
-    LOW = "6"
-    MIDDLE = "5"
-    HIGH = "4"
-    HEALTH_LOW = "3"
-    VERY_HIGH = "2"
-    HEALTH_HIGH = "1"
-
-
-class ClimateSwingHorizontal(IntEnum):
-    AUTO = "7"
-    MIDDLE = "0"
-    FAR_LEFT = "3"
-    LEFT = "4"
-    RIGHT = "5"
-    FAR_RIGHT = "6"
-    
 CLIMATE_FAN_MODE = {
     FAN_OFF: "0",
     FAN_LOW: "3",
@@ -118,12 +98,31 @@ CLIMATE_HVAC_MODE = {
     HVACMode.FAN_ONLY: "6",
 }
 
+'''
 CLIMATE_SWING_MODE_HORIZONTAL = {
     SWING_OFF: ClimateSwingHorizontal.MIDDLE,
     SWING_BOTH: ClimateSwingHorizontal.AUTO,
     SWING_HORIZONTAL: ClimateSwingHorizontal.AUTO,
     SWING_VERTICAL: ClimateSwingHorizontal.MIDDLE,
-}
+}'''
+
+class ClimateSwingVertical:
+    AUTO = "8"
+    VERY_LOW = "7"
+    LOW = "6"
+    MIDDLE = "5"
+    HIGH = "4"
+    HEALTH_LOW = "3"
+    VERY_HIGH = "2"
+    HEALTH_HIGH = "1"
+
+class ClimateSwingHorizontal:
+    AUTO = "7"
+    MIDDLE = "0"
+    FAR_LEFT = "3"
+    LEFT = "4"
+    RIGHT = "5"
+    FAR_RIGHT = "6"
 
 
 OVEN_PROGRAMS = {

@@ -129,7 +129,7 @@ class HonDevice(CoordinatorEntity):
                 and not isinstance(command.parameters.get(key), HonParameterFixed)):
 
                 if( isinstance(command.parameters.get(key), HonParameterEnum) and parameters.get(key) not in command.parameters.get(key).values): 
-                    _LOGGER.warning(f"Unable to update parameter [{key}] with value [{parameters.get(key)}] because not in range [{command.parameters.get(key).values}]. Use default instead.")
+                    _LOGGER.warning(f"Unable to update parameter [{key}] with value [{parameters.get(key)}] because not in range {command.parameters.get(key).values}. Use default instead.")
                 else:
                     command.parameters.get(key).value = parameters.get(key)
 
