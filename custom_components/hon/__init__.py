@@ -366,6 +366,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         coordinator = await hon.async_get_existing_coordinator(mac)
         await coordinator.async_set({"healthMode": "0"})
         await coordinator.async_request_refresh()
+    
+    async def handle_start_program(call):
+        _LOGGER.warning(call)
 
 
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
@@ -383,6 +386,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_on",   handle_health_mode_on)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_off",  handle_health_mode_off)
+    hass.services.async_register(DOMAIN, "start_program",  handle_start_program)
+
+    
 
     #hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     #hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)

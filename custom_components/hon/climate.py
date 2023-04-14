@@ -318,7 +318,6 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         attr["wind_direction_vertical"]     = self._wind_direction_vertical
         return attr
 
-    #https://github.com/home-assistant/core/blob/dev/homeassistant/components/mill/climate.py
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
@@ -347,7 +346,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode: str):
         self._attr_fan_mode = fan_mode
-        await self._device.settings_command({'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, CLIMATE_FAN_MODE.FAN_MEDIUM)}).send()
+        await self._device.settings_command({'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, CLIMATE_FAN_MODE.get(FAN_MEDIUM))}).send()
 
 
     async def async_set_swing_mode(self, swing_mode: str):

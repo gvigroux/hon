@@ -83,6 +83,11 @@ class HonBaseLightStatus(HonBaseBinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.LIGHT
         self._attr_icon = "mdi:lightbulb"
 
+        self._attr_supported_attributes = ["SET_LIGHT"]
+
+    @property
+    def supported_attributes(self) -> set[str] | None:
+        return self._attr_supported_attributes
 
 class HonBaseRemoteControl(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
