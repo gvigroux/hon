@@ -386,7 +386,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_on",   handle_health_mode_on)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_off",  handle_health_mode_off)
-    hass.services.async_register(DOMAIN, "start_program",  handle_start_program)
+    #hass.services.async_register(DOMAIN, "start_program",  handle_start_program)
 
     
 
