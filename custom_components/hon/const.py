@@ -124,6 +124,11 @@ class ClimateSwingHorizontal:
     RIGHT = "5"
     FAR_RIGHT = "6"
 
+class ClimateEcoPilotMode:
+    OFF = "0"
+    AVOID = "1"
+    FOLLOW = "2"
+
 
 OVEN_PROGRAMS = {
     "3": "Botton",

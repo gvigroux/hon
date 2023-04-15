@@ -68,7 +68,8 @@ from .const import(
     CLIMATE_FAN_MODE,
     CLIMATE_HVAC_MODE,
     ClimateSwingHorizontal,
-    ClimateSwingVertical)
+    ClimateSwingVertical,
+    ClimateEcoPilotMode)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -144,6 +145,14 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             vol.Required('value'): cv.positive_int,
         },
         "async_set_wind_direction_horizontal",
+    )
+
+    platform.async_register_entity_service(
+        "climate_set_eco_pilot_mode",
+        {
+            vol.Required('value'): cv.positive_int,
+        },
+        "async_set_eco_pilot_mode",
     )
 
 
@@ -232,6 +241,11 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         parameters = {'windDirectionVertical': value}
         await self._device.settings_command(parameters).send()
 
+    async def async_set_eco_pilot_mode(self, value: int):
+        self._eco_pilot_mode = value
+        parameters = {"humanSensingStatus": value}
+        await self._device.settings_command(parameters).send()
+
     def start_watcher(self, timedelta=timedelta(seconds=8)):
         self._watcher = async_track_time_interval(self._hass, self.async_update_after_state_change, timedelta)
         self.async_write_ha_state()
@@ -266,7 +280,8 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._silent_mode   = self._device.get('muteStatus') == "1"
         self._wind_direction_horizontal = self._device.get('windDirectionHorizontal')
         self._wind_direction_vertical   = self._device.get('windDirectionVertical')
-        
+        self._eco_pilot_mode            = self._device.get('humanSensingStatus')
+       
         if update: self.async_write_ha_state()
 
 
@@ -316,6 +331,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         attr["screen_display"]  = self._screen_display
         attr["wind_direction_horizontal"]   = self._wind_direction_horizontal
         attr["wind_direction_vertical"]     = self._wind_direction_vertical
+        attr["eco_pilot_mode"]              = self._eco_pilot_mode
         return attr
 
     async def async_set_temperature(self, **kwargs):
