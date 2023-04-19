@@ -56,9 +56,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         coordinator = await hon.async_get_coordinator(appliance)
         device = coordinator.device
 
-
-        #_LOGGER.warning(device.get("attributes.lastConnEvent.category"))
-
         if device.has("machMode"):
             appliances.extend([HonBaseMode(hass, coordinator, entry, appliance)])
         
@@ -96,6 +93,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Indoor", "Indoor")])
         if device.has("humidityOutdoor") and device.getInt("humidityOutdoor") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Outdoor", "Outdoor")])
+        if device.has("humidityEnv") and device.getInt("humidityEnv") > 0:
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Env", "Environment")])
 
         if device.has("pm2p5ValueIndoor") and device.getFloat("pm2p5ValueIndoor") > 0:
             appliances.extend([HonBaseIndoorPM2p5(hass, coordinator, entry, appliance)])

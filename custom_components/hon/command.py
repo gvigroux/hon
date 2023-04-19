@@ -1,6 +1,9 @@
 #All credits to https://github.com/Andre0512/pyhOn
 from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 
+import logging
+_LOGGER = logging.getLogger(__name__)
+
 class HonCommand:
     def __init__(self, name, attributes, connector, device, multi=None, program=""):
         self._connector = connector
@@ -45,8 +48,9 @@ class HonCommand:
         return self._multi
 
     def set_program(self, program):
+        self._multi[program]._multi = self._multi
         self._device.commands[self._name] = self._multi[program]
-
+    
     def _get_settings_keys(self, command=None):
         command = command or self
         keys = []
@@ -68,3 +72,15 @@ class HonCommand:
     def settings(self):
         """Parameters with typology enum and range"""
         return {s: self._parameters.get(s) for s in self.setting_keys if self._parameters.get(s) is not None}
+
+    def dump(self):
+        text = ""
+        example = "{"
+        for key, parameter in self._parameters.items():
+            if isinstance(parameter, HonParameterFixed) or key == "program":
+                continue
+            text += f"""{parameter.dump()}
+"""
+            example += f"\'{key}\':\'{parameter.default}\',"
+        example = example[:-1] + "}"
+        return text, example

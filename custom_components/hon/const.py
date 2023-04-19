@@ -26,7 +26,8 @@ CONF_FRAMEWORK = "framework"
 PLATFORMS = [
     "climate", 
     "sensor",
-    "binary_sensor"
+    "binary_sensor",
+    "button"
 ]
 '''
     "select",

@@ -50,6 +50,7 @@ class HonBaseCoordinator(DataUpdateCoordinator):
     def device(self):
         return self._device
 
+
     @device.setter
     def device(self, value):
         self._device = value

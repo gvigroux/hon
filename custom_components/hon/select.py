@@ -35,9 +35,6 @@ async def async_setup_entry(hass, entry , async_add_entities) -> None:
     appliances = []
     for appliance in hon.appliances:
 
-        if "macAddress" not in appliance:
-            continue
-
         # Get or Create Coordinator
         coordinator = await hon.async_get_coordinator(appliance)
         device = coordinator.device

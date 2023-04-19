@@ -356,6 +356,7 @@ class HonConnection:
             "parameters": parameters,
             "applianceType": device.appliance_type
         }
+        _LOGGER.debug(data)
 
         url = f"{API_URL}/commands/v1/send"
         async with self._session.post(url, headers=self._headers, json=data) as resp:

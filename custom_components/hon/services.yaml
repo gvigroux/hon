@@ -638,3 +638,43 @@ climate_turn_health_mode_off:
       selector:
         device:
           integration: hon
+
+start_program:
+  name: Start a program of a hOn device
+  description: You can get all the details to start a program by clicking on the button inside the device
+  target:
+    entity:
+      integration: hon
+  fields:
+    program:
+      name: Program
+      description: The name of the program to launch
+      default:
+      required: true
+      advanced: false
+      selector:
+        text:
+    parameters:
+      name: Parameters
+      description: List of parameters and values to launch the program
+      default: "{}"
+      required: true
+      advanced: false
+      selector:
+        text:
+
+update_settings:
+  name: Update any settings of a hOn device
+  description: You can get all the details to start a program by clicking on the button inside the device
+  target:
+    entity:
+      integration: hon
+  fields:
+    parameters:
+      name: Parameters
+      description: List of parameters and values to launch the program
+      default: "{}"
+      required: true
+      advanced: false
+      selector:
+        text:

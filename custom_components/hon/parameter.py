@@ -65,6 +65,9 @@ class HonParameterRange(HonParameter):
     def __repr__(self):
         return f"{self.__class__} (<{self.key}> [{self._min} - {self._max}])"
 
+    def dump(self):
+        return f"{self.key}: \t\t[{self._min} - {self._max}] - Default: {self._default}"
+
     @property
     def min(self):
         return self._min
@@ -76,6 +79,10 @@ class HonParameterRange(HonParameter):
     @property
     def step(self):
         return self._step
+
+    @property
+    def default(self):
+        return self._default
 
     @property
     def value(self):
@@ -99,6 +106,13 @@ class HonParameterEnum(HonParameter):
 
     def __repr__(self):
         return f"{self.__class__} (<{self.key}> {self.values})"
+        
+    def dump(self):
+        return f"{self.key}: {self.values} - Default: {self._default}"
+
+    @property
+    def default(self):
+        return self._default
 
     @property
     def values(self):
@@ -123,6 +137,13 @@ class HonParameterProgram(HonParameterEnum):
         self._value = command._program
         self._values = command._multi
         self._typology = "enum"
+
+    def dump(self):
+        return f"{self.key}: {self.value}"
+
+    @property
+    def default(self):
+        return self._value
 
     @property
     def value(self):

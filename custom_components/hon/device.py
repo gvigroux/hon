@@ -86,6 +86,10 @@ class HonDevice(CoordinatorEntity):
         return self._appliance.get("modelName")
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def commands_options(self):
         return self._appliance_model.get("options")
 
@@ -142,15 +146,15 @@ class HonDevice(CoordinatorEntity):
         raise ValueError("No command to update settings of the device")
 
     def start_command(self, program = None, parameters = {}):
-        if( "startProgram" in self._commands ):
-            command = self._commands.get("startProgram")
-            command.set_program(program)
-            # Return the new default command
-            command = self._commands.get("startProgram")
-            self.update_command(command, self.attributes["parameters"])
-            self.update_command(command, parameters)
-            return command
-        raise ValueError("No command to start the device")
+        if( "startProgram" not in self._commands ):
+            raise ValueError("No command to start the device")
+        command = self._commands.get("startProgram")
+        command.set_program(program)
+        # Return the new default command
+        command = self._commands.get("startProgram")
+        self.update_command(command, self.attributes["parameters"])
+        self.update_command(command, parameters)
+        return command
 
     def stop_command(self, parameters = {}):
         if( "stopProgram" in self._commands ):
@@ -180,8 +184,6 @@ class HonDevice(CoordinatorEntity):
                     cmd = HonCommand(command, attr2, self._hon, self, multi=multi, program=program)
                     multi[program] = cmd
                     self._commands[command] = cmd
-
-
 
     async def load_statistics(self):
         self._statistics = await self._hon.load_statistics(self)

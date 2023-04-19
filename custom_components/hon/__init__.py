@@ -8,6 +8,7 @@ import json
 import urllib.parse
 import ast
 
+from homeassistant.components.persistent_notification import create
 from datetime import datetime
 from dateutil.tz import gettz
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
@@ -17,8 +18,9 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_component as ec
+from homeassistant.helpers.template import device_id as get_device_id
 
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN, PLATFORMS
 from .hon import HonConnection, get_hOn_mac
@@ -312,30 +314,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         await coordinator.async_request_refresh()
 
 
-        #device_id = call.data.get("device_id")[0]
-
-        #
-        #device_registry = dr.async_get(hass)
-        #device = device_registry.async_get(device_id)
-        #identifiers = next(iter(device.identifiers))
-        #
-
-        #mac         = identifiers[1]
-        #type_name   = identifiers[2]
-
-        #parameters  = {"lightStatus": "0"}
-        #await hon.async_set(mac, type_name, parameters)
-
-        #update_sensor(hass, device_id, mac, "light_status" , "off")
-        
-        #update_sensor(hass, call, "light_status" , "on")
-        #parameters = {"lightStatus": "0"}
-        #hass.async_create_task(update_sensor(hass, call, "light_status" , "off"))
-
-        #update_sensor(hass, call, "light_status" , "off")
-        #return await hon.async_set_parameter(call.data.get("device_id")[0], parameters)
-
-
     async def handle_custom_request(call):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
@@ -367,8 +345,45 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
         await coordinator.async_set({"healthMode": "0"})
         await coordinator.async_request_refresh()
     
+
     async def handle_start_program(call):
-        _LOGGER.warning(call)
+        device_ids = call.data.get("device_id", [])
+        entity_ids = call.data.get("entity_id", [])
+        for entity_id in entity_ids:
+            device_ids.append(get_device_id(hass, entity_id))
+        device_ids = list(dict.fromkeys(device_ids))
+        
+        for device_id in device_ids:
+            mac = get_hOn_mac(device_id, hass)
+            coordinator = await hon.async_get_existing_coordinator(mac)
+            device = coordinator.device
+
+            command = device.commands.get("startProgram")
+            programs = command.get_programs()
+
+            program = call.data.get("program")
+            if( program not in programs.keys()):
+                keys = ", ".join(programs)
+                raise HomeAssistantError(f"Invalid [Program] value, allowed values [{keys}]")
+
+            parameters = ast.literal_eval(call.data.get("parameters", "{}"))
+            await device.start_command(program, parameters).send()
+
+
+
+    async def handle_update_settings(call):
+        device_ids = call.data.get("device_id", [])
+        entity_ids = call.data.get("entity_id", [])
+        for entity_id in entity_ids:
+            device_ids.append(get_device_id(hass, entity_id))
+        device_ids = list(dict.fromkeys(device_ids))
+        
+        for device_id in device_ids:
+            mac = get_hOn_mac(device_id, hass)
+            coordinator = await hon.async_get_existing_coordinator(mac)
+            device = coordinator.device
+            parameters = ast.literal_eval(call.data.get("parameters", "{}"))
+            await device.settings_command(parameters).send()
 
 
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
@@ -386,9 +401,11 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_on",   handle_health_mode_on)
     hass.services.async_register(DOMAIN, "climate_turn_health_mode_off",  handle_health_mode_off)
-    #hass.services.async_register(DOMAIN, "start_program",  handle_start_program)
 
+    hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
+    hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
     
+
 
     #hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
     #hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)

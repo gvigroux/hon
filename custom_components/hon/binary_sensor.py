@@ -40,6 +40,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("doorLockStatus"):
             appliances.extend([HonBaseDoorLockStatus(hass, coordinator, entry, appliance)])
 
+        if device.has("door2StatusZ1"):
+            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
+        if device.has("door2StatusZ2"):
+            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
+
         if device.has("lockStatus"):
             appliances.extend([HonBaseChildLockStatus(hass, coordinator, entry, appliance)])
         if device.has("lightStatus"):
@@ -74,6 +79,11 @@ class HonBaseDoorStatus(HonBaseBinarySensorEntity):
 
         self._attr_device_class = BinarySensorDeviceClass.DOOR
 
+class HonBaseDoor2Status(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, zone, zone_name) -> None:
+        super().__init__(coordinator, appliance, "door2Status" + zone, f"Door 2 status {zone_name}")
+
+        self._attr_device_class = BinarySensorDeviceClass.DOOR
 
 
 class HonBaseLightStatus(HonBaseBinarySensorEntity):
