@@ -281,7 +281,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._wind_direction_horizontal = self._device.get('windDirectionHorizontal')
         self._wind_direction_vertical   = self._device.get('windDirectionVertical')
         self._eco_pilot_mode            = self._device.get('humanSensingStatus')
-       
+
         if update: self.async_write_ha_state()
 
 
