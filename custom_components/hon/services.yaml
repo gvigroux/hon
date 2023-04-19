@@ -260,6 +260,28 @@ climate_set_wind_direction_horizontal:
 #          step: 1
 #          mode: slider
 
+climate_set_eco_pilot_mode:
+  name: Set Eco Pilot mode
+  description: Set Eco Pilot mode
+  target:
+    entity:
+      domain: climate
+  fields:
+    value:
+      name: Eco Pilot mode
+      description: Eco Pilot can be set to either "Avoid" or "Follow" person in the room. To disable Eco Pilot mode set it to "Off".
+      required: true
+      advanced: false
+      selector:
+        select:
+          options:
+            - label: "Off"
+              value: "0"
+            - label: "Avoid"
+              value: "1"
+            - label: "Follow"
+              value: "2"
+
 turn_on_dishwasher:
   name: Turn on the dishwasher
   description: Start a dishwasher program
