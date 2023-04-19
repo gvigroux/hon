@@ -671,7 +671,6 @@ start_program:
     program:
       name: Program
       description: The name of the program to launch
-      default:
       required: true
       advanced: false
       selector:
@@ -694,7 +693,7 @@ update_settings:
   fields:
     parameters:
       name: Parameters
-      description: List of parameters and values to launch the program
+      description: List of parameters and values needed to update a settings
       default: "{}"
       required: true
       advanced: false
