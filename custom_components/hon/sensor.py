@@ -448,7 +448,6 @@ class HonBaseEnd(HonBaseSensorEntity):
 
         if remaining == 0:
             self._attr_native_value = None
-            self.async_write_ha_state()
             return
 
         self._attr_available = True
