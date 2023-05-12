@@ -20,6 +20,21 @@ supported device: Haier Climate tested
 5. Configure the integration with your hOn username and password
 6. Now you can see one new integration named with your email account with the entities and devices registered with hOn App. You can now add this entities in you panel
 
+## How to run any program?
+
+You can launch any available program by using a dedicated service: `hon.start_program`.
+To get all the details about each program, you can go to the device and click on `Get programs details`
+![Get programs details](/images/device.jpg)
+
+You will receive one notification per program, you just need to look and click at the notificaiton bell ![Bell](/images/bell.jpg)
+
+Now you you can see all programs and all possible settings value. Have fun!
+![Bell](/images/notification.jpg)
+
+## You just want to update one settings?
+
+You can repeat above process with the setting option and the service: `hon.update_settings`.
+
 ## Tested devices
 This integration has been tested with the following devices.
 
