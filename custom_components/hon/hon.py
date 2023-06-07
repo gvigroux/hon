@@ -9,6 +9,7 @@ import re
 import ast
 import time
 import urllib.parse
+from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -64,7 +65,7 @@ class HonConnection:
         self._frontdoor_url = ""
         self._start_time    = time.time()
 
-        self._header = headers = {
+        self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
         self._session = aiohttp.ClientSession(headers=self._header)
@@ -92,6 +93,7 @@ class HonConnection:
 
 
     async def async_get_frontdoor_url(self, error_code=0):
+
         data = (
             "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2279%3Ba%22%2C%22descriptor%22%3A%22apex%3A%2F%2FLightningLoginCustomController%2FACTION%24login%22%2C%22callingDescriptor%22%3A%22markup%3A%2F%2Fc%3AloginForm%22%2C%22params%22%3A%7B%22username%22%3A%22"
             + urllib.parse.quote(self._email)
@@ -101,9 +103,11 @@ class HonConnection:
             + urllib.parse.quote(self._framework)
             + "%22%2C%22app%22%3A%22siteforce%3AloginApp2%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AloginApp2%22%3A%22YtNc5oyHTOvavSB9Q4rtag%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2FSmartHome%2Fs%2Flogin%2F%3Flanguage%3Dfr&aura.token=null"
         )
+
+        url = f"{AUTH_API}/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1"
         async with self._session.post(
-            "https://he-accounts.force.com/SmartHome/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            url,
+            headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
             data=data,
         ) as resp:
             if resp.status != 200:
@@ -147,7 +151,7 @@ class HonConnection:
         url = f"{AUTH_API}/apex/ProgressiveLogin?retURL=%2FSmartHome%2Fapex%2FCustomCommunitiesLanding"
         async with self._session.get(url) as resp:
             await resp.text()
-
+            
         url = f"{AUTH_API}/services/oauth2/authorize?response_type=token+id_token&client_id=3MVG9QDx8IX8nP5T2Ha8ofvlmjLZl5L_gvfbT9.HJvpHGKoAS_dcMN8LYpTSYeVFCraUnV.2Ag1Ki7m4znVO6&redirect_uri=hon%3A%2F%2Fmobilesdk%2Fdetect%2Foauth%2Fdone&display=touch&scope=api%20openid%20refresh_token%20web&nonce=82e9f4d1-140e-4872-9fad-15e25fbf2b7c"
         async with self._session.get(url) as resp:
             text = await resp.text()
@@ -170,19 +174,20 @@ class HonConnection:
                 _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
                 return False
 
-        post_headers = {"Content-Type": "application/json", "id-token": self._id_token}
-        data = {"mobileId": self._mobile_id,
+        post_headers = {"id-token": self._id_token}
+        data = {"appVersion": APP_VERSION,
+                "mobileId": self._mobile_id,
                 "os": OS,
                 "osVersion": OS_VERSION,
-                "appVersion": APP_VERSION,
                 "deviceModel": DEVICE_MODEL}
-        url = f"{API_URL}/auth/v1/login"
-        async with self._session.post(url, headers=post_headers, json=data) as resp:
+
+        async with self._session.post(f"{API_URL}/auth/v1/login", headers=post_headers, json=data) as resp:
             try:
                 json_data = await resp.json()
                 self._cognitoToken = json_data["cognitoUser"]["Token"]
             except:
-                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers []" + str(post_headers) + "]")
+                text = await resp.text()
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers [" + str(post_headers) + "]. Response: " + text)
                 return False
 
 
