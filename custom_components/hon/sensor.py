@@ -441,12 +441,24 @@ class HonBaseEnd(HonBaseSensorEntity):
 
     def coordinator_update(self):
 
+        if(not hasattr(self, "_on")):
+            self._on = False
+            
+        if self._device.has("onOffStatus"):
+            self._on = self._device.get("onOffStatus") == "1"
+        else:
+            self._on = self._device.get("attributes.lastConnEvent.category") == "CONNECTED"
+
+
         delay = 0
         if self._device.has("delayTime"):
             delay = self._device.getInt("delayTime")
         remaining = self._device.getInt("remainingTimeMM")
 
         if remaining == 0:
+            self._attr_native_value = None
+            return
+        if self._on is False:
             self._attr_native_value = None
             return
 
