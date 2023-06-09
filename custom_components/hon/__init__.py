@@ -66,7 +66,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
 
-
     for appliance in hon.appliances:
         
         coordinator = await hon.async_get_coordinator(appliance)

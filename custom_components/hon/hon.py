@@ -104,9 +104,8 @@ class HonConnection:
             + "%22%2C%22app%22%3A%22siteforce%3AloginApp2%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AloginApp2%22%3A%22YtNc5oyHTOvavSB9Q4rtag%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2FSmartHome%2Fs%2Flogin%2F%3Flanguage%3Dfr&aura.token=null"
         )
 
-        url = f"{AUTH_API}/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1"
         async with self._session.post(
-            url,
+            f"{AUTH_API}/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1",
             headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
             data=data,
         ) as resp:
@@ -206,40 +205,6 @@ class HonConnection:
     
         self._start_time = time.time()
         return True
-
-    '''
-    async def async_get_state(self, mac, typeName, loop=False):
-
-        # Create a new hOn session to avoid reaching the expiration
-        elapsed_time = time.time() - self._start_time
-        if( elapsed_time > SESSION_TIMEOUT ):
-            self._session.cookie_jar.clear()
-            await self.async_authorize()
-
-        url = f"{API_URL}/commands/v1/context?macAddress={mac}&applianceType={typeName}&category=CYCLE"
-        async with self._session.get(url, headers=self._headers) as resp:
-            text = await resp.text()
-
-            # Authentication has expired
-            if resp.status == 403:
-                if loop == True:
-                    _LOGGER.error(f"Unable to get the state of the hOn device. HTTP code: {str(resp.status)} and text [{text}]")
-                    return False
-                await self.async_authorize()
-                return await self.async_get_state(mac, typeName, True)
-
-            elif resp.status != 200:
-                _LOGGER.error(f"Unable to get the state of the hOn device. HTTP code: {str(resp.status)} and text [{text}]")
-                return False
-
-            full_json_data = json.loads(text)
-            json_data = full_json_data["payload"]["shadow"]["parameters"]
-            if "lastConnEvent" in full_json_data["payload"]:
-                json_data["category"] = full_json_data["payload"]["lastConnEvent"].get("category")
-            return json_data
-        return False
-        '''
-
 
 
     async def load_commands(self, appliance):

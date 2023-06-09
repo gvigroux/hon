@@ -1,5 +1,8 @@
 #All credits to https://github.com/Andre0512/pyhOn
 
+import logging
+_LOGGER = logging.getLogger(__name__)
+
 class HonParameter:
     def __init__(self, key, attributes):
         self._key = key
@@ -56,10 +59,11 @@ class HonParameterRange(HonParameter):
             self._step = int(attributes["incrementValue"])
             self._default = int(attributes.get("defaultValue", self._min))
         except (TypeError, ValueError):
-            self._min = float(attributes["minimumValue"])
-            self._max = float(attributes["maximumValue"])
-            self._step = float(attributes["incrementValue"])
-            self._default = float(attributes.get("defaultValue", self._min))
+            _LOGGER.error(attributes["minimumValue"])
+            self._min = float(attributes["minimumValue"].replace(",","."))
+            self._max = float(attributes["maximumValue"].replace(",","."))
+            self._step = float(attributes["incrementValue"].replace(",","."))
+            self._default = float(attributes.get("defaultValue", self._min).replace(",","."))
         self._value = self._default
 
     def __repr__(self):
@@ -90,7 +94,7 @@ class HonParameterRange(HonParameter):
 
     @value.setter
     def value(self, value):
-        value = int(float(value))
+        value = int(float(value.replace(",",".")))
         if self._min <= value <= self._max and not value % self._step:
             self._value = value
         else:
