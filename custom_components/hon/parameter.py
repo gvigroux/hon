@@ -65,6 +65,7 @@ class HonParameterRange(HonParameter):
             self._step = float(attributes["incrementValue"].replace(",","."))
             self._default = float(attributes.get("defaultValue", self._min).replace(",","."))
         self._value = self._default
+        #_LOGGER.error(f"Param {key} min {self._min} | max {self._max} | step {self._step} | default {self._default}")
 
     def __repr__(self):
         return f"{self.__class__} (<{self.key}> [{self._min} - {self._max}])"
@@ -94,7 +95,11 @@ class HonParameterRange(HonParameter):
 
     @value.setter
     def value(self, value):
-        value = int(float(value.replace(",",".")))
+        if type(value) == str and type(self._step) == float:
+            value = float(value.replace(",","."))
+        elif type(value) == str:
+            value = int(float(value.replace(",",".")))
+
         if self._min <= value <= self._max and not value % self._step:
             self._value = value
         else:
