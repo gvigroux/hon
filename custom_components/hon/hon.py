@@ -301,7 +301,6 @@ class HonConnection:
         return False
 
 
-
     async def send_command(self, device, command, parameters, ancillary_parameters):
         now = datetime.utcnow().isoformat()
         data = {

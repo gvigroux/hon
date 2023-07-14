@@ -82,14 +82,6 @@ CLIMATE_FAN_MODE = {
     FAN_AUTO: "5",
 }
 
-'''
-class ClimateHvacMode(IntEnum):
-    HON_HVAC_AUTO = "0"
-    HON_HVAC_COOL = "1"
-    HON_HVAC_DRY = "2"
-    HON_HVAC_HEAT = "4"
-    HON_HVAC_FAN_ONLY = "6"'''
-
 CLIMATE_HVAC_MODE = {
     HVACMode.AUTO: "0",
     HVACMode.COOL: "1",
@@ -97,14 +89,6 @@ CLIMATE_HVAC_MODE = {
     HVACMode.DRY: "2",
     HVACMode.FAN_ONLY: "6",
 }
-
-'''
-CLIMATE_SWING_MODE_HORIZONTAL = {
-    SWING_OFF: ClimateSwingHorizontal.MIDDLE,
-    SWING_BOTH: ClimateSwingHorizontal.AUTO,
-    SWING_HORIZONTAL: ClimateSwingHorizontal.AUTO,
-    SWING_VERTICAL: ClimateSwingHorizontal.MIDDLE,
-}'''
 
 class ClimateSwingVertical:
     AUTO = "8"

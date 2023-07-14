@@ -66,7 +66,7 @@ class HonDevice(CoordinatorEntity):
     async def load_context(self):
         data = await self._hon.async_get_context(self)
         self._attributes = data
-        for name, values in self._attributes.pop("shadow").get("parameters").items():
+        for name, values in self._attributes.pop("shadow", {'NA': 0}).get("parameters").items():
             self._attributes.setdefault("parameters", {})[name] = values["parNewVal"]
 
     @property
@@ -138,12 +138,17 @@ class HonDevice(CoordinatorEntity):
                     command.parameters.get(key).value = parameters.get(key)
 
     def settings_command(self, parameters = {}):
-        if( "settings" in self._commands ):
-            command = self._commands.get("settings")
-            self.update_command(command, self.attributes["parameters"])
-            self.update_command(command, parameters)
-            return command
-        raise ValueError("No command to update settings of the device")
+        if( "settings" not in self._commands ):
+            raise ValueError("No command to update settings of the device")
+        command = self._commands.get("settings")
+        self.update_command(command, self.attributes["parameters"])
+        self.update_command(command, parameters)
+
+        # Update for next command (in case no refresh happens yet)
+        for key in command.parameters.keys():
+            self.attributes["parameters"][key] = command.parameters.get(key).value
+
+        return command
 
     def start_command(self, program = None, parameters = {}):
         if( "startProgram" not in self._commands ):
@@ -154,6 +159,11 @@ class HonDevice(CoordinatorEntity):
         command = self._commands.get("startProgram")
         self.update_command(command, self.attributes["parameters"])
         self.update_command(command, parameters)
+    
+        # Update for next command (in case no refresh happens yet)
+        for key in command.parameters.keys():
+            self.attributes["parameters"][key] = command.parameters.get(key).value
+
         return command
 
     def stop_command(self, parameters = {}):

@@ -188,7 +188,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._device        = coordinator.device
 
         #Not working for Farenheit
-        self._attr_temperature_unit         = TEMP_CELSIUS
+        self._attr_temperature_unit         = TEMP_CELSIUS # 'tempUnit': '0'
         self._attr_target_temperature_step  = PRECISION_WHOLE
 
         self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
@@ -233,12 +233,12 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
     async def async_set_wind_direction_horizontal(self, value: int):
         self._wind_direction_horizontal = value
-        parameters = {'windDirectionHorizontal': value}
+        parameters = {'windDirectionHorizontal': str(value)}
         await self._device.settings_command(parameters).send()
         
     async def async_set_wind_direction_vertical(self, value: int):
         self._wind_direction_vertical = value
-        parameters = {'windDirectionVertical': value}
+        parameters = {'windDirectionVertical': str(value)}
         await self._device.settings_command(parameters).send()
 
     async def async_set_eco_pilot_mode(self, value: int):
