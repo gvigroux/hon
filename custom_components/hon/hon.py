@@ -199,9 +199,13 @@ class HonConnection:
                 return False
 
             self._appliances = json_data["payload"]["appliances"]
+            _LOGGER.debug(f"All appliances: {self._appliances}")
 
             ''' Remove appliances with no mac'''
             self._appliances = [appliance for appliance in self._appliances if "macAddress" in appliance]
+
+            ''' Remove appliances with no applianceTypeId'''
+            self._appliances = [appliance for appliance in self._appliances if "applianceTypeId" in appliance]
     
         self._start_time = time.time()
         return True
@@ -253,7 +257,9 @@ class HonConnection:
         }
         url = f"{API_URL}/commands/v1/statistics"
         async with self._session.get(url, params=params, headers=self._headers) as response:
-            return (await response.json()).get("payload", {})
+            json = await response.json()
+            _LOGGER.debug(f"Statistic for mac[{device.mac_address}] type [{device.appliance_type}] {json}")
+            return json.get("payload", {})
 
     @property
     def _headers(self):
@@ -291,13 +297,14 @@ class HonConnection:
 
         async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=data,) as resp:
             try:
-                json_data = await resp.json()
+                json = await resp.json()
+                _LOGGER.debug(json)
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
                 return False
-            if json_data["payload"]["resultCode"] == "0":
+            if json["payload"]["resultCode"] == "0":
                 return True
-            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json_data) + "] sent data ["+ str(data)+ "]")
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json) + "] sent data ["+ str(data)+ "]")
         return False
 
 
@@ -330,13 +337,14 @@ class HonConnection:
         url = f"{API_URL}/commands/v1/send"
         async with self._session.post(url, headers=self._headers, json=data) as resp:
             try:
-                json_data = await resp.json()
+                json = await resp.json()
+                _LOGGER.debug(json)
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
                 return False
-            if json_data["payload"]["resultCode"] == "0":
+            if json["payload"]["resultCode"] == "0":
                 return True
-            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json_data) + "] sent data ["+ str(data)+ "]")
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json) + "] sent data ["+ str(data)+ "]")
         return False
 
 

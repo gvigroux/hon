@@ -28,15 +28,10 @@ class HonBaseCoordinator(DataUpdateCoordinator):
         self._hon       = hon
         self._device    = None
         self._appliance = appliance
-        self._mac       = appliance["macAddress"]
-        self._type_name = appliance["applianceTypeName"]
-
-
-        if "applianceTypeId" not in appliance:
-            _LOGGER.warning(f"Invalid appliance data (no applianceTypeId) in {appliance}" )
-            return
 
         try:
+            self._mac           = appliance["macAddress"]
+            self._type_name     = appliance["applianceTypeName"]
             self._type_id       = appliance["applianceTypeId"]
             self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
             self._brand         = appliance["brand"]
