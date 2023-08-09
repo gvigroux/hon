@@ -52,6 +52,7 @@ This integration has been tested with the following devices.
 ### Washing Machine
 - HW 49AMC/1-80
 - HW90-B14959S8U1
+- hoover HWPDQ 49AMBC/1-S
 
 ### Wine Cooler
 - HWS42GDAU1
