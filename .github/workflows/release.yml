@@ -18,7 +18,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/hon/haier_hon.zip
-          asset_name: haier_hon.zip
+          file: ${{ github.workspace }}/custom_components/hon/hon_integration.zip
+          asset_name: hon_integration.zip
           tag: ${{ github.ref }}
           overwrite: true
