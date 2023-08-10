@@ -264,6 +264,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     async def handle_turn_off(call):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
+        
         coordinator = await hon.async_get_existing_coordinator(mac)
         parameters = {"onOffStatus": "0", "machMode": "1" }
         await coordinator.async_set(parameters)
@@ -272,8 +273,8 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     async def handle_light_on(call):
         device_id = call.data.get("device")
         mac = get_hOn_mac(device_id, hass)
-        update_sensor(hass, device_id, mac, "light_status" , "on")
 
+        update_sensor(hass, device_id, mac, "light_status" , "on")
         coordinator = await hon.async_get_existing_coordinator(mac)
         await coordinator.async_set({"lightStatus": "1"})
         await coordinator.async_request_refresh()

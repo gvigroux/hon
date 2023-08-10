@@ -246,9 +246,9 @@ class HonConnection:
         }
         url = f"{API_URL}/commands/v1/context"
         async with self._session.get(url, params=params, headers=self._headers) as response:
-            json = await response.json()
-            _LOGGER.debug(f"Context for mac[{device.mac_address}] type [{device.appliance_type}] {json}")
-            return json.get("payload", {})
+            data = await response.json()
+            _LOGGER.debug(f"Context for mac[{device.mac_address}] type [{device.appliance_type}] {data}")
+            return data.get("payload", {})
 
     async def load_statistics(self, device):
         params = {
@@ -257,9 +257,9 @@ class HonConnection:
         }
         url = f"{API_URL}/commands/v1/statistics"
         async with self._session.get(url, params=params, headers=self._headers) as response:
-            json = await response.json()
-            _LOGGER.debug(f"Statistic for mac[{device.mac_address}] type [{device.appliance_type}] {json}")
-            return json.get("payload", {})
+            data = await response.json()
+            _LOGGER.debug(f"Statistic for mac[{device.mac_address}] type [{device.appliance_type}] {data}")
+            return data.get("payload", {})
 
     @property
     def _headers(self):
@@ -272,45 +272,45 @@ class HonConnection:
     async def async_set(self, mac, typeName, parameters):
 
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        data = json.loads("{}")
-        data["macAddress"] = mac
-        data["commandName"] = "startProgram"
-        data["applianceOptions"] = json.loads("{}")
-        data["programName"] = "PROGRAMS." + typeName + ".HOME_ASSISTANT"
-        data["ancillaryParameters"] = json.loads(
+        command = json.loads("{}")
+        command["macAddress"] = mac
+        command["commandName"] = "startProgram"
+        command["applianceOptions"] = json.loads("{}")
+        command["programName"] = "PROGRAMS." + typeName + ".HOME_ASSISTANT"
+        command["ancillaryParameters"] = json.loads(
             '{"programFamily":"[standard]", "remoteActionable": "1", "remoteVisible": "1"}'
         )
-        data["applianceType"] = typeName
-        data["attributes"] = json.loads(
+        command["applianceType"] = typeName
+        command["attributes"] = json.loads(
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice"}'
         )
         if typeName == "WM":
-            data["attributes"] = json.loads(
+            command["attributes"] = json.loads(
             '{"prStr":"HOME_ASSISTANT", "channel":"googleHome", "origin": "conversationalVoice", "energyLabel": "0"}'
         )
-        data["device"] = json.loads(
+        command["device"] = json.loads(
             '{"mobileId":"xxxxxxxxxxxxxxxxxxx", "mobileOs": "android", "osVersion": "31", "appVersion": "1.53.4", "deviceModel": "lito"}'
         )
-        data["parameters"] = parameters
-        data["timestamp"] = timestamp
-        data["transactionId"] = mac + "_" + data["timestamp"]
+        command["parameters"] = parameters
+        command["timestamp"] = timestamp
+        command["transactionId"] = mac + "_" + command["timestamp"]
 
-        async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=data,) as resp:
+        async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=command,) as resp:
             try:
-                json = await resp.json()
-                _LOGGER.debug(json)
+                data = await resp.json()
+                _LOGGER.debug(data)
             except json.JSONDecodeError:
-                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False
-            if json["payload"]["resultCode"] == "0":
+            if data["payload"]["resultCode"] == "0":
                 return True
-            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json) + "] sent data ["+ str(data)+ "]")
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(data) + "] sent command ["+ str(command)+ "]")
         return False
 
 
     async def send_command(self, device, command, parameters, ancillary_parameters):
         now = datetime.utcnow().isoformat()
-        data = {
+        command = {
             "macAddress": device.mac_address,
             "timestamp": f"{now[:-3]}Z",
             "commandName": command,
@@ -332,19 +332,19 @@ class HonConnection:
             "parameters": parameters,
             "applianceType": device.appliance_type
         }
-        _LOGGER.debug(data)
+        _LOGGER.debug(command)
 
         url = f"{API_URL}/commands/v1/send"
-        async with self._session.post(url, headers=self._headers, json=data) as resp:
+        async with self._session.post(url, headers=self._headers, json=command) as resp:
             try:
-                json = await resp.json()
-                _LOGGER.debug(json)
+                data = await resp.json()
+                _LOGGER.debug(data)
             except json.JSONDecodeError:
-                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "]")
+                _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False
-            if json["payload"]["resultCode"] == "0":
+            if data["payload"]["resultCode"] == "0":
                 return True
-            _LOGGER.error("hOn command has been rejected. Error message ["+ str(json) + "] sent data ["+ str(data)+ "]")
+            _LOGGER.error("hOn command has been rejected. Error message ["+ str(data) + "] sent data ["+ str(command)+ "]")
         return False
 
 
