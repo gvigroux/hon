@@ -561,6 +561,7 @@ turn_off:
   description: Turn OFF any registered hOn device
   fields:
     device:
+      name: hOn device
       description: The hOn device
       required: true
       advanced: false
@@ -573,6 +574,7 @@ set_mode:
   description: Select the mode of the hOn device
   fields:
     device:
+      name: hOn device
       description: The hOn device
       required: true
       advanced: false
@@ -593,6 +595,7 @@ turn_light_on:
   description: "Turn ON the light on hOn device"
   fields:
     device:
+      name: hOn device
       description: The hOn device
       required: true
       advanced: false
@@ -608,6 +611,7 @@ turn_light_off:
   description: "Turn OFF the light"
   fields:
     device:
+      name: hOn device
       description: The hOn device
       required: true
       advanced: false
@@ -623,6 +627,7 @@ send_custom_request:
   description: "send any parameters to the hOn device"
   fields:
     device:
+      name: hOn device
       description: The hOn device
       required: true
       advanced: false
@@ -642,6 +647,7 @@ climate_turn_health_mode_on:
   description: "Turn ON the climate health mode"
   fields:
     device:
+      name: hOn device
       description: The hOn climate device
       required: true
       advanced: false
@@ -654,6 +660,7 @@ climate_turn_health_mode_off:
   description: "Turn OFF the climate health mode"
   fields:
     device:
+      name: hOn device
       description: The hOn climate device
       required: true
       advanced: false
