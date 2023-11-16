@@ -240,9 +240,9 @@ TUMBLE_DRYER_PROGRAMS_PHASE = {
 
 TUMBLE_DRYER_DRYL = {
 	"3": "Cupboard dry",
-	"12": "Ready to Iron H-3",
+	"12": "Extra Dry H-3",
 	"13": "Ready to Store H-2",
-	"14": "Extra Dry H-1"
+	"14": "Ready to Iron H-1"
 }
 
 TUMBLE_DRYER_TEMPL = {
