@@ -473,7 +473,7 @@ class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
         super().__init__(coordinator, appliance, "", "Mean Water Consumption")
 
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
-        self._attr_device_class = SensorDeviceClass.VOLUME
+        self._attr_device_class = SensorDeviceClass.WATER
         self._attr_icon = "mdi:water-sync"
 
         #TODO: keys totalWashCycle, totalWaterUsed must be in the list
@@ -514,7 +514,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
         super().__init__(coordinator, appliance, "totalWaterUsed", "Total water used")
 
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
-        self._attr_device_class = SensorDeviceClass.VOLUME
+        self._attr_device_class = SensorDeviceClass.WATER
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water-pump"
 
@@ -539,7 +539,7 @@ class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
         super().__init__(coordinator, appliance, "currentWaterUsed", "Current water used")
 
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
-        self._attr_device_class = SensorDeviceClass.VOLUME
+        self._attr_device_class = SensorDeviceClass.WATER
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:water"
 
