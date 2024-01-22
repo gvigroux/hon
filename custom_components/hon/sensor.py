@@ -5,7 +5,7 @@ from enum import IntEnum
 #from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 
-from homeassistant.const import TEMP_CELSIUS, TIME_MINUTES
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -45,6 +45,7 @@ from .base import HonBaseCoordinator, HonBaseSensorEntity
 
 from homeassistant.config_entries import ConfigEntry
 
+divider = 100.0
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -189,7 +190,7 @@ class HonBaseTemperature(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
         super().__init__(coordinator, appliance, key, name)
 
-        self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
 
 
@@ -214,7 +215,7 @@ class HonBaseRemainingTime(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "remainingTimeMM", "Remaining Time")
 
-        self._attr_native_unit_of_measurement = TIME_MINUTES
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:progress-clock"
 
@@ -373,7 +374,7 @@ class HonBaseProgramDuration(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "prTime", "Program duration")
 
-        self._attr_native_unit_of_measurement = TIME_MINUTES
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:timelapse"
 
@@ -482,7 +483,7 @@ class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
         if self._device.getInt("totalWashCycle")-1 <= 0:
             self._attr_native_value = None
         else:
-            self._attr_native_value = round(self._device.getFloat("totalWaterUsed")/(self._device.getFloat("totalWashCycle")-1),2)
+            self._attr_native_value = round((self._device.getFloat("totalWaterUsed") / divider ) /(self._device.getFloat("totalWashCycle")-1),2)
 
 
 class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
@@ -495,7 +496,7 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:connection"
 
     def coordinator_update(self):
-        self._attr_native_value =self._device.getFloat("totalElectricityUsed")
+        self._attr_native_value = self._device.getFloat("totalElectricityUsed") / divider
 
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
@@ -519,7 +520,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water-pump"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.getFloat("totalWaterUsed")
+        self._attr_native_value = self._device.getFloat("totalWaterUsed") / divider
 
 
 class HonBaseWeight(HonBaseSensorEntity):
@@ -544,7 +545,8 @@ class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.get("currentWaterUsed")
+        #self._attr_native_value = self._device.get("currentWaterUsed")
+        self._attr_native_value = self._device.getFloat("currentWaterUsed") / divider
 
 
 class HonBaseError(HonBaseSensorEntity):
@@ -571,7 +573,8 @@ class HonBaseCurrentElectricityUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:lightning-bolt"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.get("currentElectricityUsed")
+        #self._attr_native_value = self._device.get("currentElectricityUsed")
+        self._attr_native_value = self._device.getFloat("currentElectricityUsed") / divider
 
 
 class HonBaseSpinSpeed(HonBaseSensorEntity):

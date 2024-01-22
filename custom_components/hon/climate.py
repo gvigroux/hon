@@ -22,9 +22,6 @@ from homeassistant.components.sensor import (
     SensorStateClass,
     SensorEntityDescription,
 )
-from homeassistant.const import (
-    DATA_RATE_MEGABITS_PER_SECOND,
-)
 
 
 from homeassistant.components.climate.const import (
@@ -57,7 +54,7 @@ from homeassistant.const import (
     SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
-    TEMP_CELSIUS,
+    UnitOfTemperature,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher   import async_dispatcher_connect
@@ -188,7 +185,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._device        = coordinator.device
 
         #Not working for Farenheit
-        self._attr_temperature_unit         = TEMP_CELSIUS # 'tempUnit': '0'
+        self._attr_temperature_unit         = UnitOfTemperature.CELSIUS # 'tempUnit': '0'
         self._attr_target_temperature_step  = PRECISION_WHOLE
 
         self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
