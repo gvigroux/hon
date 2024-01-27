@@ -483,7 +483,7 @@ class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
         if self._device.getInt("totalWashCycle")-1 <= 0:
             self._attr_native_value = None
         else:
-            self._attr_native_value = round((self._device.getFloat("totalWaterUsed") / divider ) /(self._device.getFloat("totalWashCycle")-1),2)
+            self._attr_native_value = round((self._device.getFloat("totalWaterUsed") ) /(self._device.getFloat("totalWashCycle")-1),2)
 
 
 class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
@@ -496,7 +496,7 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:connection"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.getFloat("totalElectricityUsed") / divider
+        self._attr_native_value = self._device.getFloat("totalElectricityUsed")
 
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
@@ -520,7 +520,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water-pump"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.getFloat("totalWaterUsed") / divider
+        self._attr_native_value = self._device.getFloat("totalWaterUsed")
 
 
 class HonBaseWeight(HonBaseSensorEntity):
