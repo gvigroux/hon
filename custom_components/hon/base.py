@@ -23,7 +23,7 @@ class HonBaseCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="hOn Device",
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=60),
         )
         self._hon       = hon
         self._device    = None

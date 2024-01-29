@@ -520,7 +520,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
         self._attr_icon = "mdi:water-pump"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.getFloat("totalWaterUsed")
+        self._attr_native_value = self._device.getFloat("totalWaterUsed") / divider
 
 
 class HonBaseWeight(HonBaseSensorEntity):
