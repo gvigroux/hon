@@ -1,9 +1,7 @@
 import asyncio
-import imp
 import logging
 import voluptuous as vol
 import aiohttp
-import asyncio
 import json
 import urllib.parse
 import ast
