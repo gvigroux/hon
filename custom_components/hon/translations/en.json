@@ -161,18 +161,9 @@
             "washingmachine_error" : {
                 "state": {
                     "00": "None",
-                    "E1": "Error E1: Check the filter of the washing machine",
                     "100000000000": "E2: Check if the door is closed",
                     "8000000000000": "E4: Check the water supply",
-                    "CLRF": "Error Clear Filter: Check the filter of the washing machine",
-                    "400000000000000": "Error Unb: Check the laundry, the washing machine might be overloaded",
-                    "F3": "Error F3: Temperature sensor error",
-                    "F4": "Error F4: Heating error",
-                    "F7": "Error F7: Motor error",
-                    "FA": "Error FA: Water level sensor error",
-                    "FC0": "Error FC0: Communication error",
-                    "FC1": "Error FC1: Communication error",
-                    "FC2": "Error FC2: Communication error"
+                    "400000000000000": "Error Unb: Check the laundry, the washing machine might be overloaded"
                 }
             },
             "oven_program" : {
