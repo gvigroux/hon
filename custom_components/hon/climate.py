@@ -50,8 +50,6 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_TENTHS,
     PRECISION_WHOLE,
-    SERVICE_TURN_OFF,
-    SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
     UnitOfTemperature,
@@ -188,10 +186,12 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._attr_temperature_unit         = UnitOfTemperature.CELSIUS # 'tempUnit': '0'
         self._attr_target_temperature_step  = PRECISION_WHOLE
 
+
+        self._enable_turn_on_off_backwards_compatibility = False
         self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
-        self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.DRY]
+        self._attr_hvac_modes           = [HVACMode.HEAT, HVACMode.COOL, HVACMode.AUTO, HVACMode.FAN_ONLY, HVACMode.DRY, HVACMode.OFF]
         self._attr_swing_modes          = [SWING_OFF, SWING_BOTH, SWING_VERTICAL, SWING_HORIZONTAL]
-        self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE
+        self._attr_supported_features   = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
         
         ''' hon specific values '''
         parameters = self._device.settings_command().parameters
@@ -356,6 +356,18 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
             await self._device.start_command('iot_fan').send()
         self._attr_hvac_mode = hvac_mode
         self.start_watcher()
+
+
+    async def async_turn_off(self) -> None:
+        await self._device.stop_command().send()
+        self._attr_hvac_mode = HVACMode.OFF
+        self.start_watcher()
+
+    async def async_turn_on(self) -> None:
+        await self._device.start_command('iot_simple_start').send()
+        self._attr_hvac_mode = get_key(CLIMATE_HVAC_MODE, self._device.get('machMode'), HVACMode.OFF)
+        self.start_watcher()
+
 
     async def async_set_fan_mode(self, fan_mode: str):
         self._attr_fan_mode = fan_mode

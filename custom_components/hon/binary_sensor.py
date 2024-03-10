@@ -6,7 +6,7 @@ from dateutil.tz import gettz
 from typing import Optional
 from enum import IntEnum
 
-from .const import DOMAIN, OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE, APPLIANCE_TYPE
+from .const import DOMAIN, APPLIANCE_TYPE
 from .base import HonBaseCoordinator, HonBaseBinarySensorEntity
 
 from homeassistant.core import callback

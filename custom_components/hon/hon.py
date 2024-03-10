@@ -294,11 +294,12 @@ class HonConnection:
         command["parameters"] = parameters
         command["timestamp"] = timestamp
         command["transactionId"] = mac + "_" + command["timestamp"]
+        _LOGGER.debug((f"Command sent (async_set): {command}"))
 
         async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=command,) as resp:
             try:
                 data = await resp.json()
-                _LOGGER.debug(data)
+                _LOGGER.debug((f"Command result (async_set): {data}"))
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False
@@ -332,13 +333,13 @@ class HonConnection:
             "parameters": parameters,
             "applianceType": device.appliance_type
         }
-        _LOGGER.debug(command)
+        _LOGGER.debug((f"Command sent (send_command): {command}"))
 
         url = f"{API_URL}/commands/v1/send"
         async with self._session.post(url, headers=self._headers, json=command) as resp:
             try:
                 data = await resp.json()
-                _LOGGER.debug(data)
+                _LOGGER.debug((f"Command result (send_command): {data}"))
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False

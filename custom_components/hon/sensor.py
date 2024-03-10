@@ -21,12 +21,7 @@ from homeassistant.components.binary_sensor import (
 
 from homeassistant.core import callback
 
-
 from .const import DOMAIN, APPLIANCE_TYPE
-from .const import OVEN_PROGRAMS, DISH_WASHER_MODE, DISH_WASHER_PROGRAMS, CLIMATE_MODE
-from .const import WASHING_MACHINE_MODE, WASHING_MACHINE_ERROR_CODES, TUMBLE_DRYER_DRYL
-from .const import TUMBLE_DRYER_MODE, TUMBLE_DRYER_MODE, TUMBLE_DRYER_PROGRAMS_PHASE, TUMBLE_DRYER_TEMPL
-from .const import TUMBLE_DRYER_PROGRAMS
 
 from homeassistant.const import (
     UnitOfTime,
@@ -171,19 +166,27 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 class HonBaseMode(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "machMode", "Mode")
-        #self._attr_icon         = "mdi:washing-machine"
+    
+        if( self._type_id == APPLIANCE_TYPE.CLIMATE ):
+            self.translation_key    = "climate_mode"
+
+        if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
+            self.translation_key    = "wash_mode"
+            self._attr_icon         = "mdi:washing-machine"
+
+        if( self._type_id == APPLIANCE_TYPE.DISH_WASHER ):
+            self.translation_key    = "dishwasher_mode"
+    
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+            self.translation_key    = "tumbledryer_mode"
+
+        if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
+            self.translation_key    = "purifier_mode"
 
     def coordinator_update(self):
         mode = self._device.get("machMode")
-        self._attr_native_value = f"Program {mode}"
+        self._attr_native_value = f"{mode}"
 
-        if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
-            if mode in WASHING_MACHINE_MODE:
-                self._attr_native_value = WASHING_MACHINE_MODE[mode]
-
-        if( self._type_id == APPLIANCE_TYPE.CLIMATE ):
-            if mode in CLIMATE_MODE:
-                self._attr_native_value = CLIMATE_MODE[mode]
 
 
 class HonBaseTemperature(HonBaseSensorEntity):
@@ -271,19 +274,12 @@ class HonBaseIndoorVOC(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "vocValueIndoor", "Indoor VO")
 
-        self._attr_icon = "mdi:chemical-weapon"
+        self._attr_icon         = "mdi:chemical-weapon"
+        self.translation_key    = "voc" #APPLIANCE_TYPE.PURIFIER 
 
     def coordinator_update(self):
-
-        ivoc = self._device.get("vocValueIndoor")
-
-        if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
-            if ivoc in PURIFIER_VOC_VALUE:
-                self._attr_native_value = PURIFIER_VOC_VALUE[ivoc]
-            else:
-                self._attr_native_value = f"Unknown value {ivoc}"
-        else:
-            self._attr_native_value = f"{ivoc}"
+        voc = self._device.get("vocValueIndoor")
+        self._attr_native_value = f"{voc}"
 
 
 class HonBaseCOlevel(HonBaseSensorEntity):
@@ -339,35 +335,33 @@ class HonBaseProgram(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "prCode", "Program")
 
-        self._attr_icon = "mdi:tumble-dryer"
-        self._attr_device_class = "tumbledryerprogram"
+        if( self._type_id in (APPLIANCE_TYPE.TUMBLE_DRYER)):
+            self._attr_icon         = "mdi:tumble-dryer"
+            self.translation_key    = "tumbledryer_program"
+
+        if( self._type_id in (APPLIANCE_TYPE.OVEN)):
+            self.translation_key    = "oven_program"
+
+        if( self._type_id in (APPLIANCE_TYPE.DISH_WASHER)):
+            ##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
+            self.translation_key    = "dishwasher_program"
 
     def coordinator_update(self):
         program = self._device.get("prCode")
         self._attr_native_value = f"{program}"
-        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
-            if program in TUMBLE_DRYER_PROGRAMS:
-                self._attr_native_value = TUMBLE_DRYER_PROGRAMS[program]
-            else:
-                self._attr_native_value = f"Program {program}"
 
 
 class HonBaseProgramPhase(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "prPhase", "Program phase")
 
-        self._attr_icon = "mdi:tumble-dryer"
-        self._attr_device_class = "tumbledryerprogramphase"
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+            self._attr_icon         = "mdi:tumble-dryer"
+            self.translation_key    = "tumbledryer_program_phase"
 
     def coordinator_update(self):
         programPhase = self._device.get("prPhase")
         self._attr_native_value = programPhase
-
-        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
-            if programPhase in TUMBLE_DRYER_PROGRAMS_PHASE:
-                self._attr_native_value = TUMBLE_DRYER_PROGRAMS_PHASE[programPhase]
-            else:
-                self._attr_native_value = f"Phase {programPhase}"
 
 
 class HonBaseProgramDuration(HonBaseSensorEntity):
@@ -383,19 +377,12 @@ class HonBaseDryLevel(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "dryLevel", "Dry level")
 
-        self._attr_icon = "mdi:hair-dryer"
-        self._attr_device_class = "tumbledryerdrylevel" #TODO: find better value
-
+        self._attr_icon         = "mdi:hair-dryer"
+        self.translation_key    = "dry_level"
 
     def coordinator_update(self):
         drylevel = self._device.get("dryLevel")
-        self._attr_native_value = drylevel
-
-        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
-            if drylevel in TUMBLE_DRYER_DRYL:
-                self._attr_native_value = TUMBLE_DRYER_DRYL[drylevel]
-            else:
-                self._attr_native_value = f"Dry level {drylevel}"
+        self._attr_native_value = f"{drylevel}"
 
 
 class HonBaseStart(HonBaseSensorEntity):
@@ -553,14 +540,15 @@ class HonBaseError(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "errors", "Error")
 
+        self.translation_key    = "error"
+
         self._attr_icon = "mdi:math-log"
+        if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
+            self.translation_key    = "washingmachine_error"
 
     def coordinator_update(self):
         error = self._device.get("errors")
-        if error in WASHING_MACHINE_ERROR_CODES:
-            self._attr_native_value = WASHING_MACHINE_ERROR_CODES[error]
-        else:
-            self._attr_native_value = f"Error {error}"
+        self._attr_native_value = f"{error}"
 
 
 class HonBaseCurrentElectricityUsed(HonBaseSensorEntity):
