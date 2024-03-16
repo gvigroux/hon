@@ -335,14 +335,14 @@ class HonBaseProgram(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "prCode", "Program")
 
-        if( self._type_id in (APPLIANCE_TYPE.TUMBLE_DRYER)):
+        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER):
             self._attr_icon         = "mdi:tumble-dryer"
             self.translation_key    = "tumbledryer_program"
 
-        if( self._type_id in (APPLIANCE_TYPE.OVEN)):
+        if( self._type_id == APPLIANCE_TYPE.OVEN):
             self.translation_key    = "oven_program"
 
-        if( self._type_id in (APPLIANCE_TYPE.DISH_WASHER)):
+        if( self._type_id == APPLIANCE_TYPE.DISH_WASHER):
             ##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
             self.translation_key    = "dishwasher_program"
 
