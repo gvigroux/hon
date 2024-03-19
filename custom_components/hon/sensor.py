@@ -186,6 +186,7 @@ class HonBaseMode(HonBaseSensorEntity):
 
         if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
             self.translation_key    = "purifier_mode"
+            
 
     def coordinator_update(self):
         mode = self._device.get("machMode")

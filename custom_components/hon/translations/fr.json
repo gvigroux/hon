@@ -16,15 +16,6 @@
     },
     "entity": {
         "sensor": {
-            "climate_mode": {
-                "state": {
-                    "0": "Automatique",
-                    "1": "Froid",
-                    "2": "Déshumidification",
-                    "4": "Chauffage",
-                    "6": "Ventilation seule"
-                }
-            },
             "wash_mode" : {
                 "state": {
                     "0": "Déconnecté",
@@ -34,6 +25,15 @@
                     "5": "Planifié",
                     "6": "Erreur",
                     "7": "Terminé"
+                }
+            },
+            "climate_mode": {
+                "state": {
+                    "0": "Automatique",
+                    "1": "Froid",
+                    "2": "Déshumidification",
+                    "4": "Chauffage",
+                    "6": "Ventilation seule"
                 }
             },
             "dry_level" : {

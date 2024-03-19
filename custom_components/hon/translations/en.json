@@ -60,15 +60,6 @@
             }
         },
         "sensor": {
-            "climate_mode": {
-                "state": {
-                    "0": "Auto",
-                    "1": "Cool",
-                    "2": "Dry",
-                    "4": "Heat",
-                    "6": "Fan only"
-                }
-            },
             "wash_mode" : {
                 "state": {
                     "0": "Disconnected",
@@ -78,6 +69,15 @@
                     "5": "Scheduled",
                     "6": "Error",
                     "7": "Finished"
+                }
+            },
+            "climate_mode": {
+                "state": {
+                    "0": "Auto",
+                    "1": "Cool",
+                    "2": "Dry",
+                    "4": "Heat",
+                    "6": "Fan only"
                 }
             },
             "dishwasher_mode" : {
