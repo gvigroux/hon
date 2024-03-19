@@ -6,7 +6,7 @@ from homeassistant.components.select import SelectEntity, SelectEntityDescriptio
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers import translation
 
-from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
+from .const import DOMAIN
 from .device import HonDevice
 from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 

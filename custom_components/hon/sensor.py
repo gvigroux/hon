@@ -170,7 +170,11 @@ class HonBaseMode(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.CLIMATE ):
             self.translation_key    = "climate_mode"
 
-        if( self._type_id in (APPLIANCE_TYPE.WASH_DRYER, APPLIANCE_TYPE.WASHING_MACHINE)):
+        if( self._type_id == APPLIANCE_TYPE.WASH_DRYER):
+            self.translation_key    = "wash_mode"
+            self._attr_icon         = "mdi:washing-machine"
+
+        if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE):
             self.translation_key    = "wash_mode"
             self._attr_icon         = "mdi:washing-machine"
 

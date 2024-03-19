@@ -1,6 +1,6 @@
 import logging
 from .device import HonDevice
-from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
+from .const import DOMAIN
 from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 
 from homeassistant.core import callback
