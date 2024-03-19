@@ -35,6 +35,7 @@ This integration has been tested with the following devices.
 - Haier AS07TS4HRA-M
 
 ### Oven
+- Candy Oven - FCT825XL WIFI Model
 
 ### Washing Machine
 - HW 49AMC/1-80
@@ -54,6 +55,7 @@ This integration has been tested with the following devices.
 
 ### Tumble Dryer
 - haier HD80-A3959
+- Candy Smart Pro CSOE H8A2TE S
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)
