@@ -63,6 +63,16 @@ class HonDevice(CoordinatorEntity):
     def has(self, item, default=None):
         return self.get(item) != None
 
+    def getProgramName(self):
+        try:
+            name = self._attributes["commandHistory"]["command"]["programName"].lower()
+            parts = name.split('.')
+            if( len(parts) == 3 ):
+                name = parts[2]
+            return name
+        except (KeyError, IndexError):
+            return None
+
     async def load_context(self):
         data = await self._hon.async_get_context(self)
         self._attributes = data

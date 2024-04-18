@@ -68,13 +68,13 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("tempSel"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSel",     "Selected temperature")])
         if device.has("tempSelZ1"):
-            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ1",   "Selected temperature Zone 1")])
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ1",   "Selected temperature zone 1")])
         if device.has("tempSelZ2"):
-            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature Zone 2")])
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature zone 2")])
         if device.has("tempZ1"):
-            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature Zone 1")])
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature zone 1")])
         if device.has("tempZ2"):
-            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature Zone 2")])
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature zone 2")])
 
         if device.has("remainingTimeMM"):
             appliances.extend([HonBaseStart(hass, coordinator, entry, appliance)])
@@ -84,15 +84,15 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("humidity") and device.getInt("humidity") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "", "")])
         if device.has("humidityZ1") and device.getInt("humidityZ1") > 0:
-            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z1", "zone 1")])
         if device.has("humidityZ2") and device.getInt("humidityZ2") > 0:
-            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z2", "zone 2")])
         if device.has("humidityIndoor") and device.getInt("humidityIndoor") > 0:
-            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Indoor", "Indoor")])
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Indoor", "indoor")])
         if device.has("humidityOutdoor") and device.getInt("humidityOutdoor") > 0:
-            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Outdoor", "Outdoor")])
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Outdoor", "outdoor")])
         if device.has("humidityEnv") and device.getInt("humidityEnv") > 0:
-            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Env", "Environment")])
+            appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Env", "environment")])
 
         if device.has("pm2p5ValueIndoor") and device.getFloat("pm2p5ValueIndoor") > 0:
             appliances.extend([HonBaseIndoorPM2p5(hass, coordinator, entry, appliance)])
@@ -154,6 +154,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
+        programName = device.getProgramName()
+        if( programName != None ):
+            appliances.extend([HonBaseProgramName(hass, coordinator, entry, appliance)])
+
 
         await coordinator.async_request_refresh()
 
@@ -170,11 +174,7 @@ class HonBaseMode(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.CLIMATE ):
             self.translation_key    = "climate_mode"
 
-        if( self._type_id == APPLIANCE_TYPE.WASH_DRYER):
-            self.translation_key    = "wash_mode"
-            self._attr_icon         = "mdi:washing-machine"
-
-        if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE):
+        if( self._type_id in (APPLIANCE_TYPE.WASHING_MACHINE, APPLIANCE_TYPE.WASH_DRYER)):
             self.translation_key    = "wash_mode"
             self._attr_icon         = "mdi:washing-machine"
 
@@ -192,6 +192,17 @@ class HonBaseMode(HonBaseSensorEntity):
         mode = self._device.get("machMode")
         self._attr_native_value = f"{mode}"
 
+
+class HonBaseProgramName(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "Program Name", "Program name")
+
+        #self._attr_icon         = "mdi:chemical-weapon"
+        self.translation_key    = "programs_" + self._type_name.lower()
+        
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getProgramName()
 
 
 class HonBaseTemperature(HonBaseSensorEntity):
@@ -221,7 +232,7 @@ class HonBaseInt(HonBaseSensorEntity):
 
 class HonBaseRemainingTime(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "remainingTimeMM", "Remaining Time")
+        super().__init__(coordinator, appliance, "remainingTimeMM", "Remaining time")
 
         self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
@@ -277,7 +288,7 @@ class HonBaseIndoorPM10(HonBaseSensorEntity):
 
 class HonBaseIndoorVOC(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "vocValueIndoor", "Indoor VO")
+        super().__init__(coordinator, appliance, "vocValueIndoor", "Indoor VOC")
 
         self._attr_icon         = "mdi:chemical-weapon"
         self.translation_key    = "voc" #APPLIANCE_TYPE.PURIFIER 
@@ -289,7 +300,7 @@ class HonBaseIndoorVOC(HonBaseSensorEntity):
 
 class HonBaseCOlevel(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "coLevel", "CO Level")
+        super().__init__(coordinator, appliance, "coLevel", "CO level")
 
         self._attr_device_class = SensorDeviceClass.CO2
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -299,7 +310,7 @@ class HonBaseCOlevel(HonBaseSensorEntity):
 
 class HonBaseAIRquality(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "airQuality", "Air Quality")
+        super().__init__(coordinator, appliance, "airQuality", "Air quality")
 
         self._attr_device_class = SensorDeviceClass.AQI
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -338,18 +349,18 @@ class HonBaseMainFilter(HonBaseSensorEntity):
 
 class HonBaseProgram(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "prCode", "Program")
+        super().__init__(coordinator, appliance, "prCode", "Program code")
 
-        if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER):
-            self._attr_icon         = "mdi:tumble-dryer"
-            self.translation_key    = "tumbledryer_program"
+        #if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER):
+        #    self._attr_icon         = "mdi:tumble-dryer"
+        #    self.translation_key    = "tumbledryer_program"
 
-        if( self._type_id == APPLIANCE_TYPE.OVEN):
-            self.translation_key    = "oven_program"
+        #if( self._type_id == APPLIANCE_TYPE.OVEN):
+        #    self.translation_key    = "oven_program"
 
-        if( self._type_id == APPLIANCE_TYPE.DISH_WASHER):
-            ##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
-            self.translation_key    = "dishwasher_program"
+        #if( self._type_id == APPLIANCE_TYPE.DISH_WASHER):
+        #    ##some programs share id but parameters (T, W, time) might be differnet. Task develop parameter adjustment
+        #   self.translation_key    = "dishwasher_program"
 
     def coordinator_update(self):
         program = self._device.get("prCode")
@@ -361,8 +372,12 @@ class HonBaseProgramPhase(HonBaseSensorEntity):
         super().__init__(coordinator, appliance, "prPhase", "Program phase")
 
         if( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
-            self._attr_icon         = "mdi:tumble-dryer"
             self.translation_key    = "tumbledryer_program_phase"
+            self._attr_icon         = "mdi:tumble-dryer"
+
+        if( self._type_id in (APPLIANCE_TYPE.WASHING_MACHINE, APPLIANCE_TYPE.WASH_DRYER)):
+            self.translation_key    = "wash_program_phase"
+            self._attr_icon         = "mdi:washing-machine"
 
     def coordinator_update(self):
         programPhase = self._device.get("prPhase")
@@ -463,7 +478,7 @@ class HonBaseEnd(HonBaseSensorEntity):
 
 class HonBaseMeanWaterConsumption(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "", "Mean Water Consumption")
+        super().__init__(coordinator, appliance, "", "Mean water consumption")
 
         self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
         self._attr_device_class = SensorDeviceClass.WATER
@@ -493,7 +508,7 @@ class HonBaseTotalElectricityUsed(HonBaseSensorEntity):
 
 class HonBaseTotalWashCycle(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "totalWashCycle", "Total Wash Cycle")
+        super().__init__(coordinator, appliance, "totalWashCycle", "Total wash cycle")
 
         self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         self._attr_icon = "mdi:counter"
@@ -517,7 +532,7 @@ class HonBaseTotalWaterUsed(HonBaseSensorEntity):
 
 class HonBaseWeight(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "actualWeight", "Estimated Weight")
+        super().__init__(coordinator, appliance, "actualWeight", "Estimated weight")
 
         self._attr_native_unit_of_measurement = UnitOfMass.KILOGRAMS
         self._attr_device_class = SensorDeviceClass.WEIGHT

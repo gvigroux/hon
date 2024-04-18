@@ -34,16 +34,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         appliances.extend([HonBaseOnOff(hass, coordinator, entry, appliance)])
 
         if device.has("doorStatusZ1"):
-            appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
+            appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z1", "zone 1")])
         if device.has("doorStatusZ2"):
-            appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
+            appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z2", "zone 2")])
         if device.has("doorLockStatus"):
             appliances.extend([HonBaseDoorLockStatus(hass, coordinator, entry, appliance)])
 
         if device.has("door2StatusZ1"):
-            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z1", "Zone 1")])
+            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z1", "zone 1")])
         if device.has("door2StatusZ2"):
-            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z2", "Zone 2")])
+            appliances.extend([HonBaseDoor2Status(hass, coordinator, entry, appliance, "Z2", "zone 2")])
 
         if device.has("lockStatus"):
             appliances.extend([HonBaseChildLockStatus(hass, coordinator, entry, appliance)])
@@ -101,7 +101,7 @@ class HonBaseLightStatus(HonBaseBinarySensorEntity):
 
 class HonBaseRemoteControl(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "remoteCtrValid", "Remote Control")
+        super().__init__(coordinator, appliance, "remoteCtrValid", "Remote control")
 
         self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
         self._attr_icon = "mdi:remote"
@@ -109,7 +109,7 @@ class HonBaseRemoteControl(HonBaseBinarySensorEntity):
 
 class HonBaseDoorLockStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "doorLockStatus", "Door Lock")
+        super().__init__(coordinator, appliance, "doorLockStatus", "Door lock")
 
         self._attr_device_class = BinarySensorDeviceClass.LOCK
 
@@ -119,7 +119,7 @@ class HonBaseDoorLockStatus(HonBaseBinarySensorEntity):
 
 class HonBaseChildLockStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "lockStatus", "Child Lock")
+        super().__init__(coordinator, appliance, "lockStatus", "Child lock")
 
         translation_key = "lockStatus"
         self._attr_device_class = BinarySensorDeviceClass.LOCK
@@ -137,7 +137,7 @@ class HonBasePreheating(HonBaseBinarySensorEntity):
 
 class HonBaseHealthMode(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "healthMode", "Health Mode")
+        super().__init__(coordinator, appliance, "healthMode", "Health mode")
 
         self._attr_device_class = BinarySensorDeviceClass.RUNNING
         self._attr_icon = "mdi:doctor"
