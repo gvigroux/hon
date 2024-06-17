@@ -66,6 +66,8 @@ from .const import(
     ClimateSwingVertical,
     ClimateEcoPilotMode)
 
+from .parameter import ( HonParameterRange )
+
 
 _LOGGER = logging.getLogger(__name__)
 #SCAN_INTERVAL = timedelta(seconds=15)
@@ -195,10 +197,18 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         
         ''' hon specific values '''
         parameters = self._device.settings_command().parameters
+        #_LOGGER.warning(parameters)
+
+        # Set Min / Max temperatures
+        temp_range = parameters.get('tempSel')
+        if isinstance(temp_range, HonParameterRange):
+            self._att_min_temp  = temp_range.min
+            self._att_max_temp  = temp_range.max
+        
+        # Set Fan mode
         self._hon_fan_modes = parameters.get('windSpeed').values
         for fan_mode in self._hon_fan_modes:
             self._attr_fan_modes.append(get_key(CLIMATE_FAN_MODE, fan_mode, FAN_OFF))
-
 
         self._handle_coordinator_update(False)
 
