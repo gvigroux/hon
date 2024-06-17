@@ -75,6 +75,7 @@ class HonDevice(CoordinatorEntity):
 
     async def load_context(self):
         data = await self._hon.async_get_context(self)
+        #_LOGGER.warning(data)
         self._attributes = data
         for name, values in self._attributes.pop("shadow", {'NA': 0}).get("parameters").items():
             self._attributes.setdefault("parameters", {})[name] = values["parNewVal"]

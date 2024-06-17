@@ -186,8 +186,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
         #Not working for Farenheit
         self._attr_temperature_unit         = UnitOfTemperature.CELSIUS # 'tempUnit': '0'
-        self._attr_target_temperature_step  = PRECISION_WHOLE
-
+        #self._attr_target_temperature_step  = PRECISION_WHOLE
 
         self._enable_turn_on_off_backwards_compatibility = False
         self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
@@ -201,6 +200,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
         # Set Min / Max temperatures
         temp_range = parameters.get('tempSel')
+        self._att_target_temperature_step = float(temp_range.step)
         if isinstance(temp_range, HonParameterRange):
             self._att_min_temp  = temp_range.min
             self._att_max_temp  = temp_range.max
