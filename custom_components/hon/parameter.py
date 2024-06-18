@@ -59,7 +59,6 @@ class HonParameterRange(HonParameter):
             self._step = int(attributes["incrementValue"])
             self._default = int(attributes.get("defaultValue", self._min))
         except (TypeError, ValueError):
-            _LOGGER.error(attributes["minimumValue"])
             self._min = float(attributes["minimumValue"].replace(",","."))
             self._max = float(attributes["maximumValue"].replace(",","."))
             self._step = float(attributes["incrementValue"].replace(",","."))
@@ -71,7 +70,7 @@ class HonParameterRange(HonParameter):
         return f"{self.__class__} (<{self.key}> [{self._min} - {self._max}])"
 
     def dump(self):
-        return f"{self.key}: \t\t[{self._min} - {self._max}] - Default: {self._default}"
+        return f"{self.key}: \t\t[{self._min} - {self._max}] - Default: {self._default} - Step: {self._step}"
 
     @property
     def min(self):
@@ -103,7 +102,7 @@ class HonParameterRange(HonParameter):
         if self._min <= value <= self._max and not value % self._step:
             self._value = value
         else:
-            raise ValueError(f"Allowed: min {self._min} max {self._max} step {self._step}")
+            raise ValueError(f"Value [{value}] - Allowed: min {self._min} max {self._max} step {self._step}")
 
 
 class HonParameterEnum(HonParameter):
