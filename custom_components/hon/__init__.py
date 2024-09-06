@@ -73,11 +73,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         await coordinator.device.load_commands()
         await coordinator.device.load_statistics()
 
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, platform)
-        )
+    #for platform in PLATFORMS:
+    #    hass.async_create_task(
+    #        hass.config_entries.async_forward_entry_setup(entry, platform)
+    #    )
 
 
 
