@@ -21,8 +21,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         appliances.extend([HonBaseButtonEntity(coordinator, appliance)])
         if( "settings" in device.commands ):
             appliances.extend([HonBaseSettingsButtonEntity(coordinator, appliance)])
-
-
     async_add_entities(appliances)
 
 
@@ -72,7 +70,7 @@ class HonBaseButtonEntity(CoordinatorEntity, ButtonEntity):
             create(self._coordinator.hass, text, "Program ["+program+"]")
 
 
-            
+
 class HonBaseSettingsButtonEntity(CoordinatorEntity, ButtonEntity):
     def __init__(self, coordinator, appliance) -> None:
         super().__init__(coordinator)
@@ -103,3 +101,4 @@ class HonBaseSettingsButtonEntity(CoordinatorEntity, ButtonEntity):
       device_id: {device_id}
 """
         create(self._coordinator.hass, text, "Get all settings")
+

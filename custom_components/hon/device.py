@@ -48,6 +48,14 @@ class HonDevice(CoordinatorEntity):
                 return self.attributes["parameters"].get(item)
             return self.appliance[item]
 
+    def set(self, item, value):
+        if item in self.data:
+            self.data[item] = value
+        elif item in self.attributes["parameters"]:
+            self.attributes["parameters"][item] = value
+        else: 
+            self.appliance[item] = value
+    
     def get(self, item, default=None):
         try:
             return self[item]

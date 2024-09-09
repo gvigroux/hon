@@ -81,6 +81,6 @@ class HonCommand:
                 continue
             text += f"""{parameter.dump()}
 """
-            example += f"\'{key}\':\'{parameter.default}\',"
+            example += f"\'{key}\':{parameter.default},"
         example = example[:-1] + "}"
         return text, example

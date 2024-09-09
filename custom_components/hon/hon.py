@@ -87,7 +87,7 @@ class HonConnection:
         mac = appliance.get("macAddress", "")
         if mac in self._coordinator_dict:
             return self._coordinator_dict[mac]
-        coordinator = HonBaseCoordinator( self._hass, self, appliance)
+        coordinator = HonBaseCoordinator(self._hass, self, appliance)
         self._coordinator_dict[mac] = coordinator
         return coordinator
 
@@ -160,7 +160,8 @@ class HonConnection:
 
                 if( len(array) == 1 ):
                     #Implement a second way to get the token value
-                    m = re.search('id_token\=(.+?)&', text)
+                    #m = re.search('id_token\=(.+?)&', text) Works but deprecation warning
+                    m = re.search('id_token\\=(.+?)&', text)
                     if m:
                         self._id_token = m.group(1)
                     else:

@@ -26,8 +26,10 @@ PLATFORMS = [
     "climate", 
     "sensor",
     "binary_sensor",
-    "button"
+    "button",
+    "switch"
 ]
+
 '''
     "select",
     "number" '''

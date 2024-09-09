@@ -240,11 +240,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         return await hon.async_set(mac, "AP", parameters)
 
     async def handle_purifier_sleepmode(call):
-
         parameters = { "machMode": "1" }
-
         mac = get_hOn_mac(call.data.get("device"), hass)
-
         return await hon.async_set(mac, "AP", parameters)
 
 

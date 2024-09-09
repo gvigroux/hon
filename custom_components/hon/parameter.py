@@ -116,7 +116,7 @@ class HonParameterEnum(HonParameter):
         return f"{self.__class__} (<{self.key}> {self.values})"
         
     def dump(self):
-        return f"{self.key}: {self.values} - Default: {self._default}"
+        return f"{self.key}: {self.valuesBase} - Default: {self._default}"
 
     @property
     def default(self):
@@ -125,6 +125,10 @@ class HonParameterEnum(HonParameter):
     @property
     def values(self):
         return sorted([str(value) for value in self._values])
+
+    @property
+    def valuesBase(self):
+        return sorted(self._values)
 
     @property
     def value(self):
