@@ -349,8 +349,16 @@ class HonConnection:
             _LOGGER.error("hOn command has been rejected. Error message ["+ str(data) + "] sent data ["+ str(command)+ "]")
         return False
 
+    def get_device(self, hass, device_id):
+        mac = get_hOn_mac(device_id, hass)
+        if mac in self._coordinator_dict:
+            return self._coordinator_dict[mac]
+        _LOGGER.error(f"Unable to find the device with ID: {device_id} and mac: {mac}")
+        return None
 
 def get_hOn_mac(device_id, hass):
     device_registry = dr.async_get(hass)
     device = device_registry.async_get(device_id)
     return next(iter(device.identifiers))[1]
+
+    

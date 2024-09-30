@@ -53,6 +53,20 @@ def update_sensor(hass, device_id, mac, sensor_name, state):
             inputStateObject = hass.states.get(entry.entity_id)
             hass.states.async_set(entry.entity_id, state, inputStateObject.attributes)
 
+def get_parameters(call):
+    parameters_str = call.data.get("parameters", "{}")
+    if type(parameters_str) != str:
+        parameters_str = str(parameters_str)
+    return ast.literal_eval(parameters_str)
+
+def get_device_ids(hass, call):
+    device_ids = call.data.get("device_id", [])
+    entity_ids = call.data.get("entity_id", [])
+    for entity_id in entity_ids:
+        device_ids.append(get_device_id(hass, entity_id))
+    return list(dict.fromkeys(device_ids))
+
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hon = HonConnection(hass, entry)
@@ -310,17 +324,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         await coordinator.async_request_refresh()
 
 
-    async def handle_custom_request(call):
-        device_id = call.data.get("device")
-        mac = get_hOn_mac(device_id, hass)
-        coordinator = await hon.async_get_existing_coordinator(mac)
-
-        parameters_str = call.data.get("parameters")
-        parameters = ast.literal_eval(parameters_str)
-        await coordinator.async_set(parameters)
-        await coordinator.async_request_refresh()
-
-
 
     async def handle_health_mode_on(call):
         device_id = call.data.get("device")
@@ -343,42 +346,57 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     
 
     async def handle_start_program(call):
-        device_ids = call.data.get("device_id", [])
-        entity_ids = call.data.get("entity_id", [])
-        for entity_id in entity_ids:
-            device_ids.append(get_device_id(hass, entity_id))
-        device_ids = list(dict.fromkeys(device_ids))
+        #device_ids = call.data.get("device_id", [])
+        #entity_ids = call.data.get("entity_id", [])
+        #for entity_id in entity_ids:
+        #    device_ids.append(get_device_id(hass, entity_id))
+        #device_ids = list(dict.fromkeys(device_ids))
+
+        device_ids = get_device_ids(hass, call)
         
         for device_id in device_ids:
-            mac = get_hOn_mac(device_id, hass)
-            coordinator = await hon.async_get_existing_coordinator(mac)
-            device = coordinator.device
+            #mac = get_hOn_mac(device_id, hass)
+            #coordinator = await hon.async_get_existing_coordinator(mac)
+            #device = coordinator.device
 
-            command = device.commands.get("startProgram")
-            programs = command.get_programs()
-
-            program = call.data.get("program")
+            device      = get_device(hass, device_id)
+            command     = device.commands.get("startProgram")
+            programs    = command.get_programs()
+            program     = call.data.get("program")
             if( program not in programs.keys()):
                 keys = ", ".join(programs)
                 raise HomeAssistantError(f"Invalid [Program] value, allowed values [{keys}]")
 
-            parameters = ast.literal_eval(call.data.get("parameters", "{}"))
+            parameters  = get_parameters(call)
             await device.start_command(program, parameters).send()
 
 
+    async def handle_custom_request(call):
+        #device_id   = call.data.get("device")
+        #mac         = get_hOn_mac(device_id, hass)
+        #coordinator = await hon.async_get_existing_coordinator(mac)
+        device_ids = get_device_ids(hass, call)
+        parameters = get_parameters(call)
+        for device_id in device_ids:
+            device = get_device(hass, device_id)
+            await device.coordinator.async_set(parameters)
+            await device.coordinator.async_request_refresh()
+
 
     async def handle_update_settings(call):
-        device_ids = call.data.get("device_id", [])
-        entity_ids = call.data.get("entity_id", [])
-        for entity_id in entity_ids:
-            device_ids.append(get_device_id(hass, entity_id))
-        device_ids = list(dict.fromkeys(device_ids))
-        
+        #device_ids = call.data.get("device_id", [])
+        #entity_ids = call.data.get("entity_id", [])
+        #for entity_id in entity_ids:
+        #    device_ids.append(get_device_id(hass, entity_id))
+        #device_ids = list(dict.fromkeys(device_ids))
+        device_ids = get_device_ids(hass, call)
+        parameters = get_parameters(call)
+
         for device_id in device_ids:
-            mac = get_hOn_mac(device_id, hass)
-            coordinator = await hon.async_get_existing_coordinator(mac)
-            device = coordinator.device
-            parameters = ast.literal_eval(call.data.get("parameters", "{}"))
+            #mac = get_hOn_mac(device_id, hass)
+            #coordinator = await hon.async_get_existing_coordinator(mac)
+            #device = coordinator.device
+            device = get_device(hass, device_id)
             await device.settings_command(parameters).send()
 
 
