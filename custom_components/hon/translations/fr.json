@@ -65,6 +65,7 @@
             "tumbledryer_program_phase" : {
                 "state": {
                     "0": "En attente",
+                    "1": "Séchage",
                     "2": "Séchage",
                     "3": "Refroidisseent"
                 }
