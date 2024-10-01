@@ -352,7 +352,7 @@ class HonConnection:
     def get_device(self, hass, device_id):
         mac = get_hOn_mac(device_id, hass)
         if mac in self._coordinator_dict:
-            return self._coordinator_dict[mac]
+            return self._coordinator_dict[mac].device
         _LOGGER.error(f"Unable to find the device with ID: {device_id} and mac: {mac}")
         return None
 
