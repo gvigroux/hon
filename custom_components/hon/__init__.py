@@ -359,7 +359,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             #coordinator = await hon.async_get_existing_coordinator(mac)
             #device = coordinator.device
 
-            device      = get_device(hass, device_id)
+            device      = hon.get_device(hass, device_id)
             command     = device.commands.get("startProgram")
             programs    = command.get_programs()
             program     = call.data.get("program")
@@ -378,7 +378,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         device_ids = get_device_ids(hass, call)
         parameters = get_parameters(call)
         for device_id in device_ids:
-            device = get_device(hass, device_id)
+            device = hon.get_device(hass, device_id)
             await device.coordinator.async_set(parameters)
             await device.coordinator.async_request_refresh()
 
@@ -396,7 +396,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             #mac = get_hOn_mac(device_id, hass)
             #coordinator = await hon.async_get_existing_coordinator(mac)
             #device = coordinator.device
-            device = get_device(hass, device_id)
+            device = hon.get_device(hass, device_id)
             await device.settings_command(parameters).send()
 
 
