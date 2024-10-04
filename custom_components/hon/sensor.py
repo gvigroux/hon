@@ -209,16 +209,17 @@ class HonBaseTemperature(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
         super().__init__(coordinator, appliance, key, name)
 
-        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
 
 class HonBaseHumidity(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, zone = "Z1", zone_name = "Zone 1") -> None:
         super().__init__(coordinator, appliance, "humidity" + zone, f"Humidity {zone_name}")
 
-        self._attr_device_class = SensorDeviceClass.HUMIDITY
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_device_class = SensorDeviceClass.HUMIDITY
         self._attr_native_unit_of_measurement = PERCENTAGE
         self._attr_icon = "mdi:water-percent"
 
@@ -234,6 +235,7 @@ class HonBaseRemainingTime(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "remainingTimeMM", "Remaining time")
 
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_icon = "mdi:progress-clock"
