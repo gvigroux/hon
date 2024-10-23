@@ -10,7 +10,7 @@
             }
         },
         "error": {
-            "auth_error": "Ihre Anmeldeversuch ist fehlgeschlagen. Bitte prüfen Sie, dass E-Mail und Passwort korrekt sind."
+            "auth_error": "Ihr Anmeldeversuch ist fehlgeschlagen. Bitte prüfen Sie, dass E-Mail und Passwort korrekt sind."
         }
     },
     "entity": {
