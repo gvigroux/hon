@@ -87,6 +87,19 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             await coordinator.async_request_refresh()
 
 
+        if (("settings" in device.commands) 
+            and (device.get("rapidMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="rapidMode",
+                name="Rapid Mode",
+                icon="mdi:car-turbocharger",
+                translation_key="rapid_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
+
     async_add_entities(appliances)
 
 
