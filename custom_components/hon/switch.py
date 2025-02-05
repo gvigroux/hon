@@ -114,19 +114,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
         if (("settings" in device.commands) 
-            and (device.get("10degreeHeatingStatus", "N/A") != "N/A")):
-
-            description = HonSwitchEntityDescription(
-                key="10degreeHeatingStatus",
-                name="10° Heating",
-                icon="mdi:heat-wave",
-                translation_key="10_degree_heating",
-            )
-            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
-            await coordinator.async_request_refresh()
-
-
-        if (("settings" in device.commands) 
             and (device.get("ecoMode", "N/A") != "N/A")):
 
             description = HonSwitchEntityDescription(
