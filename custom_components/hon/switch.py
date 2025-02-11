@@ -87,6 +87,58 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             await coordinator.async_request_refresh()
 
 
+        if (("settings" in device.commands) 
+            and (device.get("rapidMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="rapidMode",
+                name="Rapid Mode",
+                icon="mdi:car-turbocharger",
+                translation_key="rapid_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
+
+        if (("settings" in device.commands) 
+            and (device.get("10degreeHeatingStatus", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="10degreeHeatingStatus",
+                name="10° Heating",
+                icon="mdi:heat-wave",
+                translation_key="10_degree_heating",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
+
+        if (("settings" in device.commands) 
+            and (device.get("ecoMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="ecoMode",
+                name="Eco Mode",
+                icon="mdi:sprout",
+                translation_key="eco_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
+
+        if (("settings" in device.commands) 
+            and (device.get("healthMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="healthMode",
+                name="Health Mode",
+                icon="mdi:heart",
+                translation_key="health_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
+
     async_add_entities(appliances)
 
 
