@@ -7,9 +7,18 @@
                     "email": "Email Address",
                     "password": "Password"
                 }
+            },
+            "reconfigure": {
+                "description": "Please enter your hOn credentials",
+                "data": {
+                    "password": "Password",
+                    "reconfigure_successful" : "ok2"
+                },
+                "reconfigure_successful" : "ok"
             }
         },
         "error": {
+            "reconfigure_successful" : "ok3",
             "auth_error": "Your login attempt has failed. Make sure the username and password are correct."
         }
     },

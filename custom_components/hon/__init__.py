@@ -94,8 +94,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     #        hass.config_entries.async_forward_entry_setup(entry, platform)
     #    )
 
-
-
     async def handle_oven_start(call):
 
         delay_time = 0
@@ -419,11 +417,4 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
     hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
     
-
-
-    #hass.services.async_register(DOMAIN, "turn_off_oven", handle_oven_stop)
-    #hass.services.async_register(DOMAIN, "turn_off_purifier", handle_purifier_stop)
-    #hass.services.async_register(DOMAIN, "turn_off_cooler_lights", handle_cooler_lights_off)
-    #hass.services.async_register(DOMAIN, "turn_on_cooler_lights", handle_cooler_lights_on)
-    #hass.services.async_register(DOMAIN, "turn_off_washingmachine", handle_washingmachine_stop)
     return True

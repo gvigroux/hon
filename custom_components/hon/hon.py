@@ -68,7 +68,7 @@ class HonConnection:
         self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
-        self._session = aiohttp.ClientSession(headers=self._header)
+        self._session = aiohttp.ClientSession(headers=self._header, connector=aiohttp.TCPConnector(ssl=False))
         self._appliances = []
 
     async def async_close(self):
@@ -107,7 +107,7 @@ class HonConnection:
         async with self._session.post(
             f"{AUTH_API}/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1",
             headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
-            data=data,
+            data=data
         ) as resp:
             if resp.status != 200:
                 _LOGGER.error("Unable to connect to the login service: " + str(resp.status))
