@@ -1,0 +1,205 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Bitte geben Sie ihre hOn Zugangsdaten ein",
+                "data": {
+                    "email": "E-Mail",
+                    "password": "Passwort"
+                }
+            }
+        },
+        "error": {
+            "auth_error": "Ihr Anmeldeversuch ist fehlgeschlagen. Bitte prüfen Sie, dass E-Mail und Passwort korrekt sind."
+        }
+    },
+    "entity": {
+        "select": {
+            "ac_machmode": {
+                "name" : "Modus",
+                "state": {
+                    "0": "Auto",
+                    "1": "Kühl",
+                    "2": "Trocken",
+                    "4": "Hitze",
+                    "6": "Nur Gebläse"
+                }
+            },
+            "ac_winddirectionvertical": {
+                "name" : "Windrichtung vertikal",
+                "Zustand": {
+                    "1": "Gesundheit hoch",
+                    "2": "Sehr hoch",
+                    "3": "Gesundheit niedrig",
+                    "4": "Hoch",
+                    "5": "Mittel",
+                    "6": "Niedrig",
+                    "7": "Sehr niedrig",
+                    "8": "Auto"
+                }
+            },
+            "ac_winddirectionhorizontal": {
+                "name" : "Windrichtung horizontal",
+                "state": {
+                    "0": "Mitte",
+                    "3": "Ganz links",
+                    "4": "Links",
+                    "5": "Rechts",
+                    "6": "Ganz rechts",
+                    "7": "Auto"
+                }
+            },
+            "Programm": {
+                "name" : "Programm"
+            },
+            "windspeed": {
+                "name" : "Windgeschwindigkeit"
+            },
+            "lockstatus" : {
+                "name" : "lockStatuslockStatus"
+            }
+        },
+        "sensor": {
+            "wash_mode" : {
+                "state": {
+                    "0": "Getrennt",
+                    "1": "Bereit",
+                    "2": "Läuft",
+                    "3": "Pausiert",
+                    "4": "Geplant",
+                    "5": "Geplant",
+                    "6": "Fehler",
+                    "7": "Beendet",
+                    "8": "Test",
+                    "9": "Beenden"
+                }
+            },
+            "wash_program_phase" : {
+                "state": {
+                    "0": "Bereit",
+                    "1": "Waschen",
+                    "2": "Waschen",
+                    "3": "Schleudern",
+                    "4": "Spülen",
+                    "5": "Spülen",
+                    "6": "Spülen",
+                    "7": "Trocknen",
+                    "8": "Trocknen",
+                    "9": "Dampf",
+                    "10": "Bereit",
+                    "11": "Schleudern",
+                    "12": "Wiegen",
+                    "13": "Wiegen",
+                    "14": "Waschen",
+                    "15": "Waschen",
+                    "16": "Waschen",
+                    "17": "Spülen",
+                    "18": "Spülen",
+                    "19": "Geplant",
+                    "20": "Taumeln",
+                    "24": "Aktualisieren",
+                    "25": "Waschen",
+                    "26": "Heizen",
+                    "27": "Waschen"
+                }
+            },
+
+            "climate_mode": {
+                "state": {
+                    "0": "Auto",
+                    "1": "Kühl",
+                    "2": "Trocken",
+                    "4": "Hitze",
+                    "6": "Nur Gebläse"
+                }
+            },
+            "dishwasher_mode" : {
+                "state": {
+                    "1": "Bereit",
+                    "2": "Läuft",
+                    "3": "Verzögerter Start",
+                    "5": "Verzögertes Starten abgebrochen",
+                    "7": "Beendet"
+                }
+            },
+            "tumbledryer_mode" : {
+                "state": {
+                    "1": "Bereit",
+                    "2": "Läuft",
+                    "7": "Beendet"
+                }
+            },
+            "purifier_mode" : {
+                "state": {
+                    "0": "Aus",
+                    "1": "Schlafmodus",
+                    "2": "Auto",
+                    "4": "Maximal"
+                }
+            },
+            "voc" : {
+                "state": {
+                    "1": "Gut",
+                    "2": "Mäßig",
+                    "3": "Mittelmäßig",
+                    "4": "Schlecht"
+                }
+            },
+            "dry_level" : {
+                "state": {
+                    "3": "Schranktrocken",
+                    "12": "Extra trocken",
+                    "13": "Lagerfertig",
+                    "14": "Bügelfertig"
+                }
+            },
+            "tumbledryer_program" : {
+                "state": {
+                    "0": "Standard",
+                    "62": "Baumwolle",
+                    "63": "Synthetik",
+                    "64": "Mischung",
+                    "66": "Bettlaken",
+                    "72": "Sport",
+                    "74": "i-time",
+                    "75": "Bettdecke",
+                    "76": "Wolle",
+                    "78": "i-Refresh",
+                    "83": "Handtuch",
+                    "85": "Quick Dry",
+                    "92": "Zart",
+                    "103": "Remote 103"
+                }
+            },
+            "tumbledryer_program_phase" : {
+                "state": {
+                    "0": "Warten",
+                    "1": "Trocknen",
+                    "2": "Trocknen",
+                    "3": "Abkühlen"
+                }
+            },
+            "tumbledryer_temp_level" : {
+                "state": {
+                    "1": "Kühl",
+                    "2": "Niedrige Temperatur L-1",
+                    "3": "Mittlere Temperatur L-2",
+                    "4": "Hohe Temperatur L-3"
+                }
+            },
+            "error" : {
+                "state": {
+                    "00": "Keine"
+                }
+            },
+            "washingmachine_error" : {
+                "state": {
+                    "00": "Keine",
+                    "100000000000": "E2: Prüfen Sie, ob die Tür geschlossen ist",
+                    "8000000000000": "E4: Prüfen Sie die Wasserversorgung",
+                    "400000000000000": "Fehler Unb: Überprüfen Sie die Wäsche, die Waschmaschine könnte überlastet sein"
+                }
+            }
+        }
+    }
+}

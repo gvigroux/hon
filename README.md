@@ -54,6 +54,7 @@ This integration has been tested with the following devices.
 - HW90-B14959S8U1
 - hoover HWPDQ 49AMBC/1-S
 - HW80-B14959TU1DE
+- HW110-B14979U1
 
 ### Wine Cooler
 - HWS42GDAU1
