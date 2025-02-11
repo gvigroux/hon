@@ -12,13 +12,12 @@
                 "description": "Please enter your hOn credentials",
                 "data": {
                     "password": "Password",
-                    "reconfigure_successful" : "ok2"
-                },
-                "reconfigure_successful" : "ok"
+                    "reconfigure_successful" : "You need to restart HA"
+                }
             }
         },
         "error": {
-            "reconfigure_successful" : "ok3",
+            "reconfigure_successful" : "You need to restart HA",
             "auth_error": "Your login attempt has failed. Make sure the username and password are correct."
         }
     },
