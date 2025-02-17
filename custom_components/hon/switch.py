@@ -189,12 +189,22 @@ class HonSwitchEntity(HonBaseSwitchEntity):
     def available(self) -> bool:
         """Return True if entity is available."""
         if not super().available:
+            _LOGGER.warning("HonSwitchEntity not available: super() is not")
             return False
         if not self._device.get("remoteCtrValid", "1") == "1":
+            _LOGGER.warning("HonSwitchEntity not available: remoteCtrValid==1")
             return False
         if self._device.get("attributes.lastConnEvent.category") == "DISCONNECTED":
+            _LOGGER.warning("HonSwitchEntity not available: DISCONNECTED")
             return False
-        setting = self._device.settings[f"settings.{self.entity_description.key}"]
+        
+        setting_key = f"settings.{self.entity_description.key}"
+        setting = self._device.settings.get(setting_key, None)
+
+        if setting is None:
+            _LOGGER.warning("HonSwitchEntity not available: Key not found: %s", setting_key)
+            return False
+
         #_LOGGER.warning(setting)
         #if isinstance(setting, HonParameterRange) and len(setting.values) < 2:
         #    return False
