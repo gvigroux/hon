@@ -60,6 +60,8 @@ This integration has been tested with the following devices.
 - haier HD80-A3959
 - HRE H9A2TE-S
 - HLEH10A2TCEX-17
+- HD90-A3Q979U1-S
+- Candy ROE H9A3TCEX-S
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)
