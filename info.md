@@ -27,6 +27,7 @@ You can repeat above process with the setting option and the service: `hon.updat
 ## Tested devices
 This integration has been tested with the following devices.
 
+
 ### Climate
 - AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS25XCAHRA and AS35XCAHRA in 3x1 and 1x1 configuration with one/two outdoor units
@@ -42,20 +43,23 @@ This integration has been tested with the following devices.
 - HW90-B14959S8U1
 - hoover HWPDQ 49AMBC/1-S
 - HW80-B14959TU1DE
-
+- HW110-B14979U1
 
 ### Wine Cooler
 - HWS42GDAU1
+- HWS77GDAU1
 
 ### Dish Washer
 - XIB 6B2D3FB
+- HF 5E5D0FW-17
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
 
 ### Tumble Dryer
 - haier HD80-A3959
-- Candy Smart Pro CSOE H8A2TE S
+- HRE H9A2TE-S
+- HLEH10A2TCEX-17
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)

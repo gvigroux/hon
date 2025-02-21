@@ -48,6 +48,7 @@ This integration has been tested with the following devices.
 - Haier AS07TS4HRA-M
 
 ### Oven
+- Candy Oven - FCT825XL WIFI Model
 
 ### Washing Machine
 - HW 49AMC/1-80
@@ -58,15 +59,19 @@ This integration has been tested with the following devices.
 
 ### Wine Cooler
 - HWS42GDAU1
+- HWS77GDAU1
 
 ### Dish Washer
 - XIB 6B2D3FB
+- HF 5E5D0FW-17
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
 
 ### Tumble Dryer
 - haier HD80-A3959
+- HRE H9A2TE-S
+- HLEH10A2TCEX-17
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)
