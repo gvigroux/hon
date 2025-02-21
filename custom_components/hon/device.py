@@ -196,7 +196,11 @@ class HonDevice(CoordinatorEntity):
     async def load_commands(self):
         commands = await self._hon.load_commands(self._appliance)
     
-        self._appliance_model = commands.pop("applianceModel")
+        try:
+            self._appliance_model = commands.pop("applianceModel")
+        except:
+            _LOGGER.error(f"Unable to load device commands. Please try to restart. Current value: [{commands}]")
+            return
 
         for item in ["options", "dictionaryId"]:
             commands.pop(item)
