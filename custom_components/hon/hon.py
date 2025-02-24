@@ -171,7 +171,10 @@ class HonConnection:
                     params = urllib.parse.parse_qs(array[1])
                     self._id_token = params["id_token"][0]
             except:
-                _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
+                if "ChangePassword" not in text:
+                    _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
+                else:
+                    _LOGGER.error("Unable to get connect. You need to change your password on the hOn app")
                 return False
 
         post_headers = {"id-token": self._id_token}

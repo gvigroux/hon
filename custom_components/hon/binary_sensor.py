@@ -33,6 +33,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         # Every device should have a OnOff status
         appliances.extend([HonBaseOnOff(hass, coordinator, entry, appliance)])
 
+        if device.has("doorStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "doorStatus", "Door status", BinarySensorDeviceClass.DOOR)])
+        if device.has("defrostStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "defrostStatus", "Defrost status", BinarySensorDeviceClass.RUNNING)])
+
+        if device.has("saltStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "saltStatus", "Salt", BinarySensorDeviceClass.PRESENCE)])
+        if device.has("rinseAidStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "rinseAidStatus", "Rinse aid", BinarySensorDeviceClass.PRESENCE)])
+        
+
         if device.has("doorStatusZ1"):
             appliances.extend([HonBaseDoorStatus(hass, coordinator, entry, appliance, "Z1", "zone 1")])
         if device.has("doorStatusZ2"):
@@ -58,6 +69,12 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     async_add_entities(appliances)
 
+
+
+class HonBaseGenericStatus(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name, device_class) -> None:
+        super().__init__(coordinator, appliance, key, name)
+        self._attr_device_class = device_class
 
 
 

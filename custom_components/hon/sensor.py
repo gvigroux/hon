@@ -14,11 +14,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
-    BinarySensorDeviceClass,
-)
-
 from homeassistant.core import callback
 
 from .const import DOMAIN, APPLIANCE_TYPE
