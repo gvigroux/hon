@@ -1,0 +1,10 @@
+{
+  "domain": "honcustom",
+  "name": "Haier hOn (custom)",
+  "codeowners": ["@gvigroux","@MiguelAngelLV","@izzy667"],
+  "config_flow": true,
+  "documentation": "https://github.com/izzy667/hon",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/izzy667/hon/issues",
+  "version": "0.7.15-custom.1"
+}

@@ -1,5 +1,5 @@
 {
-    "name": "Haier hOn",
+    "name": "Haier hOn (custom)",
     "content_in_root": false,
     "render_readme": false,
     "homeassistant": "2022.6.0"

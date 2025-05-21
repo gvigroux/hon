@@ -12,13 +12,13 @@ jobs:
 
       - name: ZIP Component Dir
         run: |
-          cd ${{ github.workspace }}/custom_components/hon
+          cd ${{ github.workspace }}/custom_components/honcustom
           zip -r hon_integration.zip ./
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/hon/hon_integration.zip
+          file: ${{ github.workspace }}/custom_components/honcustom/hon_integration.zip
           asset_name: hon_integration.zip
           tag: ${{ github.ref }}
           overwrite: true
