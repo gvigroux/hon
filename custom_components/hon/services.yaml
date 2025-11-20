@@ -724,7 +724,9 @@ get_setting:
       selector:
         text:
   response:
-      value:
-        name: "Value"
-        description: "The value of the setting"
-        required: true
+    value:
+      name: Value
+      description: The value of the setting
+      selector:
+        text:
+
