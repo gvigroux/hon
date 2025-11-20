@@ -722,11 +722,4 @@ get_setting:
       required: true
       advanced: false
       selector:
-        text:
-  response:
-    value:
-      name: Value
-      description: The value of the setting
-      selector:
-        text:
-
+        text: {} 

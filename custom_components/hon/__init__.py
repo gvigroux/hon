@@ -12,7 +12,7 @@ from dateutil.tz import gettz
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
@@ -398,13 +398,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             await device.settings_command(parameters).send()
 
 
-    async def handle_get_setting(call):
+    async def async_get_setting(call: ServiceCall):
+        """Handle the get_setting service call."""
+        parameter = call.data.get("parameter")
         device_ids = get_device_ids(hass, call)
-        parameter = call.data.get("parameter", "")
+
+        results = {}
 
         for device_id in device_ids:
             device = hon.get_device(hass, device_id)
-            return {"value": device.get(parameter)}
+            _LOGGER.warning(device)
+            results[device_id] = device.get(parameter)
+
+        # Retourner la valeur (optionnel : log pour voir dans les logs)
+        _LOGGER.warning("get_setting results: %s", results)
+        # On émet un événement avec les résultats
+        hass.bus.async_fire("hon_get_setting_result", {"results": results})
+        return results
 
 
 
@@ -426,6 +436,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
     hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
-    hass.services.async_register(DOMAIN, "get_setting",     handle_get_setting)
-    
+    hass.services.async_register(
+        domain=DOMAIN,
+        service="get_setting",
+        service_func=async_get_setting,
+        schema=None 
+    )
+
     return True
