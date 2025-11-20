@@ -174,7 +174,7 @@ class HonConnection:
                 if "ChangePassword" not in text:
                     _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
                 else:
-                    _LOGGER.error("Unable to get connect. You need to change your password on the hOn app")
+                    _LOGGER.error("Unable to get connect. You need to change your password on the hOn app or go to https://account2.hon-smarthome.com/")
                 return False
 
         post_headers = {"id-token": self._id_token}

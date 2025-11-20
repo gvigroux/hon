@@ -398,6 +398,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             await device.settings_command(parameters).send()
 
 
+    async def handle_get_setting(call):
+        device_ids = get_device_ids(hass, call)
+        parameter = call.data.get("parameter", "")
+
+        for device_id in device_ids:
+            device = hon.get_device(hass, device_id)
+            return {"value": device.get(parameter)}
+
+
+
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
@@ -416,5 +426,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
     hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
+    hass.services.async_register(DOMAIN, "get_setting",     handle_get_setting)
     
     return True
