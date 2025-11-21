@@ -1,22 +1,13 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from dateutil.tz import gettz
-from enum import IntEnum
-#from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-
-from homeassistant.const import UnitOfTemperature, UnitOfTime
-
+from homeassistant.core import callback
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
     SensorEntityDescription,
 )
-
-from homeassistant.core import callback
-
-from .const import DOMAIN, APPLIANCE_TYPE
 
 from homeassistant.const import (
     UnitOfTime,
@@ -31,11 +22,12 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION
 )
 
-from .base import HonBaseCoordinator, HonBaseSensorEntity
-
 from homeassistant.config_entries import ConfigEntry
 
-divider = 100.0
+from .const import DOMAIN, APPLIANCE_TYPE
+from .base import HonBaseCoordinator, HonBaseSensorEntity
+
+divider = 1.0
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -137,7 +129,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseSpinSpeed(hass, coordinator, entry, appliance)])
 
 
-        # Fridge other values
+        # Parameters found for some fridges
         if device.has("quickModeZ1"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "quickModeZ1", "Quick mode Zone 1", )])
         if device.has("quickModeZ2"):
@@ -572,9 +564,12 @@ class HonBaseCurrentElectricityUsed(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "currentElectricityUsed", "Current electricity used")
 
-        self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
-        self._attr_device_class = SensorDeviceClass.POWER
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        #self._attr_native_unit_of_measurement = UnitOfPower.KILO_WATT
+        #self._attr_device_class = SensorDeviceClass.POWER
+        #self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_state_class = SensorStateClass.TOTAL
         self._attr_icon = "mdi:lightning-bolt"
 
     def coordinator_update(self):
