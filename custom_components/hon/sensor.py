@@ -74,9 +74,9 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z1", "zone 1")])
         if device.has("humidityZ2") and device.getInt("humidityZ2") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Z2", "zone 2")])
-        if device.has("humidityIndoor") and device.getInt("humidityIndoor") > 0:
+        if device.has("humidityIndoor") and device.getFloat("humidityIndoor") > 0.0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Indoor", "indoor")])
-        if device.has("humidityOutdoor") and device.getInt("humidityOutdoor") > 0:
+        if device.has("humidityOutdoor") and device.getFloat("humidityOutdoor") > 0.0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Outdoor", "outdoor")])
         if device.has("humidityEnv") and device.getInt("humidityEnv") > 0:
             appliances.extend([HonBaseHumidity(hass, coordinator, entry, appliance, "Env", "environment")])

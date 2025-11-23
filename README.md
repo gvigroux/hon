@@ -41,11 +41,12 @@ You can repeat above process with the setting option and the service: `hon.updat
 This integration has been tested with the following devices.
 
 ### Climate
-- AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
+- AS07TS4HRA-M
 - AS25XCAHRA and AS35XCAHRA in 3x1 and 1x1 configuration with one/two outdoor units
-- AS50S2SF2FA-1/1U50S2SJ2FA
+- AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS35S2SF1FA-WH and AS25S2SF1FA-WH in 2x1 configuration with one outdoor unit
-- Haier AS07TS4HRA-M
+- AS50S2SF2FA-1/1U50S2SJ2FA
+- AD50S2SS1FA(H)
 
 ### Oven
 - Candy Oven - FCT825XL WIFI Model
