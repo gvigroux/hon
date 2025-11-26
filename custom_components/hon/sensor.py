@@ -41,6 +41,22 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         coordinator = await hon.async_get_coordinator(appliance)
         device = coordinator.device
 
+        # DEBUG: Tüm verileri logla
+        _LOGGER.debug(f"=== Checking device: {device.name} ===")
+        _LOGGER.debug(f"Device type: {device._type_name}")
+        _LOGGER.debug(f"All attributes keys: {list(device.attributes.keys())}")
+        
+        if 'commandHistory' in device.attributes:
+            _LOGGER.debug(f"Command History content: {device.attributes['commandHistory']}")
+        
+        # Program name sensörünü her cihaz için ekle (debug için)
+        programName = device.getProgramName()
+        _LOGGER.debug(f"getProgramName() result: {programName}")
+        
+        # Program name sensörünü ekle (değer None olsa bile)
+        appliances.extend([HonBaseProgramName(hass, coordinator, entry, appliance)])
+        _LOGGER.debug(f"Program name sensor added for {device.name}")
+
         if device.has("machMode"):
             appliances.extend([HonBaseMode(hass, coordinator, entry, appliance)])
         
@@ -141,11 +157,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
-        programName = device.getProgramName()
-        if( programName != None ):
-            appliances.extend([HonBaseProgramName(hass, coordinator, entry, appliance)])
-
-
         await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
@@ -182,14 +193,26 @@ class HonBaseMode(HonBaseSensorEntity):
 
 class HonBaseProgramName(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "Program Name", "Program name")
-
-        #self._attr_icon         = "mdi:chemical-weapon"
-        self.translation_key    = "programs_" + self._type_name.lower()
+        super().__init__(coordinator, appliance, "program_name", "Program name")
         
+        self.translation_key = "programs_" + self._type_name.lower()
+        self._attr_icon = "mdi:playlist-play"
 
     def coordinator_update(self):
-        self._attr_native_value = self._device.getProgramName()
+        # Debug için tüm attributes'ı logla
+        _LOGGER.debug(f"[{self._name}] All attributes: {self._device.attributes}")
+        
+        program_name = self._device.getProgramName()
+        _LOGGER.debug(f"[{self._name}] getProgramName() returned: {program_name}")
+        
+        if program_name:
+            self._attr_native_value = program_name
+            self._attr_available = True
+            _LOGGER.debug(f"[{self._name}] Program name set to: {program_name}")
+        else:
+            self._attr_native_value = "No program"
+            self._attr_available = True
+            _LOGGER.debug(f"[{self._name}] Program name set to: No program")
 
 
 class HonBaseTemperature(HonBaseSensorEntity):
@@ -591,4 +614,3 @@ class HonBaseSpinSpeed(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._device.get("machMode") in ("1","6"):
                 self._attr_native_value = 0
-
