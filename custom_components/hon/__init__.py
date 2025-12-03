@@ -16,8 +16,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.template import device_id as get_device_id
-
+#from homeassistant.helpers.template import device_id as get_device_id
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN, PLATFORMS
@@ -59,14 +58,42 @@ def get_parameters(call):
         parameters_str = str(parameters_str)
     return ast.literal_eval(parameters_str)
 
+#def get_device_ids(hass, call):
+#    device_ids = call.data.get("device_id", [])
+    #entity_ids = call.data.get("entity_id", [])
+    #for entity_id in entity_ids:
+        #device_ids.append(get_device_id(hass, entity_id))
+    #return list(dict.fromkeys(device_ids))
+
 def get_device_ids(hass, call):
-    device_ids = call.data.get("device_id", [])
+    device_ids = set(call.data.get("device_id", []))
     entity_ids = call.data.get("entity_id", [])
+
+    ent_reg = er.async_get(hass)
+
     for entity_id in entity_ids:
-        device_ids.append(get_device_id(hass, entity_id))
-    return list(dict.fromkeys(device_ids))
+        entry = ent_reg.async_get(entity_id)
+        if entry and entry.device_id:
+            device_ids.add(entry.device_id)
+
+    return list(device_ids)
 
 
+from homeassistant.helpers import entity_registry as er
+
+async def async_get_device_ids(hass, call):
+    device_ids = set(call.data.get("device_id", []))
+    entity_ids = call.data.get("entity_id", [])
+
+    ent_reg = er.async_get(hass)
+
+    for entity_id in entity_ids:
+        entry = ent_reg.async_get(entity_id)
+        if entry and entry.device_id:
+            device_ids.add(entry.device_id)
+
+    return list(device_ids)
+    
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hon = HonConnection(hass, entry)

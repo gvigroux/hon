@@ -2,10 +2,11 @@ import logging
 from .const import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 
+from homeassistant.helpers import entity_registry as er
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.persistent_notification import create
-from homeassistant.helpers.template import device_id as get_device_id
+#from homeassistant.helpers.template import device_id as get_device_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,7 +43,11 @@ class HonBaseButtonEntity(CoordinatorEntity, ButtonEntity):
         """Handle the button press."""
         command = self._device.commands.get("startProgram")
         programs = command.get_programs()
-        device_id = get_device_id(self._coordinator.hass, self.entity_id)
+        #device_id = get_device_id(self._coordinator.hass, self.entity_id)
+        device_id = None
+        entry = er.async_get(self._coordinator.hass).async_get(self.entity_id)
+        if entry:
+            device_id = entry.device_id
 
         for program in programs.keys():
             command.set_program(program)
@@ -86,7 +91,11 @@ class HonBaseSettingsButtonEntity(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        device_id = get_device_id(self._coordinator.hass, self.entity_id)
+        #device_id = get_device_id(self._coordinator.hass, self.entity_id)
+        device_id = None
+        entry = er.async_get(self._coordinator.hass).async_get(self.entity_id)
+        if entry:
+            device_id = entry.device_id
         command = self._device.commands.get("settings")
         alert_text, example = command.dump()
 
