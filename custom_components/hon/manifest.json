@@ -4,7 +4,7 @@
   "codeowners": ["@gvigroux","@MiguelAngelLV","@izzy667"],
   "config_flow": true,
   "documentation": "https://github.com/izzy667/hon",
-  "iot_class": "cloud_push",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/izzy667/hon/issues",
-  "version": "0.7.15-custom.2"
+  "version": "0.7.20-custom.1"
 }

@@ -73,13 +73,48 @@ class HonDevice(CoordinatorEntity):
 
     def getProgramName(self):
         try:
-            name = self._attributes["commandHistory"]["command"]["programName"].lower()
-            parts = name.split('.')
-            if( len(parts) == 3 ):
-                name = parts[2]
-            return name
-        except (KeyError, IndexError):
-            return None
+            # Önce activity.attributes içinde ara
+            activity = self._attributes.get("activity", {})
+            if activity:
+                program_name = activity.get("attributes", {}).get("programName")
+                if program_name:
+                    _LOGGER.debug(f"[{self._name}] Found program name in activity.attributes: {program_name}")
+                    name = program_name.lower()
+                    parts = name.split('.')
+                    if len(parts) == 3:
+                        return parts[2]
+                    return name
+            
+            # Sonra direkt attributes içinde ara
+            program_name = self._attributes.get("programName")
+            if program_name:
+                _LOGGER.debug(f"[{self._name}] Found program name in attributes: {program_name}")
+                name = program_name.lower()
+                parts = name.split('.')
+                if len(parts) == 3:
+                    return parts[2]
+                return name
+            
+            # Sonra commandHistory içinde ara
+            command_history = self._attributes.get("commandHistory", {})
+            if command_history:
+                command = command_history.get("command", {})
+                program_name = command.get("programName")
+                if program_name:
+                    _LOGGER.debug(f"[{self._name}] Found program name in commandHistory: {program_name}")
+                    name = program_name.lower()
+                    parts = name.split('.')
+                    if len(parts) == 3:
+                        return parts[2]
+                    return name
+            
+            # Hiçbir yerde bulunamadı
+            _LOGGER.debug(f"[{self._name}] Program name not found in any location")
+                
+        except Exception as e:
+            _LOGGER.warning(f"[{self._name}] Failed to get program name: {e}")
+        
+        return None
 
     async def load_context(self):
         data = await self._hon.async_get_context(self)

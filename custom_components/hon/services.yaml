@@ -707,3 +707,19 @@ update_settings:
       advanced: false
       selector:
         text:
+
+get_setting:
+  name: Get any setting value of a hOn device
+  description: Get setting value
+  target:
+    entity:
+      integration: hon
+  fields:
+    parameter:
+      name: Parameter
+      description: Parameter name
+      default: "name"
+      required: true
+      advanced: false
+      selector:
+        text: {} 

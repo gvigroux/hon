@@ -12,12 +12,11 @@ from dateutil.tz import gettz
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.template import device_id as get_device_id
-
+#from homeassistant.helpers.template import device_id as get_device_id
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN, PLATFORMS
@@ -59,14 +58,42 @@ def get_parameters(call):
         parameters_str = str(parameters_str)
     return ast.literal_eval(parameters_str)
 
+#def get_device_ids(hass, call):
+#    device_ids = call.data.get("device_id", [])
+    #entity_ids = call.data.get("entity_id", [])
+    #for entity_id in entity_ids:
+        #device_ids.append(get_device_id(hass, entity_id))
+    #return list(dict.fromkeys(device_ids))
+
 def get_device_ids(hass, call):
-    device_ids = call.data.get("device_id", [])
+    device_ids = set(call.data.get("device_id", []))
     entity_ids = call.data.get("entity_id", [])
+
+    ent_reg = er.async_get(hass)
+
     for entity_id in entity_ids:
-        device_ids.append(get_device_id(hass, entity_id))
-    return list(dict.fromkeys(device_ids))
+        entry = ent_reg.async_get(entity_id)
+        if entry and entry.device_id:
+            device_ids.add(entry.device_id)
+
+    return list(device_ids)
 
 
+from homeassistant.helpers import entity_registry as er
+
+async def async_get_device_ids(hass, call):
+    device_ids = set(call.data.get("device_id", []))
+    entity_ids = call.data.get("entity_id", [])
+
+    ent_reg = er.async_get(hass)
+
+    for entity_id in entity_ids:
+        entry = ent_reg.async_get(entity_id)
+        if entry and entry.device_id:
+            device_ids.add(entry.device_id)
+
+    return list(device_ids)
+    
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hon = HonConnection(hass, entry)
@@ -89,10 +116,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    #for platform in PLATFORMS:
-    #    hass.async_create_task(
-    #        hass.config_entries.async_forward_entry_setup(entry, platform)
-    #    )
 
     async def handle_oven_start(call):
 
@@ -398,6 +421,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             await device.settings_command(parameters).send()
 
 
+    async def async_get_setting(call: ServiceCall):
+        """Handle the get_setting service call."""
+        parameter = call.data.get("parameter")
+        device_ids = get_device_ids(hass, call)
+
+        results = {}
+
+        for device_id in device_ids:
+            device = hon.get_device(hass, device_id)
+            _LOGGER.warning(device)
+            results[device_id] = device.get(parameter)
+
+        # Retourner la valeur (optionnel : log pour voir dans les logs)
+        _LOGGER.warning("get_setting results: %s", results)
+        # On émet un événement avec les résultats
+        hass.bus.async_fire("hon_get_setting_result", {"results": results})
+        return results
+
+
+
     hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
     hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
     hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
@@ -416,5 +459,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
     hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
-    
+    hass.services.async_register(
+        domain=DOMAIN,
+        service="get_setting",
+        service_func=async_get_setting,
+        schema=None 
+    )
+
     return True
