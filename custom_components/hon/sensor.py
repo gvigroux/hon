@@ -74,10 +74,14 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ1",   "Selected temperature zone 1")])
         if device.has("tempSelZ2"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature zone 2")])
+        if device.has("tempSelZ3"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ3",   "Selected temperature zone 3")])
         if device.has("tempZ1"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature zone 1")])
         if device.has("tempZ2"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature zone 2")])
+        if device.has("tempZ3"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ3",      "Temperature zone 3")])
 
         if device.has("remainingTimeMM"):
             appliances.extend([HonBaseStart(hass, coordinator, entry, appliance)])
