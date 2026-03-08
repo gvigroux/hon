@@ -66,6 +66,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBasePreheating(hass, coordinator, entry, appliance)])
         if device.has("healthMode"):
             appliances.extend([HonBaseHealthMode(hass, coordinator, entry, appliance)])
+        if device.has("muteStatus"):
+            appliances.extend([HonBaseMuteStatus(hass, coordinator, entry, appliance)])
 
     async_add_entities(appliances)
 
@@ -158,3 +160,13 @@ class HonBaseHealthMode(HonBaseBinarySensorEntity):
 
         self._attr_device_class = BinarySensorDeviceClass.RUNNING
         self._attr_icon = "mdi:doctor"
+
+
+class HonBaseMuteStatus(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "muteStatus", "Mute")
+
+        self._attr_icon = "mdi:volume-off"
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get("muteStatus") == "1"

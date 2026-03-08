@@ -161,6 +161,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
+        # TV sensors
+        if device.has("volume"):
+            appliances.extend([HonBaseVolume(hass, coordinator, entry, appliance)])
+        if device.has("displayedApp"):
+            appliances.extend([HonBaseDisplayedApp(hass, coordinator, entry, appliance)])
+
+        # Statistics sensors
+        if device.get("statistics.programsCounter") is not None:
+            appliances.extend([HonBaseProgramsCounter(hass, coordinator, entry, appliance)])
+
         await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
@@ -618,3 +628,39 @@ class HonBaseSpinSpeed(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._device.get("machMode") in ("1","6"):
                 self._attr_native_value = 0
+
+
+class HonBaseVolume(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "volume", "Volume")
+
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:volume-high"
+        self._attr_native_unit_of_measurement = PERCENTAGE
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("volume")
+
+
+class HonBaseDisplayedApp(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "displayedApp", "Displayed app")
+
+        self._attr_icon = "mdi:application"
+
+    def coordinator_update(self):
+        app = self._device.get("displayedApp")
+        self._attr_native_value = f"{app}"
+
+
+class HonBaseProgramsCounter(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "statistics.programsCounter", "Total programs")
+
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:counter"
+
+    def coordinator_update(self):
+        value = self._device.get("statistics.programsCounter")
+        if value is not None:
+            self._attr_native_value = int(value)
