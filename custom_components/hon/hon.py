@@ -49,6 +49,10 @@ class HonConnection:
         self._coordinator_dict  = {}
         self._mobile_id = secrets.token_hex(8)
 
+        self._id_token = ""
+        self._refresh_token = ""
+        self._cognitoToken = ""
+
         # Only used during registration (Login/password check)
         if( email != None ) and ( password != None ):
             self._email = email
