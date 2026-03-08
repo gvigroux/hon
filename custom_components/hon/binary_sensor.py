@@ -69,6 +69,26 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("muteStatus"):
             appliances.extend([HonBaseMuteStatus(hass, coordinator, entry, appliance)])
 
+        # WM additional binary sensors
+        if device.has("pause"):
+            appliances.extend([HonBasePauseStatus(hass, coordinator, entry, appliance)])
+        if device.has("nightWashStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "nightWashStatus", "Night wash", BinarySensorDeviceClass.RUNNING)])
+        if device.has("steamStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "steamStatus", "Steam", BinarySensorDeviceClass.RUNNING)])
+        if device.has("energySavingStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "energySavingStatus", "Energy saving", BinarySensorDeviceClass.RUNNING)])
+
+        # DW additional binary sensors
+        if device.has("extraDry"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "extraDry", "Extra dry", BinarySensorDeviceClass.RUNNING)])
+        if device.has("halfLoad"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "halfLoad", "Half load", BinarySensorDeviceClass.RUNNING)])
+        if device.has("openDoor"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "openDoor", "Open door at end", BinarySensorDeviceClass.RUNNING)])
+        if device.has("ecoExpress"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "ecoExpress", "Eco express", BinarySensorDeviceClass.RUNNING)])
+
     async_add_entities(appliances)
 
 
@@ -170,3 +190,13 @@ class HonBaseMuteStatus(HonBaseBinarySensorEntity):
 
     def coordinator_update(self):
         self._attr_is_on = self._device.get("muteStatus") == "1"
+
+
+class HonBasePauseStatus(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "pause", "Paused")
+
+        self._attr_icon = "mdi:pause-circle"
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get("pause") == "1"
