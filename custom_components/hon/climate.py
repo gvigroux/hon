@@ -174,7 +174,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._name          = appliance.get('nickName', appliance.get('modelName', 'Climate'))
         self._connectivity  = appliance['connectivity']
         self._model         = appliance['modelName']
-        self._series        = appliance['series']
+        self._series        = appliance.get('series', '')
         self._modelId       = appliance['applianceModelId']
         self._type_name     = appliance['applianceTypeName']
         self._serialNumber  = appliance['serialNumber']
