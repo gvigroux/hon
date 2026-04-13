@@ -71,7 +71,24 @@ class HonCommand:
     @property
     def settings(self):
         """Parameters with typology enum and range"""
-        return {s: self._parameters.get(s) for s in self.setting_keys if self._parameters.get(s) is not None}
+        if not self._multi:
+            return {
+                key: parameter
+                for key, parameter in self._parameters.items()
+                if not isinstance(parameter, HonParameterFixed)
+            }
+
+        result = {}
+        for key in self.setting_keys:
+            parameter = self._parameters.get(key)
+            if parameter is None:
+                for command in self._multi.values():
+                    parameter = command.parameters.get(key)
+                    if parameter is not None:
+                        break
+            if parameter is not None:
+                result[key] = parameter
+        return result
 
     def dump(self):
         text = ""

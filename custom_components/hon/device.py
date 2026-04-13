@@ -195,12 +195,12 @@ class HonDevice(CoordinatorEntity):
         if( "settings" not in self._commands ):
             raise ValueError("No command to update settings of the device")
         command = self._commands.get("settings")
-        self.update_command(command, self.attributes["parameters"])
+        self.update_command(command, self.attributes.get("parameters", {}))
         self.update_command(command, parameters)
 
         # Update for next command (in case no refresh happens yet)
         for key in command.parameters.keys():
-            self.attributes["parameters"][key] = command.parameters.get(key).value
+            self.attributes.setdefault("parameters", {})[key] = command.parameters.get(key).value
 
         return command
 
@@ -208,17 +208,32 @@ class HonDevice(CoordinatorEntity):
         if( "startProgram" not in self._commands ):
             raise ValueError("No command to start the device")
         command = self._commands.get("startProgram")
-        command.set_program(program)
+        if program is not None:
+            command.set_program(program)
         # Return the new default command
         command = self._commands.get("startProgram")
-        self.update_command(command, self.attributes["parameters"])
+        self.update_command(command, self.attributes.get("parameters", {}))
         self.update_command(command, parameters)
     
         # Update for next command (in case no refresh happens yet)
         for key in command.parameters.keys():
-            self.attributes["parameters"][key] = command.parameters.get(key).value
+            self.attributes.setdefault("parameters", {})[key] = command.parameters.get(key).value
 
         return command
+
+    def get_setting(self, setting_key):
+        command_name, parameter_key = setting_key.split(".", 1)
+        command = self._commands.get(command_name)
+        if command is None:
+            return None
+        return command.settings.get(parameter_key)
+
+    def has_current_setting(self, setting_key):
+        command_name, parameter_key = setting_key.split(".", 1)
+        command = self._commands.get(command_name)
+        if command is None:
+            return False
+        return parameter_key in command.parameters
 
     def stop_command(self, parameters = {}):
         if( "stopProgram" in self._commands ):
