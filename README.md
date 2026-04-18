@@ -70,6 +70,7 @@ This integration has been tested with the following devices.
 - HDQ 496AMBS/1-S
 
 ### Tumble Dryer
+- Hoover H-Dry 350, 9 kg Condenser Tumble Dryer HRE C9TBE-80
 - haier HD80-A3959
 - HRE H9A2TE-S
 - HLEH10A2TCEX-17
@@ -79,3 +80,6 @@ This integration has been tested with the following devices.
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)
 - hoover HHP50CA011 (Air Purifier 500)
+
+### Heat Pump Water Heater
+- Haier HP150M8-9 (only programs are working)
