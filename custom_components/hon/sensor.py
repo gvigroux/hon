@@ -203,7 +203,6 @@ class HonBaseProgramName(HonBaseSensorEntity):
         self._attr_icon = "mdi:playlist-play"
 
     def coordinator_update(self):
-        # Debug için tüm attributes'ı logla
         _LOGGER.debug(f"[{self._name}] All attributes: {self._device.attributes}")
         
         program_name = self._device.getProgramName()

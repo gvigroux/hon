@@ -39,6 +39,7 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+#TODO merge all programes names in language file
 
 # This method will update a sensor value with the targetted one for a better user experience
 def update_sensor(hass, device_id, mac, sensor_name, state):

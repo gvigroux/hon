@@ -212,6 +212,10 @@ class HonSwitchEntity(HonBaseSwitchEntity):
 
     @callback
     def _handle_coordinator_update(self, update: bool = True) -> None:
+        #if( self._key == "screenDisplayStatus" ):
+        #    _LOGGER.warning(f"HonSwitchEntity screenDisplayStatus value {self._device.get(self._key)}" )
+        #if( self._key == "echoStatus" ):
+        #    _LOGGER.warning(f"HonSwitchEntity echoStatus value {self._device.get(self._key)}" )
         self._attr_is_on = self.is_on
         if update:
             self.async_write_ha_state()
