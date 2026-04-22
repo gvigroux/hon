@@ -50,7 +50,8 @@ class APPLIANCE_TYPE(IntEnum):
     TUMBLE_DRYER    = 8,
     DISH_WASHER     = 9,
     CLIMATE         = 11,
-    FRIDGE          = 14
+    FRIDGE          = 14,
+    TV              = 25
 
 APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
@@ -62,6 +63,7 @@ APPLIANCE_DEFAULT_NAME = {
     "9": "Dish Washer",
     "11": "Climate",
     "14": "Fridge",
+    "25": "TV",
 }
 
 CLIMATE_FAN_MODE = {

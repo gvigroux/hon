@@ -213,6 +213,10 @@ class HonBaseSwitchEntity(CoordinatorEntity, SwitchEntity):
 
     @callback
     def _handle_coordinator_update(self):
+        if( self._key == "screenDisplayStatus" ):
+            _LOGGER.warning(f"screenDisplayStatus value {self._device.get(self._key)}" )
+        if( self._key == "echoStatus" ):
+            _LOGGER.warning(f"echoStatus value {self._device.get(self._key)}" )
         if self._coordinator.data is False:
             return
         self.coordinator_update()

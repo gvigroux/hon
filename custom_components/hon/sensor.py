@@ -161,6 +161,36 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
+        # WM additional sensors
+        if device.has("currentWashCycle"):
+            appliances.extend([HonBaseCurrentWashCycle(hass, coordinator, entry, appliance)])
+        if device.has("remainingRinseIterations"):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "remainingRinseIterations", "Remaining rinse iterations")])
+        if device.has("detergentPercent"):
+            appliances.extend([HonBaseDetergentPercent(hass, coordinator, entry, appliance)])
+        if device.has("haier_DetergentWeight"):
+            appliances.extend([HonBaseDetergentWeight(hass, coordinator, entry, appliance, "haier_DetergentWeight", "Detergent weight")])
+        if device.has("haier_SoftenerWeight"):
+            appliances.extend([HonBaseDetergentWeight(hass, coordinator, entry, appliance, "haier_SoftenerWeight", "Softener weight")])
+        if device.has("weight") and not device.has("actualWeight"):
+            appliances.extend([HonBaseWeight(hass, coordinator, entry, appliance)])
+
+        # DW additional sensors
+        if device.has("waterHard"):
+            appliances.extend([HonBaseWaterHardness(hass, coordinator, entry, appliance)])
+        if device.has("delayTime"):
+            appliances.extend([HonBaseDelayTime(hass, coordinator, entry, appliance)])
+
+        # TV sensors
+        if device.has("volume"):
+            appliances.extend([HonBaseVolume(hass, coordinator, entry, appliance)])
+        if device.has("displayedApp"):
+            appliances.extend([HonBaseDisplayedApp(hass, coordinator, entry, appliance)])
+
+        # Statistics sensors
+        if device.get("statistics.programsCounter") is not None:
+            appliances.extend([HonBaseProgramsCounter(hass, coordinator, entry, appliance)])
+
         await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
@@ -203,7 +233,6 @@ class HonBaseProgramName(HonBaseSensorEntity):
         self._attr_icon = "mdi:playlist-play"
 
     def coordinator_update(self):
-        # Debug için tüm attributes'ı logla
         _LOGGER.debug(f"[{self._name}] All attributes: {self._device.attributes}")
         
         program_name = self._device.getProgramName()
@@ -618,3 +647,96 @@ class HonBaseSpinSpeed(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.WASHING_MACHINE ):
             if self._device.get("machMode") in ("1","6"):
                 self._attr_native_value = 0
+
+
+class HonBaseVolume(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "volume", "Volume")
+
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:volume-high"
+        self._attr_native_unit_of_measurement = PERCENTAGE
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("volume")
+
+
+class HonBaseDisplayedApp(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "displayedApp", "Displayed app")
+
+        self._attr_icon = "mdi:application"
+
+    def coordinator_update(self):
+        app = self._device.get("displayedApp")
+        self._attr_native_value = f"{app}"
+
+
+class HonBaseProgramsCounter(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "statistics.programsCounter", "Total programs")
+
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:counter"
+
+    def coordinator_update(self):
+        value = self._device.get("statistics.programsCounter")
+        if value is not None:
+            self._attr_native_value = int(value)
+
+
+class HonBaseCurrentWashCycle(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "currentWashCycle", "Current wash cycle")
+
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:counter"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("currentWashCycle")
+
+
+class HonBaseDetergentPercent(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "detergentPercent", "Detergent level")
+
+        self._attr_native_unit_of_measurement = PERCENTAGE
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:bottle-tonic"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("detergentPercent")
+
+
+class HonBaseDetergentWeight(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+
+        self._attr_native_unit_of_measurement = UnitOfMass.GRAMS
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:bottle-tonic"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getFloat(self._key)
+
+
+class HonBaseWaterHardness(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "waterHard", "Water hardness")
+
+        self._attr_icon = "mdi:water-opacity"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("waterHard")
+
+
+class HonBaseDelayTime(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "delayTime", "Delay time")
+
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
+        self._attr_device_class = SensorDeviceClass.DURATION
+        self._attr_icon = "mdi:timer-sand"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("delayTime")

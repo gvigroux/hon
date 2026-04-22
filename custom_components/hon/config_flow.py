@@ -1,6 +1,7 @@
 
 import logging
 import voluptuous as vol
+import aiohttp
 
 from .hon import HonConnection
 from typing import Any
@@ -49,12 +50,14 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Test connection
         hon = HonConnection(None, None, self._email, self._password)
-        if( await hon.async_authorize() == False ):
-            errors = {}
-            errors["base"] = "auth_error"
-            await hon.async_close()
-            return self.async_show_form(step_id="user",data_schema=vol.Schema({vol.Required(CONF_EMAIL): str,vol.Required(CONF_PASSWORD): str}), errors=errors)
+        try:
+            auth_ok = await hon.async_authorize()
+        except aiohttp.ClientConnectorError:
+            auth_ok = False
         await hon.async_close()
+        if not auth_ok:
+            errors["base"] = "auth_error"
+            return self.async_show_form(step_id="user",data_schema=vol.Schema({vol.Required(CONF_EMAIL): str,vol.Required(CONF_PASSWORD): str}), errors=errors)
 
         return self.async_create_entry(
             title=self._email,
@@ -92,12 +95,15 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 
             # Test connection
             hon = HonConnection(None, None, config_entry.unique_id, user_input[CONF_PASSWORD])
-            if( await hon.async_authorize() == False ):
+            try:
+                auth_ok = await hon.async_authorize()
+            except aiohttp.ClientConnectorError:
+                auth_ok = False
+            await hon.async_close()
+            if not auth_ok:
                 errors = {}
                 errors["base"] = "auth_error"
-                await hon.async_close()
                 return self.async_show_form(step_id="reconfigure",data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}), errors=errors)
-            await hon.async_close()
 
             await self.async_set_unique_id(config_entry.unique_id)
 

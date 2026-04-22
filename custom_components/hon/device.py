@@ -21,7 +21,7 @@ class HonDevice(CoordinatorEntity):
         self._name          = appliance.get("nickName", APPLIANCE_DEFAULT_NAME.get(str(self._type_id), "Device ID: " + str(self._type_id)))
         self._mac           = appliance["macAddress"]
         self._model         = appliance["modelName"]
-        self._series        = appliance["series"]
+        self._series        = appliance.get("series", "")
         self._model_id      = appliance["applianceModelId"]
         self._serial_number = appliance["serialNumber"]
         self._fw_version    = appliance["fwVersion"]
