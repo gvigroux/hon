@@ -1,15 +1,10 @@
-import asyncio
 import logging
 import voluptuous as vol
-import aiohttp
-import json
-import urllib.parse
 import ast
 
-from homeassistant.components.persistent_notification import create
 from datetime import datetime
 from dateutil.tz import gettz
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -25,6 +20,7 @@ from .device import HonDevice
 
 
 _LOGGER = logging.getLogger(__name__)
+SERVICE_REGISTRY = "service_registry"
 
 
 HON_SCHEMA = vol.Schema(
@@ -59,6 +55,11 @@ def get_parameters(call):
         parameters_str = str(parameters_str)
     return ast.literal_eval(parameters_str)
 
+
+def _minutes_until(target: datetime, now: datetime) -> int:
+    """Return the number of whole minutes until the target time."""
+    return max(0, int((target - now).total_seconds() / 60))
+
 #def get_device_ids(hass, call):
 #    device_ids = call.data.get("device_id", [])
     #entity_ids = call.data.get("entity_id", [])
@@ -79,8 +80,6 @@ def get_device_ids(hass, call):
 
     return list(device_ids)
 
-
-from homeassistant.helpers import entity_registry as er
 
 async def async_get_device_ids(hass, call):
     device_ids = set(call.data.get("device_id", []))
@@ -110,6 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = hon
+    hass.data[DOMAIN].setdefault(SERVICE_REGISTRY, set())
 
     for appliance in hon.appliances:
         
@@ -130,12 +130,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
         if "start" in call.data:
             date = datetime.strptime(call.data.get("start"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
-            delay_time = int((date - datetime.now(tz)).seconds / 60)
+            delay_time = _minutes_until(date, datetime.now(tz))
 
         if "end" in call.data and "duration" in call.data:
             date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
             duration = call.data.get("duration")
-            delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
+            delay_time = max(0, _minutes_until(date, datetime.now(tz)) - duration)
 
         parameters = {
             "delayTime": delay_time,
@@ -161,12 +161,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
         if "start" in call.data:
             date = datetime.strptime(call.data.get("start"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
-            delay_time = int((date - datetime.now(tz)).seconds / 60)
+            delay_time = _minutes_until(date, datetime.now(tz))
 
         if "end" in call.data and "duration" in call.data:
             date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
             duration = call.data.get("duration")
-            delay_time = int((date - datetime.now(tz)).seconds / 60 - duration)
+            delay_time = max(0, _minutes_until(date, datetime.now(tz)) - duration)
 
         parameters = {
             "delayTime": delay_time,
@@ -190,7 +190,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         tz = gettz(hass.config.time_zone)
         if "end" in call.data:
             date = datetime.strptime(call.data.get("end"), "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz)
-            delay_time = int((date - datetime.now(tz)).seconds / 60)
+            delay_time = _minutes_until(date, datetime.now(tz))
 
         parameters = {
                     "haier_MainWashSpeed": "50",
@@ -447,29 +447,57 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 
 
-    hass.services.async_register(DOMAIN, "turn_on_washingmachine", handle_washingmachine_start)
-    hass.services.async_register(DOMAIN, "turn_on_oven", handle_oven_start)
-    hass.services.async_register(DOMAIN, "turn_on_dishwasher", handle_dishwasher_start)
-    hass.services.async_register(DOMAIN, "turn_on_purifier", handle_purifier_start)
-    hass.services.async_register(DOMAIN, "set_auto_mode_purifier", handle_purifier_automode)
-    hass.services.async_register(DOMAIN, "set_sleep_mode_purifier", handle_purifier_sleepmode)
-    hass.services.async_register(DOMAIN, "set_max_mode_purifier", handle_purifier_maxmode)
+    services = {
+        "turn_on_washingmachine": handle_washingmachine_start,
+        "turn_on_oven": handle_oven_start,
+        "turn_on_dishwasher": handle_dishwasher_start,
+        "turn_on_purifier": handle_purifier_start,
+        "set_auto_mode_purifier": handle_purifier_automode,
+        "set_sleep_mode_purifier": handle_purifier_sleepmode,
+        "set_max_mode_purifier": handle_purifier_maxmode,
+        "set_mode": handle_set_mode,
+        "turn_off": handle_turn_off,
+        "turn_light_on": handle_light_on,
+        "turn_light_off": handle_light_off,
+        "send_custom_request": handle_custom_request,
+        "climate_turn_health_mode_on": handle_health_mode_on,
+        "climate_turn_health_mode_off": handle_health_mode_off,
+        "start_program": handle_start_program,
+        "update_settings": handle_update_settings,
+        "get_setting": async_get_setting,
+    }
 
-    hass.services.async_register(DOMAIN, "set_mode", handle_set_mode)
-    hass.services.async_register(DOMAIN, "turn_off", handle_turn_off)
-    hass.services.async_register(DOMAIN, "turn_light_on",   handle_light_on)
-    hass.services.async_register(DOMAIN, "turn_light_off",  handle_light_off)
-    hass.services.async_register(DOMAIN, "send_custom_request",  handle_custom_request)
-    hass.services.async_register(DOMAIN, "climate_turn_health_mode_on",   handle_health_mode_on)
-    hass.services.async_register(DOMAIN, "climate_turn_health_mode_off",  handle_health_mode_off)
+    registered_services = hass.data[DOMAIN][SERVICE_REGISTRY]
+    for service_name, handler in services.items():
+        if service_name in registered_services:
+            continue
+        hass.services.async_register(
+            domain=DOMAIN,
+            service=service_name,
+            service_func=handler,
+            schema=None,
+        )
+        registered_services.add(service_name)
 
-    hass.services.async_register(DOMAIN, "start_program",   handle_start_program)
-    hass.services.async_register(DOMAIN, "update_settings", handle_update_settings)
-    hass.services.async_register(
-        domain=DOMAIN,
-        service="get_setting",
-        service_func=async_get_setting,
-        schema=None 
-    )
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if not unload_ok:
+        return False
+
+    hon = hass.data[DOMAIN].pop(entry.unique_id, None)
+    if hon is not None:
+        await hon.async_close()
+
+    remaining_entries = [
+        key for key in hass.data.get(DOMAIN, {}) if key != SERVICE_REGISTRY
+    ]
+    if not remaining_entries:
+        for service_name in hass.data[DOMAIN].get(SERVICE_REGISTRY, set()):
+            hass.services.async_remove(DOMAIN, service_name)
+        hass.data.pop(DOMAIN, None)
 
     return True
