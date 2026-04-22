@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
 #from homeassistant.helpers.template import device_id as get_device_id
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ConfigEntryNotReady
 
 from .const import DOMAIN, PLATFORMS
 from .hon import HonConnection, get_hOn_mac
@@ -98,7 +98,12 @@ async def async_get_device_ids(hass, call):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hon = HonConnection(hass, entry)
-    await hon.async_authorize()
+    try:
+        result = await hon.async_authorize()
+    except Exception as e:
+        raise ConfigEntryNotReady(f"hOn connection failed: {e}") from e
+    if not result:
+        raise ConfigEntryNotReady("hOn authentication failed")
 
     # Log all appliances
     _LOGGER.debug(f"Appliances: {hon.appliances}")

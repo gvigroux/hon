@@ -49,6 +49,10 @@ class HonConnection:
         self._coordinator_dict  = {}
         self._mobile_id = secrets.token_hex(8)
 
+        self._id_token = ""
+        self._refresh_token = ""
+        self._cognitoToken = ""
+
         # Only used during registration (Login/password check)
         if( email != None ) and ( password != None ):
             self._email = email
@@ -166,7 +170,31 @@ class HonConnection:
 
         return 0
 
+    async def async_try_saved_token(self) -> bool:
+        """Attempt to reuse a previously saved token, skipping the full OAuth2 flow."""
+        if not self._cognitoToken or not self._id_token:
+            return False
+        try:
+            url = f"{API_URL}/commands/v1/appliance"
+            async with self._session.get(url, headers=self._headers) as resp:
+                if resp.status != 200:
+                    _LOGGER.debug(f"hOn saved token rejected (HTTP {resp.status}), falling back to full auth")
+                    return False
+                json_data = await resp.json()
+                self._appliances = json_data["payload"]["appliances"]
+                self._appliances = [a for a in self._appliances if "macAddress" in a]
+                self._appliances = [a for a in self._appliances if "applianceTypeId" in a]
+                self._start_time = time.time()
+                _LOGGER.debug("hOn authenticated using saved token")
+                return True
+        except Exception as e:
+            _LOGGER.debug(f"hOn saved token attempt failed ({e}), falling back to full auth")
+            return False
+
     async def async_authorize(self):
+
+        if await self.async_try_saved_token():
+            return True
 
         if await self.async_get_frontdoor_url(0) == 1:
             return False
@@ -223,6 +251,12 @@ class HonConnection:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers [" + str(post_headers) + "]. Response: " + text)
                 return False
 
+        if self._entry is not None and self._hass is not None:
+            saved = {**self._entry.data}
+            saved[CONF_COGNITO_TOKEN] = self._cognitoToken
+            saved[CONF_ID_TOKEN] = self._id_token
+            self._hass.config_entries.async_update_entry(self._entry, data=saved)
+            _LOGGER.debug("hOn tokens persisted to config entry")
 
         url = f"{API_URL}/commands/v1/appliance"
         async with self._session.get(url,headers=self._headers) as resp:
