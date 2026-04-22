@@ -27,10 +27,12 @@ PLATFORMS = [
     "sensor",
     "binary_sensor",
     "button",
-    "switch",
-    "select",
-    "number",
+    "switch"
 ]
+
+"""     "number",
+    "select", """
+
 
 AUTH_API        = "https://account2.hon-smarthome.com/SmartHome"
 API_URL         = "https://api-iot.he.services"

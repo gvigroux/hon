@@ -8,6 +8,7 @@ from homeassistant.core import callback
 from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers import translation
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
 
 _LOGGER = logging.getLogger(__name__)
@@ -161,7 +162,7 @@ class HonNumber(HonBaseNumberEntity):
         #param_display = description.key.replace("startProgram.", "").replace("tempSelZ", "Zone ")
         #self._attr_name = f"{self._name} {param_display}"
         #_LOGGER.error(self._attr_name)
-        #self._attr_unique_id = f"{self._mac}-number-v59-{description.key}"
+        self._attr_unique_id = f"{self._mac}-number-{description.key}"
 
     def _get_setting(self):
         return self._device.get_setting(self.entity_description.key)
