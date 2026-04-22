@@ -255,7 +255,7 @@ class HonConnection:
             "fwVersion": appliance["fwVersion"],
             "os": OS,
             "appVersion": APP_VERSION,
-            "series": appliance["series"],
+            "series": appliance.get("series", ""),
         }
         url = f"{API_URL}/commands/v1/retrieve"
         async with self._session.get(url, params=params, headers=self._headers) as resp:
