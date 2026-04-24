@@ -53,7 +53,8 @@ class APPLIANCE_TYPE(IntEnum):
     DISH_WASHER     = 9,
     CLIMATE         = 11,
     FRIDGE          = 14,
-    TV              = 25
+    TV              = 25,
+    AIR_TO_WATER    = 27
 
 APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
@@ -66,6 +67,7 @@ APPLIANCE_DEFAULT_NAME = {
     "11": "Climate",
     "14": "Fridge",
     "25": "TV",
+    "27": "Air to Water",
 }
 
 CLIMATE_FAN_MODE = {

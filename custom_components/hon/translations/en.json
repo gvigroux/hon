@@ -145,6 +145,14 @@
                     "4": "Max"
                 }
             },
+            "air_to_water_mode" : {
+                "state": {
+                    "0": "Off",
+                    "2": "Zones Heat",
+                    "3": "DHW",
+                    "8": "Zones Heat + DHW"
+                }
+            },
             "voc" : {
                 "state": {
                     "1": "Good",
