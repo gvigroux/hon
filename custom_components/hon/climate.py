@@ -202,11 +202,11 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
         self._attr_target_temperature_step  = PRECISION_WHOLE
         if isinstance(temp_range.step, float):
-            self._att_target_temperature_step = temp_range.step
+            self._attr_target_temperature_step = temp_range.step
     
         if isinstance(temp_range, HonParameterRange):
-            self._att_min_temp  = temp_range.min
-            self._att_max_temp  = temp_range.max
+            self._attr_min_temp  = temp_range.min
+            self._attr_max_temp  = temp_range.max
         
         # Set Fan mode
         self._hon_fan_modes = parameters.get('windSpeed').values
