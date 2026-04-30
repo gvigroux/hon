@@ -270,6 +270,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         if self._watcher != None:
             return
 
+
         self._attr_target_temperature   = int(float(self._device.get('tempSel')))
         self._attr_current_temperature  = float(self._device.get('tempIndoor'))
 
