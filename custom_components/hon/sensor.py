@@ -83,6 +83,12 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("tempZ3"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ3",      "Temperature zone 3")])
 
+        # AW Domestic hot water sensors
+        if device.has("tempDhw"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempDhw",      "Temperature domestic hot water")])
+        if device.has("tempSelDhw"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelDhw",   "Selected temperature domestic hot water")])
+
         if device.has("remainingTimeMM"):
             appliances.extend([HonBaseStart(hass, coordinator, entry, appliance)])
             appliances.extend([HonBaseEnd(hass, coordinator, entry, appliance)])
@@ -218,6 +224,10 @@ class HonBaseMode(HonBaseSensorEntity):
 
         if( self._type_id == APPLIANCE_TYPE.PURIFIER ):
             self.translation_key    = "purifier_mode"
+
+        if( self._type_id == APPLIANCE_TYPE.AIR_TO_WATER ):
+            self.translation_key    = "air_to_water_mode"
+            self._attr_icon         = "mdi:heat-pump-outline"
             
 
     def coordinator_update(self):

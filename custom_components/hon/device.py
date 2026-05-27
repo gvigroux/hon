@@ -108,7 +108,6 @@ class HonDevice(CoordinatorEntity):
                         return parts[2]
                     return name
             
-            # Hiçbir yerde bulunamadı
             _LOGGER.debug(f"[{self._name}] Program name not found in any location")
                 
         except Exception as e:
@@ -116,13 +115,31 @@ class HonDevice(CoordinatorEntity):
         
         return None
 
+    """    
     async def load_context(self):
         data = await self._hon.async_get_context(self)
         #_LOGGER.warning(data)
         self._attributes = data
         for name, values in self._attributes.pop("shadow", {'NA': 0}).get("parameters").items():
             self._attributes.setdefault("parameters", {})[name] = values["parNewVal"]
+    """
+    async def load_context(self):
+        data = await self._hon.async_get_context(self)
+        self._attributes = data or {}
 
+        shadow = self._attributes.pop("shadow", None)
+        if not shadow:
+            _LOGGER.warning("Unable to get device context: no shadow data in: %s", self._attributes)
+            return
+
+        parameters = shadow.get("parameters")
+        if not parameters:
+            _LOGGER.warning("Unable to get device context: no parameters in shadow data. %s", self._attributes)
+            return
+
+        for name, values in parameters.items():
+            self._attributes.setdefault("parameters", {})[name] = values.get("parNewVal")
+            
     @property
     def data(self):
         return {"attributes": self.attributes, "appliance": self.appliance, "statistics": self.statistics, **self.parameters}
@@ -179,7 +196,7 @@ class HonDevice(CoordinatorEntity):
                 result.setdefault(name, {})[key] = parameter.value
         return result
         
-
+    """ 
     def update_command(self, command, parameters):
         for key in command.parameters.keys():
             if( key in parameters 
@@ -189,7 +206,32 @@ class HonDevice(CoordinatorEntity):
                 if( isinstance(command.parameters.get(key), HonParameterEnum) and parameters.get(key) not in command.parameters.get(key).values): 
                     _LOGGER.warning(f"Unable to update parameter [{key}] with value [{parameters.get(key)}] because not in range {command.parameters.get(key).values}. Use default instead.")
                 else:
-                    command.parameters.get(key).value = parameters.get(key)
+                    command.parameters.get(key).value = parameters.get(key) """
+
+    def update_command(self, command, parameters):
+        for key in command.parameters.keys():
+            param = command.parameters.get(key)
+
+            if (key not in parameters or isinstance(param, HonParameterFixed)):
+                continue
+
+            new_val = parameters.get(key)
+            if param.value == new_val:
+                continue
+
+            try:
+                param.value = new_val
+
+            except Exception as e:
+                _LOGGER.warning("Update_command: Invalid %s=%s (%s)", key, new_val, e)
+
+                # 👉 fallback intelligent
+                if hasattr(param, "default"):
+                    try:
+                        param.value = param.default
+                        _LOGGER.warning("Update_command: Use Fallback %s -> default %s", key, param.default)
+                    except Exception:
+                        pass
 
     def settings_command(self, parameters = {}):
         if( "settings" not in self._commands ):

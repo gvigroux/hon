@@ -49,10 +49,6 @@ class HonConnection:
         self._coordinator_dict  = {}
         self._mobile_id = secrets.token_hex(8)
 
-        self._id_token = ""
-        self._refresh_token = ""
-        self._cognitoToken = ""
-
         # Only used during registration (Login/password check)
         if( email != None ) and ( password != None ):
             self._email = email
@@ -98,45 +94,15 @@ class HonConnection:
 
     async def async_get_frontdoor_url(self, error_code=0):
 
-        #data = (
-        #    "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2279%3Ba%22%2C%22descriptor%22%3A%22apex%3A%2F%2FLightningLoginCustomController%2FACTION%24login%22%2C%22callingDescriptor%22%3A%22markup%3A%2F%2Fc%3AloginForm%22%2C%22params%22%3A%7B%22username%22%3A%22"
-        #    + urllib.parse.quote(self._email)
-        #    + "%22%2C%22password%22%3A%22"
-        #    + urllib.parse.quote(self._password)
-        #    + "%22%2C%22startUrl%22%3A%22%22%7D%7D%5D%7D&aura.context=%7B%22mode%22%3A%22PROD%22%2C%22fwuid%22%3A%22"
-        #    + urllib.parse.quote(self._framework)
-        #    + "%22%2C%22app%22%3A%22siteforce%3AloginApp2%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AloginApp2%22%3A%22YtNc5oyHTOvavSB9Q4rtag%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2FSmartHome%2Fs%2Flogin%2F%3Flanguage%3Dfr&aura.token=null"
-        #)
-
-        message = {
-            "actions": [{
-                "id": "79;a",
-                "descriptor": "apex://LightningLoginCustomController/ACTION$login",
-                "callingDescriptor": "markup://c:loginForm",
-                "params": {
-                    "username": self._email,
-                    "password": self._password,
-                    "startUrl": ""
-                }
-            }]
-        }
-
-        data = urllib.parse.urlencode({
-            "message": json.dumps(message),
-            "aura.context": json.dumps({
-                "mode": "PROD",
-                "fwuid": self._framework,
-                "app": "siteforce:loginApp2",
-                "loaded": {
-                    "APPLICATION@markup://siteforce:loginApp2": "YtNc5oyHTOvavSB9Q4rtag"
-                },
-                "dn": [],
-                "globals": {},
-                "uad": False
-            }),
-            "aura.pageURI": "/SmartHome/s/login/?language=fr",
-            "aura.token": "null"
-        })
+        data = (
+            "message=%7B%22actions%22%3A%5B%7B%22id%22%3A%2279%3Ba%22%2C%22descriptor%22%3A%22apex%3A%2F%2FLightningLoginCustomController%2FACTION%24login%22%2C%22callingDescriptor%22%3A%22markup%3A%2F%2Fc%3AloginForm%22%2C%22params%22%3A%7B%22username%22%3A%22"
+            + urllib.parse.quote(self._email)
+            + "%22%2C%22password%22%3A%22"
+            + urllib.parse.quote(self._password)
+            + "%22%2C%22startUrl%22%3A%22%22%7D%7D%5D%7D&aura.context=%7B%22mode%22%3A%22PROD%22%2C%22fwuid%22%3A%22"
+            + urllib.parse.quote(self._framework)
+            + "%22%2C%22app%22%3A%22siteforce%3AloginApp2%22%2C%22loaded%22%3A%7B%22APPLICATION%40markup%3A%2F%2Fsiteforce%3AloginApp2%22%3A%22YtNc5oyHTOvavSB9Q4rtag%22%7D%2C%22dn%22%3A%5B%5D%2C%22globals%22%3A%7B%7D%2C%22uad%22%3Afalse%7D&aura.pageURI=%2FSmartHome%2Fs%2Flogin%2F%3Flanguage%3Dfr&aura.token=null"
+        )
 
         async with self._session.post(
             f"{AUTH_API}/s/sfsites/aura?r=3&other.LightningLoginCustom.login=1",
@@ -170,31 +136,7 @@ class HonConnection:
 
         return 0
 
-    async def async_try_saved_token(self) -> bool:
-        """Attempt to reuse a previously saved token, skipping the full OAuth2 flow."""
-        if not self._cognitoToken or not self._id_token:
-            return False
-        try:
-            url = f"{API_URL}/commands/v1/appliance"
-            async with self._session.get(url, headers=self._headers) as resp:
-                if resp.status != 200:
-                    _LOGGER.debug(f"hOn saved token rejected (HTTP {resp.status}), falling back to full auth")
-                    return False
-                json_data = await resp.json()
-                self._appliances = json_data["payload"]["appliances"]
-                self._appliances = [a for a in self._appliances if "macAddress" in a]
-                self._appliances = [a for a in self._appliances if "applianceTypeId" in a]
-                self._start_time = time.time()
-                _LOGGER.debug("hOn authenticated using saved token")
-                return True
-        except Exception as e:
-            _LOGGER.debug(f"hOn saved token attempt failed ({e}), falling back to full auth")
-            return False
-
     async def async_authorize(self):
-
-        if await self.async_try_saved_token():
-            return True
 
         if await self.async_get_frontdoor_url(0) == 1:
             return False
@@ -251,12 +193,6 @@ class HonConnection:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers [" + str(post_headers) + "]. Response: " + text)
                 return False
 
-        if self._entry is not None and self._hass is not None:
-            saved = {**self._entry.data}
-            saved[CONF_COGNITO_TOKEN] = self._cognitoToken
-            saved[CONF_ID_TOKEN] = self._id_token
-            self._hass.config_entries.async_update_entry(self._entry, data=saved)
-            _LOGGER.debug("hOn tokens persisted to config entry")
 
         url = f"{API_URL}/commands/v1/appliance"
         async with self._session.get(url,headers=self._headers) as resp:
@@ -289,7 +225,7 @@ class HonConnection:
             "fwVersion": appliance["fwVersion"],
             "os": OS,
             "appVersion": APP_VERSION,
-            "series": appliance.get("series", ""),
+            "series": appliance["series"],
         }
         url = f"{API_URL}/commands/v1/retrieve"
         async with self._session.get(url, params=params, headers=self._headers) as resp:

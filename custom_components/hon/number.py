@@ -145,7 +145,7 @@ class HonNumber(HonBaseNumberEntity):
         #param_display = description.key.replace("startProgram.", "").replace("tempSelZ", "Zone ")
         #self._attr_name = f"{self._name} {param_display}"
         #_LOGGER.error(self._attr_name)
-        #self._attr_unique_id = f"{self._mac}-number-v59-{description.key}"
+        self._attr_unique_id = f"{self._mac}-number-{description.key}"
 
     def _get_setting(self):
         return self._device.get_setting(self.entity_description.key)

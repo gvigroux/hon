@@ -83,3 +83,6 @@ This integration has been tested with the following devices.
 
 ### Heat Pump Water Heater
 - Haier HP150M8-9 (only programs are working)
+
+### Air to Water Heat Pump
+- Haier Monobloc GT R290

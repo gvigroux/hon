@@ -27,10 +27,12 @@ PLATFORMS = [
     "sensor",
     "binary_sensor",
     "button",
-    "switch",
-    "select",
-    "number",
+    "switch"
 ]
+
+"""     "number",
+    "select", """
+
 
 AUTH_API        = "https://account2.hon-smarthome.com/SmartHome"
 API_URL         = "https://api-iot.he.services"
@@ -51,7 +53,8 @@ class APPLIANCE_TYPE(IntEnum):
     DISH_WASHER     = 9,
     CLIMATE         = 11,
     FRIDGE          = 14,
-    TV              = 25
+    TV              = 25,
+    AIR_TO_WATER    = 27
 
 PROGRAM_HELPER_APPLIANCE_TYPES = {
     APPLIANCE_TYPE.OVEN,
@@ -71,6 +74,7 @@ APPLIANCE_DEFAULT_NAME = {
     "11": "Climate",
     "14": "Fridge",
     "25": "TV",
+    "27": "Air to Water",
 }
 
 CLIMATE_FAN_MODE = {
