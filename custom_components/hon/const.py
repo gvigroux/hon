@@ -53,6 +53,13 @@ class APPLIANCE_TYPE(IntEnum):
     FRIDGE          = 14,
     TV              = 25
 
+PROGRAM_HELPER_APPLIANCE_TYPES = {
+    APPLIANCE_TYPE.OVEN,
+    APPLIANCE_TYPE.DISH_WASHER,
+    str(APPLIANCE_TYPE.OVEN),
+    str(APPLIANCE_TYPE.DISH_WASHER),
+}
+
 APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
     "2": "Wash Dryer",

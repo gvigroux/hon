@@ -1,5 +1,5 @@
 import logging
-from .const import DOMAIN
+from .const import DOMAIN, PROGRAM_HELPER_APPLIANCE_TYPES
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers import entity_registry as er
@@ -19,7 +19,11 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
         coordinator = await hon.async_get_coordinator(appliance)
         device = coordinator.device
-        appliances.extend([HonBaseButtonEntity(coordinator, appliance)])
+        if (
+            appliance["applianceTypeId"] in PROGRAM_HELPER_APPLIANCE_TYPES
+            and "startProgram" in device.commands
+        ):
+            appliances.extend([HonBaseButtonEntity(coordinator, appliance)])
         if( "settings" in device.commands ):
             appliances.extend([HonBaseSettingsButtonEntity(coordinator, appliance)])
     async_add_entities(appliances)
