@@ -65,6 +65,16 @@ class HonConnection:
         self._frontdoor_url = ""
         self._start_time    = time.time()
 
+        # Distinct reason for the last authorization failure, so that the config
+        # flow can show an actionable message instead of a generic "wrong
+        # password" error. See async_authorize().
+        self._error_reason  = None
+
+    @property
+    def error_reason(self):
+        """Reason code for the last failed authorization (or None)."""
+        return self._error_reason
+
         self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
@@ -138,12 +148,20 @@ class HonConnection:
 
     async def async_authorize(self):
 
+        # Reset the failure reason for this attempt. It is only set when a step
+        # below fails, and read afterwards by the config flow.
+        self._error_reason = None
+
         if await self.async_get_frontdoor_url(0) == 1:
+            # The Salesforce login itself rejected the request: the email or
+            # password is wrong (or the login service is unreachable).
+            self._error_reason = "auth_error"
             return False
 
         async with self._session.get(self._frontdoor_url) as resp:
             if resp.status != 200:
                 _LOGGER.error("Unable to connect to the login service: " + str(resp.status))
+                self._error_reason = "cannot_connect"
                 return False
             await resp.text()
 
@@ -173,8 +191,15 @@ class HonConnection:
             except:
                 if "ChangePassword" not in text:
                     _LOGGER.error("Unable to get [id_token] during authorization process. Full response [" + text + "]")
+                    self._error_reason = "auth_error"
                 else:
+                    # The credentials are valid, but hOn redirected us to its
+                    # "change password" page (expired / forced password reset).
+                    # This is NOT a wrong-password error: surface a dedicated
+                    # reason so the user knows to reset their password instead of
+                    # endlessly retrying the same (correct) one.
                     _LOGGER.error("Unable to get connect. You need to change your password on the hOn app or go to https://account2.hon-smarthome.com/")
+                    self._error_reason = "password_change_required"
                 return False
 
         post_headers = {"id-token": self._id_token}
@@ -191,6 +216,7 @@ class HonConnection:
             except:
                 text = await resp.text()
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(data)+ "] with headers [" + str(post_headers) + "]. Response: " + text)
+                self._error_reason = "cannot_connect"
                 return False
 
 
@@ -200,6 +226,7 @@ class HonConnection:
                 json_data = await resp.json()
             except:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after GET [" + url + "]")
+                self._error_reason = "cannot_connect"
                 return False
 
             self._appliances = json_data["payload"]["appliances"]
