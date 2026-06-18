@@ -23,7 +23,8 @@ CONF_REFRESH_TOKEN = "refresh_token"
 CONF_FRAMEWORK = "framework"
 
 PLATFORMS = [
-    "climate", 
+    "climate",
+    "water_heater",
     "sensor",
     "binary_sensor",
     "button",
@@ -47,6 +48,7 @@ class APPLIANCE_TYPE(IntEnum):
     WASHING_MACHINE = 1,
     WASH_DRYER      = 2,
     OVEN            = 4,
+    WATER_HEATER    = 10,
     WINE_COOLER     = 6,
     PURIFIER        = 7,
     TUMBLE_DRYER    = 8,
@@ -60,6 +62,7 @@ APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
     "2": "Wash Dryer",
     "4": "Oven",
+    "10": "Water Heater",
     "6": "Wine Cooler",
     "7": "Purifier",
     "8": "Tumble Dryer",

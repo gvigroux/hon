@@ -167,6 +167,14 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("sterilizationStatus"):
             appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "sterilizationStatus", "Sterilization status", )])
 
+        # WH (Water Heater) additional sensors
+        if device.has("power"):
+            appliances.extend([HonBasePower(hass, coordinator, entry, appliance)])
+        if device.has("remainingVolumeHotWater"):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "remainingVolumeHotWater", "Remaining hot water")])
+        if device.has("totalWorkTime"):
+            appliances.extend([HonBaseWorkTime(hass, coordinator, entry, appliance)])
+
         # WM additional sensors
         if device.has("currentWashCycle"):
             appliances.extend([HonBaseCurrentWashCycle(hass, coordinator, entry, appliance)])
@@ -750,3 +758,29 @@ class HonBaseDelayTime(HonBaseSensorEntity):
 
     def coordinator_update(self):
         self._attr_native_value = self._device.getInt("delayTime")
+
+
+class HonBasePower(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "power", "Power")
+
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
+        self._attr_device_class = SensorDeviceClass.POWER
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:lightning-bolt"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("power")
+
+
+class HonBaseWorkTime(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "totalWorkTime", "Total work time")
+
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
+        self._attr_device_class = SensorDeviceClass.DURATION
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:timer-cog"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("totalWorkTime")
