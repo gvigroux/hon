@@ -153,6 +153,13 @@
                     "8": "Zones Heat + DHW"
                 }
             },
+            "water_heater_mode" : {
+                "state": {
+                    "1": "Eco",
+                    "2": "Max",
+                    "3": "BPS"
+                }
+            },
             "voc" : {
                 "state": {
                     "1": "Good",

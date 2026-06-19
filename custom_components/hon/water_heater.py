@@ -19,18 +19,16 @@ from .parameter import HonParameterRange
 
 _LOGGER = logging.getLogger(__name__)
 
-# hOn operation modes for water heaters (machMode <-> startProgram program key)
-OP_ECO = "eco"
-OP_MAX = "max"
-OP_BPS = "bps"
-
-# operation name -> machMode value (as reported / accepted by the appliance)
-OPERATION_TO_MACHMODE = {
-    OP_ECO: "1",
-    OP_MAX: "2",
-    OP_BPS: "3",
+# hOn operation modes for water heaters.
+# The capitalized display name doubles as the HA operation_mode value (HA only
+# localizes the *standard* water_heater states, so custom modes must already be
+# nicely cased). Each maps to (machMode value, startProgram program key).
+WH_MODES = {
+    "Eco": ("1", "eco"),
+    "Max": ("2", "max"),
+    "BPS": ("3", "bps"),
 }
-MACHMODE_TO_OPERATION = {v: k for k, v in OPERATION_TO_MACHMODE.items()}
+MACHMODE_TO_MODE = {machmode: name for name, (machmode, _prog) in WH_MODES.items()}
 
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
@@ -62,7 +60,7 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         self._watcher       = None
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_operation_list = [STATE_OFF, OP_ECO, OP_MAX, OP_BPS]
+        self._attr_operation_list = [STATE_OFF, *WH_MODES.keys()]
         self._attr_supported_features = (
             WaterHeaterEntityFeature.TARGET_TEMPERATURE
             | WaterHeaterEntityFeature.OPERATION_MODE
@@ -111,8 +109,8 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         if not self._is_on():
             self._attr_current_operation = STATE_OFF
         else:
-            self._attr_current_operation = MACHMODE_TO_OPERATION.get(
-                str(self._device.get("machMode")), OP_ECO
+            self._attr_current_operation = MACHMODE_TO_MODE.get(
+                str(self._device.get("machMode")), "Eco"
             )
         if write:
             self.async_write_ha_state()
@@ -141,21 +139,22 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
     async def async_set_operation_mode(self, operation_mode: str) -> None:
         if operation_mode == STATE_OFF:
             await self._device.stop_command().send()
-        elif self._is_on():
-            # Live mode change keeps the current target temperature
-            machmode = OPERATION_TO_MACHMODE[operation_mode]
-            await self._device.settings_command({"machMode": machmode}).send()
         else:
-            # Powered off: (re)start with the matching program
-            await self._device.start_command(operation_mode).send()
+            machmode, program = WH_MODES[operation_mode]
+            if self._is_on():
+                # Live mode change keeps the current target temperature
+                await self._device.settings_command({"machMode": machmode}).send()
+            else:
+                # Powered off: (re)start with the matching program
+                await self._device.start_command(program).send()
         self._attr_current_operation = operation_mode
         self.start_watcher()
         self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs) -> None:
-        program = MACHMODE_TO_OPERATION.get(str(self._device.get("machMode")), OP_ECO)
-        await self._device.start_command(program).send()
-        self._attr_current_operation = program
+        mode = MACHMODE_TO_MODE.get(str(self._device.get("machMode")), "Eco")
+        await self._device.start_command(WH_MODES[mode][1]).send()
+        self._attr_current_operation = mode
         self.start_watcher()
         self.async_write_ha_state()
 

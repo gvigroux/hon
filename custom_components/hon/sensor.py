@@ -236,7 +236,11 @@ class HonBaseMode(HonBaseSensorEntity):
         if( self._type_id == APPLIANCE_TYPE.AIR_TO_WATER ):
             self.translation_key    = "air_to_water_mode"
             self._attr_icon         = "mdi:heat-pump-outline"
-            
+
+        if( self._type_id == APPLIANCE_TYPE.WATER_HEATER ):
+            self.translation_key    = "water_heater_mode"
+            self._attr_icon         = "mdi:water-boiler"
+
 
     def coordinator_update(self):
         mode = self._device.get("machMode")
