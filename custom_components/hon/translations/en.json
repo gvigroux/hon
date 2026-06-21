@@ -147,10 +147,15 @@
             },
             "air_to_water_mode" : {
                 "state": {
-                    "0": "Off",
-                    "2": "Zones Heat",
+                    "0": "Auto",
+                    "1": "Cooling",
+                    "2": "Heating",
                     "3": "DHW",
-                    "8": "Zones Heat + DHW"
+                    "4": "Pool",
+                    "5": "Heating + Pool",
+                    "6": "Auto + DHW",
+                    "7": "Cooling + DHW",
+                    "8": "Heating + DHW"
                 }
             },
             "voc" : {
