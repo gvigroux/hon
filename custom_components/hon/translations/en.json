@@ -121,6 +121,12 @@
                     "6": "Fan only"
                 }
             },
+            "holiday_mode": {
+                "state": {
+                    "0": "Off",
+                    "1": "On",
+                }
+            },
             "dishwasher_mode" : {
                 "state": {
                     "1": "Ready",
