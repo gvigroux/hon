@@ -125,6 +125,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
             await coordinator.async_request_refresh()
 
+        if (("settings" in device.commands) 
+            and (device.get("ecoMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="turboMode",
+                name="Turbo Mode",
+                icon="mdi:rocket-launch",
+                translation_key="turbo_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
 
         if (("settings" in device.commands) 
             and (device.get("healthMode", "N/A") != "N/A")):
