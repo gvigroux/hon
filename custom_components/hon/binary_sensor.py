@@ -69,6 +69,14 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("muteStatus"):
             appliances.extend([HonBaseMuteStatus(hass, coordinator, entry, appliance)])
 
+        # WH (Water Heater) additional binary sensors
+        if device.has("heatingStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "heatingStatus", "Heating", BinarySensorDeviceClass.HEAT)])
+        if device.has("anodeMaintenanceStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "anodeMaintenanceStatus", "Anode maintenance", BinarySensorDeviceClass.PROBLEM)])
+        if device.has("tankMaintenanceStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "tankMaintenanceStatus", "Tank maintenance", BinarySensorDeviceClass.PROBLEM)])
+
         # WM additional binary sensors
         if device.has("pause"):
             appliances.extend([HonBasePauseStatus(hass, coordinator, entry, appliance)])
