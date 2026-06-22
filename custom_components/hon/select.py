@@ -5,7 +5,7 @@ from homeassistant.components.select import SelectEntity, SelectEntityDescriptio
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers import translation
 
-from .const import DOMAIN
+from .const import DOMAIN, PROGRAM_HELPER_APPLIANCE_TYPES
 from .device import HonDevice
 from .parameter import HonParameterFixed, HonParameterEnum, HonParameterProgram
 
@@ -34,11 +34,16 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     appliances = []
     for appliance in hon.appliances:
         coordinator = await hon.async_get_coordinator(appliance)
+        program_helpers_allowed = (
+            appliance["applianceTypeId"] in PROGRAM_HELPER_APPLIANCE_TYPES
+        )
 
         for key, parameter in coordinator.device.settings.items():
             if not isinstance(parameter, (HonParameterEnum, HonParameterProgram)):
                 continue
-            if key.startswith("settings.") and set(parameter.values) == {"0", "1"}:
+            if not key.startswith("startProgram."):
+                continue
+            if not program_helpers_allowed:
                 continue
 
             default_value = default_values.get(parameter.key, {})
@@ -92,10 +97,7 @@ class HonSelect(HonDevice, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         command_name, parameter_name = self.entity_description.key.split(".", 1)
-        if command_name == "settings":
-            command = self._device.settings_command({parameter_name: option})
-            await command.send()
-            await self.coordinator.async_request_refresh()
+        if command_name != "startProgram":
             return
 
         if parameter_name == "program":
