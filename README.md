@@ -68,6 +68,7 @@ This integration has been tested with the following devices.
 
 ### WashDryer Machine
 - HDQ 496AMBS/1-S
+- HWD120BP14357GUK
 
 ### Tumble Dryer
 - Hoover H-Dry 350, 9 kg Condenser Tumble Dryer HRE C9TBE-80
