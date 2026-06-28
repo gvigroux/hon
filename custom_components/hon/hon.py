@@ -242,6 +242,7 @@ class HonConnection:
         command["parameters"] = parameters
         command["timestamp"] = timestamp
         command["transactionId"] = mac + "_" + command["timestamp"]
+        
         _LOGGER.debug((f"Command sent (async_set): {command}"))
 
         async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=command,) as resp:
@@ -284,6 +285,15 @@ class HonConnection:
             "parameters": parameters,
             "applianceType": device.appliance_type
         }
+        
+        program = parameters.get("program") or ancillary_parameters.get("program")
+
+        if command["commandName"] == "startProgram" and program:
+            if device.appliance_type in ["WM", "WD"]:
+                command["programName"] = (
+                    f"PROGRAMS.WM_WD.{program.upper()}"
+                )
+            
         _LOGGER.debug((f"Command sent (send_command): {command}"))
 
         url = f"{API_URL}/commands/v1/send"
