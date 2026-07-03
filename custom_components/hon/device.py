@@ -287,10 +287,19 @@ class HonDevice(CoordinatorEntity):
 
     async def load_commands(self):
         commands = await self._hon.load_commands(self._appliance)
-    
+
+        if not commands:
+            # Some appliances (e.g. a Haier TV) legitimately return no command
+            # set. That's a normal state, not an error worth alarming about.
+            _LOGGER.debug(
+                "No command set returned for %s (type %s); skipping command setup.",
+                self._name, self._type_name,
+            )
+            return
+
         try:
             self._appliance_model = commands.pop("applianceModel")
-        except:
+        except KeyError:
             _LOGGER.error(f"Unable to load device commands. Please try to restart. Current value: [{commands}]")
             return
 
