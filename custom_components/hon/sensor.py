@@ -802,3 +802,12 @@ class HonBaseWorkTime(HonBaseSensorEntity):
 
     def coordinator_update(self):
         self._attr_native_value = self._device.getInt("totalWorkTime")
+
+class HonBasePowerZone(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+        self._attr_icon = "mdi:stove"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt(self._key)
