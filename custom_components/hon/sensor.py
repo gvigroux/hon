@@ -76,12 +76,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature zone 2")])
         if device.has("tempSelZ3"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ3",   "Selected temperature zone 3")])
+        if device.has("tempSelZ4"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ4",   "Selected temperature zone 4")])
         if device.has("tempZ1"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature zone 1")])
         if device.has("tempZ2"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature zone 2")])
         if device.has("tempZ3"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ3",      "Temperature zone 3")])
+        if device.has("tempZ4"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ4",      "Temperature zone 4")])
 
         # AW Domestic hot water sensors
         if device.has("tempDhw"):
@@ -200,6 +204,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseVolume(hass, coordinator, entry, appliance)])
         if device.has("displayedApp"):
             appliances.extend([HonBaseDisplayedApp(hass, coordinator, entry, appliance)])
+
+        # Cooking Hob     
+        if device.has("powerZ1"):
+            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ1", "Power zone 1")])
+        if device.has("powerZ2"):
+            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ2", "Power zone 2")])
+        if device.has("powerZ3"):
+            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ3", "Power zone 3")])
+        if device.has("powerZ4"):
+            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ4", "Power zone 4")])
 
         # Statistics sensors
         if device.get("statistics.programsCounter") is not None:
