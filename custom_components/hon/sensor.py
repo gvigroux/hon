@@ -205,25 +205,21 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("displayedApp"):
             appliances.extend([HonBaseDisplayedApp(hass, coordinator, entry, appliance)])
 
-        # Cooking Hob     
-        if device.has("powerZ1"):
-            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ1", "Power zone 1")])
-        if device.has("powerZ2"):
-            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ2", "Power zone 2")])
-        if device.has("powerZ3"):
-            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ3", "Power zone 3")])
-        if device.has("powerZ4"):
-            appliances.extend([HonBasePowerZone(hass, coordinator, entry, appliance, "powerZ4", "Power zone 4")])
-
         # Statistics sensors
         if device.get("statistics.programsCounter") is not None:
             appliances.extend([HonBaseProgramsCounter(hass, coordinator, entry, appliance)])
 
+       # Induction Hob (HAISJ64MC) settings
+        for i in range(1, 5):
+            if device.has(f"powerZ{i}"):
+                appliances.extend([HonHobZoneLevel(hass, coordinator, entry, appliance, f"powerZ{i}", f"Zone {i} Level")])
+            if device.has(f"remainingTimeHHZ{i}") and device.has(f"remainingTimeMMZ{i}"):
+                appliances.extend([HonHobZoneCompositeTimer(hass, coordinator, entry, appliance, i, f"Zone {i} Timer")])
+
+
         await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
-
-
 
 
 
@@ -803,7 +799,8 @@ class HonBaseWorkTime(HonBaseSensorEntity):
     def coordinator_update(self):
         self._attr_native_value = self._device.getInt("totalWorkTime")
 
-class HonBasePowerZone(HonBaseSensorEntity):
+
+class HonHobZoneLevel(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
         super().__init__(coordinator, appliance, key, name)
         self._attr_icon = "mdi:stove"
@@ -811,3 +808,21 @@ class HonBasePowerZone(HonBaseSensorEntity):
 
     def coordinator_update(self):
         self._attr_native_value = self._device.getInt(self._key)
+
+
+class HonHobZoneCompositeTimer(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, zone_number, name) -> None:
+        self._zone_number = zone_number
+
+        super().__init__(coordinator, appliance, f"remainingTimeMMZ{zone_number}", name)
+        self._attr_icon = "mdi:timer-outline"
+        self._attr_native_unit_of_measurement = "min"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def coordinator_update(self):
+        hours = self._device.getInt(f"remainingTimeHHZ{self._zone_number}")
+        minutes = self._device.getInt(f"remainingTimeMMZ{self._zone_number}")
+        
+        # Adds hours and minutes (HH * 60 + MM)
+        self._attr_native_value = (hours * 60) + minutes
+

@@ -97,6 +97,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("ecoExpress"):
             appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "ecoExpress", "Eco express", BinarySensorDeviceClass.RUNNING)])
 
+        # Induction Hob (HAISJ64MC) settings
+        for i in range(1, 5):
+           if device.has(f"onOffStatusZ{i}"):
+              appliances.extend([HonHobZoneOnOff(hass, coordinator, entry, appliance, f"onOffStatusZ{i}", f"Zone {i} State")])
+           if device.has(f"panStatusZ{i}"):
+              appliances.extend([HonHobZonePanPresence(hass, coordinator, entry, appliance, f"panStatusZ{i}", f"Zone {i} Pan")])
+           if device.has(f"hotStatusZ{i}"):
+              appliances.extend([HonHobZoneHotStatus(hass, coordinator, entry, appliance, f"hotStatusZ{i}", f"Zone {i} Hot")])
+
+
     async_add_entities(appliances)
 
 
@@ -208,3 +218,35 @@ class HonBasePauseStatus(HonBaseBinarySensorEntity):
 
     def coordinator_update(self):
         self._attr_is_on = self._device.get("pause") == "1"
+
+
+class HonHobZoneOnOff(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+
+        self._attr_device_class = BinarySensorDeviceClass.POWER
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get(self._key) == "1" 
+
+
+class HonHobZonePanPresence(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+            
+        self._attr_device_class = BinarySensorDeviceClass.PRESENCE
+        self._attr_icon = "mdi:pot-steam"
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get(self._key) == "1" 
+
+
+class HonHobZoneHotStatus(HonBaseBinarySensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+        
+        self._attr_device_class = BinarySensorDeviceClass.HEAT
+        self._attr_icon = "mdi:thermometer-chevron-up"
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get(self._key) == "1" 
