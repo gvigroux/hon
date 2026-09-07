@@ -16,10 +16,10 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfMass,
     UnitOfVolume,
+    UnitOfDensity,
+    UnitOfRatio,
     REVOLUTIONS_PER_MINUTE,
     PERCENTAGE,
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_MILLION
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -349,7 +349,7 @@ class HonBaseIndoorPM2p5(HonBaseSensorEntity):
 
         self._attr_device_class = SensorDeviceClass.PM25
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        self._attr_native_unit_of_measurement = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
         self._attr_icon = "mdi:blur"
 
 
@@ -359,7 +359,7 @@ class HonBaseIndoorPM10(HonBaseSensorEntity):
 
         self._attr_device_class = SensorDeviceClass.PM10
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        self._attr_native_unit_of_measurement = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
         self._attr_icon = "mdi:blur"
 
 
@@ -381,7 +381,7 @@ class HonBaseCOlevel(HonBaseSensorEntity):
 
         self._attr_device_class = SensorDeviceClass.CO2
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
+        self._attr_native_unit_of_measurement = UnitOfRatio.PARTS_PER_MILLION
         self._attr_icon = "mdi:molecule-co2"
 
 
