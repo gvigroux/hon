@@ -174,8 +174,24 @@ class HonConnection:
         }
         url = f"{API_URL}/commands/v1/retrieve"
         async with self._session.get(url, params=params, headers=self._headers) as resp:
+            if resp.status != 200:
+                _LOGGER.warning(
+                    "Command retrieve failed for %s (HTTP %s)",
+                    appliance.get("macAddress"), resp.status,
+                )
+                return {}
             result = (await resp.json()).get("payload", {})
-            if not result or result.pop("resultCode") != "0":
+            if not result:
+                # Appliance without a command set (e.g. a TV): the cloud returns
+                # an empty payload. This is expected, so stay quiet here and let
+                # the caller skip command setup.
+                return {}
+            result_code = result.pop("resultCode", None)
+            if result_code != "0":
+                _LOGGER.warning(
+                    "Command retrieve returned resultCode %s for %s",
+                    result_code, appliance.get("macAddress"),
+                )
                 return {}
             _LOGGER.debug(f"Commands: {result}")
             return result
