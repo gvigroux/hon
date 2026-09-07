@@ -76,12 +76,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ2",   "Selected temperature zone 2")])
         if device.has("tempSelZ3"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ3",   "Selected temperature zone 3")])
+        if device.has("tempSelZ4"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempSelZ4",   "Selected temperature zone 4")])
         if device.has("tempZ1"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ1",      "Temperature zone 1")])
         if device.has("tempZ2"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ2",      "Temperature zone 2")])
         if device.has("tempZ3"):
             appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ3",      "Temperature zone 3")])
+        if device.has("tempZ4"):
+            appliances.extend([HonBaseTemperature(hass, coordinator, entry, appliance, "tempZ4",      "Temperature zone 4")])
 
         # AW Domestic hot water sensors
         if device.has("tempDhw"):
@@ -205,11 +209,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.get("statistics.programsCounter") is not None:
             appliances.extend([HonBaseProgramsCounter(hass, coordinator, entry, appliance)])
 
+       # Induction Hob (HAISJ64MC) settings
+        for i in range(1, 5):
+            if device.has(f"powerZ{i}"):
+                appliances.extend([HonHobZoneLevel(hass, coordinator, entry, appliance, f"powerZ{i}", f"Zone {i} Level")])
+            if device.has(f"remainingTimeHHZ{i}") and device.has(f"remainingTimeMMZ{i}"):
+                appliances.extend([HonHobZoneCompositeTimer(hass, coordinator, entry, appliance, i, f"Zone {i} Timer")])
+
+
         await coordinator.async_request_refresh()
 
     async_add_entities(appliances)
-
-
 
 
 
@@ -788,3 +798,31 @@ class HonBaseWorkTime(HonBaseSensorEntity):
 
     def coordinator_update(self):
         self._attr_native_value = self._device.getInt("totalWorkTime")
+
+
+class HonHobZoneLevel(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+        self._attr_icon = "mdi:stove"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt(self._key)
+
+
+class HonHobZoneCompositeTimer(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, zone_number, name) -> None:
+        self._zone_number = zone_number
+
+        super().__init__(coordinator, appliance, f"remainingTimeMMZ{zone_number}", name)
+        self._attr_icon = "mdi:timer-outline"
+        self._attr_native_unit_of_measurement = "min"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def coordinator_update(self):
+        hours = self._device.getInt(f"remainingTimeHHZ{self._zone_number}")
+        minutes = self._device.getInt(f"remainingTimeMMZ{self._zone_number}")
+        
+        # Adds hours and minutes (HH * 60 + MM)
+        self._attr_native_value = (hours * 60) + minutes
+
