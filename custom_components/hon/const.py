@@ -28,11 +28,12 @@ PLATFORMS = [
     "sensor",
     "binary_sensor",
     "button",
+    "select",
     "switch"
 ]
 
 """     "number",
-    "select", """
+        """
 
 
 AUTH_API        = "https://account2.hon-smarthome.com/SmartHome"

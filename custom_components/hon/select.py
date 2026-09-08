@@ -36,9 +36,11 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
         coordinator = await hon.async_get_coordinator(appliance)
 
         for key, parameter in coordinator.device.settings.items():
+            if not key.startswith("settings."):
+                continue
             if not isinstance(parameter, (HonParameterEnum, HonParameterProgram)):
                 continue
-            if key.startswith("settings.") and set(parameter.values) == {"0", "1"}:
+            if set(parameter.values) == {"0", "1"}:
                 continue
 
             default_value = default_values.get(parameter.key, {})
@@ -79,6 +81,10 @@ class HonSelect(HonDevice, SelectEntity):
             self._attr_options = [setting.value]
         else:
             self._attr_options = list(setting.values)
+
+    @property
+    def name(self):
+        return f"{self._device.name} {self.entity_description.name}"
 
     @property
     def current_option(self) -> str | None:
