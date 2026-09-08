@@ -1,10 +1,13 @@
 import logging
+from copy import copy
+
+from homeassistant.exceptions import HomeAssistantError
 
 from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,CoordinatorEntity)
 
 from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
 from .command import HonCommand
-from .parameter import HonParameterFixed, HonParameterEnum
+from .parameter import HonParameterFixed, HonParameterProgram
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -196,19 +199,26 @@ class HonDevice(CoordinatorEntity):
                 result.setdefault(name, {})[key] = parameter.value
         return result
         
-    """ 
-    def update_command(self, command, parameters):
-        for key in command.parameters.keys():
-            if( key in parameters 
-                and command.parameters.get(key).value != parameters.get(key) 
-                and not isinstance(command.parameters.get(key), HonParameterFixed)):
+    def update_command(self, command, parameters, *, strict=False):
+        if strict:
+            # Validate all requested changes before altering the prepared command.
+            updates = {}
+            for key, value in parameters.items():
+                param = command.parameters.get(key)
+                if param is None:
+                    raise HomeAssistantError(f"Unsupported command parameter: {key}")
+                if isinstance(param, HonParameterProgram):
+                    raise HomeAssistantError("Select the program using the program field")
+                candidate = copy(param)
+                try:
+                    candidate.value = value
+                except (TypeError, ValueError) as err:
+                    raise HomeAssistantError(f"Invalid parameter {key}: {err}") from err
+                updates[key] = candidate.value
+            for key, value in updates.items():
+                command.parameters[key].value = value
+            return
 
-                if( isinstance(command.parameters.get(key), HonParameterEnum) and parameters.get(key) not in command.parameters.get(key).values): 
-                    _LOGGER.warning(f"Unable to update parameter [{key}] with value [{parameters.get(key)}] because not in range {command.parameters.get(key).values}. Use default instead.")
-                else:
-                    command.parameters.get(key).value = parameters.get(key) """
-
-    def update_command(self, command, parameters):
         for key in command.parameters.keys():
             param = command.parameters.get(key)
 
@@ -233,20 +243,16 @@ class HonDevice(CoordinatorEntity):
                     except Exception:
                         pass
 
-    def settings_command(self, parameters = {}):
+    def settings_command(self, parameters = None):
         if( "settings" not in self._commands ):
             raise ValueError("No command to update settings of the device")
         command = self._commands.get("settings")
         self.update_command(command, self.attributes.get("parameters", {}))
-        self.update_command(command, parameters)
-
-        # Update for next command (in case no refresh happens yet)
-        for key in command.parameters.keys():
-            self.attributes.setdefault("parameters", {})[key] = command.parameters.get(key).value
+        self.update_command(command, parameters or {}, strict=True)
 
         return command
 
-    def start_command(self, program = None, parameters = {}):
+    def start_command(self, program = None, parameters = None):
         if( "startProgram" not in self._commands ):
             raise ValueError("No command to start the device")
         command = self._commands.get("startProgram")
@@ -254,12 +260,15 @@ class HonDevice(CoordinatorEntity):
             command.set_program(program)
         # Return the new default command
         command = self._commands.get("startProgram")
-        self.update_command(command, self.attributes.get("parameters", {}))
-        self.update_command(command, parameters)
-    
-        # Update for next command (in case no refresh happens yet)
-        for key in command.parameters.keys():
-            self.attributes.setdefault("parameters", {})[key] = command.parameters.get(key).value
+        # The selected program defines its own defaults and allowed ranges.
+        # Telemetry can describe another program or persistent appliance settings
+        # with different defaults and allowed ranges.
+        if self.appliance_type != "DW":
+            self.update_command(command, self.attributes.get("parameters", {}))
+        self.update_command(command, parameters or {}, strict=True)
+        if self.appliance_type != "DW":
+            for key, parameter in command.parameters.items():
+                self.attributes.setdefault("parameters", {})[key] = parameter.value
 
         return command
 
@@ -314,8 +323,12 @@ class HonDevice(CoordinatorEntity):
             elif "parameters" in attr[list(attr)[0]]:
                 multi = {}
                 for program, attr2 in attr.items():
+                    program_name = program
                     program = program.split(".")[-1].lower()
-                    cmd = HonCommand(command, attr2, self._hon, self, multi=multi, program=program)
+                    cmd = HonCommand(
+                        command, attr2, self._hon, self, multi=multi,
+                        program=program, program_name=program_name,
+                    )
                     multi[program] = cmd
                     self._commands[command] = cmd
 
