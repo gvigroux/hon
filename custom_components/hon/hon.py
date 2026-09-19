@@ -63,6 +63,16 @@ class HonConnection:
 
         self._start_time    = time.time()
 
+        # Distinct reason for the last authorization failure, so that the config
+        # flow can show an actionable message instead of a generic "wrong
+        # password" error. See async_authorize().
+        self._error_reason  = None
+
+    @property
+    def error_reason(self):
+        """Reason code for the last failed authorization (or None)."""
+        return self._error_reason
+
         self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
@@ -103,6 +113,10 @@ class HonConnection:
         and reads appliances from /unified-api/v1/view/appliance-list. The old
         /commands/v1/appliance endpoint now returns an empty list.
         """
+        # Reset the failure reason for this attempt. It is only set when a step
+        # below fails, and read afterwards by the config flow.
+        self._error_reason = None
+
         # PKCE (S256) verifier + challenge
         code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(64)).rstrip(b"=").decode()
         code_challenge = base64.urlsafe_b64encode(
@@ -117,11 +131,23 @@ class HonConnection:
         }
         async with self._session.get(f"{API_URL}/ciam/authorize", params=params) as resp:
             if resp.status != 200:
-                _LOGGER.error("Unable to connect to the CIAM authorize service: " + str(resp.status))
+                text = await resp.text()
+                # hOn keeps its legacy behaviour of redirecting to a
+                # "ChangePassword" page when the credentials are valid but a
+                # password reset is required. Surface that as a dedicated reason
+                # so the user resets their password instead of endlessly retrying
+                # the same (correct) one.
+                if "ChangePassword" in text:
+                    _LOGGER.error("Unable to connect. You need to change your password on the hOn app or go to https://account2.hon-smarthome.com/")
+                    self._error_reason = "password_change_required"
+                else:
+                    _LOGGER.error("Unable to connect to the CIAM authorize service: " + str(resp.status))
+                    self._error_reason = "cannot_connect"
                 return False
             session_id = (await resp.json()).get("session_id")
             if not session_id:
                 _LOGGER.error("Unable to get [session_id] - check your email/password")
+                self._error_reason = "auth_error"
                 return False
 
         # 2) Exchange the session id (+ PKCE verifier) for the tokens
@@ -136,6 +162,7 @@ class HonConnection:
                 self._refresh_token = tokens.get("refresh_token", "")
             except (KeyError, TypeError):
                 _LOGGER.error("Unable to get tokens from /ciam/token. Response: " + await resp.text())
+                self._error_reason = "auth_error"
                 return False
 
         # 3) Load the appliance list from the unified-api view
@@ -146,6 +173,7 @@ class HonConnection:
                 self._appliances = json_data["modules"]["applianceList"]["payload"]["appliances"]
             except (KeyError, TypeError):
                 _LOGGER.error("hOn Invalid Data [" + (await resp.text())[:500] + "] after POST [" + url + "]")
+                self._error_reason = "cannot_connect"
                 return False
 
             _LOGGER.debug(f"All appliances: {self._appliances}")

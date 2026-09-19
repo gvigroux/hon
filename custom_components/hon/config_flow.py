@@ -50,13 +50,16 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Test connection
         hon = HonConnection(None, None, self._email, self._password)
+        error_reason = "cannot_connect"
         try:
             auth_ok = await hon.async_authorize()
+            if not auth_ok:
+                error_reason = hon.error_reason or "auth_error"
         except aiohttp.ClientConnectorError:
             auth_ok = False
         await hon.async_close()
         if not auth_ok:
-            errors["base"] = "auth_error"
+            errors["base"] = error_reason
             return self.async_show_form(step_id="user",data_schema=vol.Schema({vol.Required(CONF_EMAIL): str,vol.Required(CONF_PASSWORD): str}), errors=errors)
 
         return self.async_create_entry(
@@ -95,14 +98,17 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 
             # Test connection
             hon = HonConnection(None, None, config_entry.unique_id, user_input[CONF_PASSWORD])
+            error_reason = "cannot_connect"
             try:
                 auth_ok = await hon.async_authorize()
+                if not auth_ok:
+                    error_reason = hon.error_reason or "auth_error"
             except aiohttp.ClientConnectorError:
                 auth_ok = False
             await hon.async_close()
             if not auth_ok:
                 errors = {}
-                errors["base"] = "auth_error"
+                errors["base"] = error_reason
                 return self.async_show_form(step_id="reconfigure",data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}), errors=errors)
 
             await self.async_set_unique_id(config_entry.unique_id)
