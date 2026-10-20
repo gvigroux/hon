@@ -32,18 +32,6 @@ default_values = {
         "icon": "mdi:thermometer",
         "native_unit_of_measurement": UnitOfTemperature.CELSIUS,
     },
-    "tempSelZ1": {
-        "icon": "mdi:thermometer",
-        "native_unit_of_measurement": UnitOfTemperature.CELSIUS,
-    },
-    "tempSelZ2": {
-        "icon": "mdi:thermometer",
-        "native_unit_of_measurement": UnitOfTemperature.CELSIUS,
-    },
-    "tempSelZ3": {
-        "icon": "mdi:thermometer",
-        "native_unit_of_measurement": UnitOfTemperature.CELSIUS,
-    },
     "antiCreaseTime": {
         "icon": "mdi:timer",
         "native_unit_of_measurement": UnitOfTime.MINUTES,
@@ -189,25 +177,10 @@ class HonNumber(HonBaseNumberEntity):
     @property
     def native_value(self) -> float | None:
         setting = self._get_setting()
-        if setting is None:
-            return None
-
-        # Prefer the current value reported by the device over the command default
-        command_name, parameter_name = self.entity_description.key.split(".", 1)
-        if command_name == "settings":
-            current = self._device.get(parameter_name)
-            try:
-                return float(str(current).replace(",", "."))
-            except (TypeError, ValueError):
-                pass
-        return setting.value
+        return None if setting is None else setting.value
 
     async def async_set_native_value(self, value: float) -> None:
         command_name, parameter_name = self.entity_description.key.split(".", 1)
-        setting = self._get_setting()
-        if isinstance(setting, HonParameterRange) and isinstance(setting.step, int) and float(value).is_integer():
-            value = int(value)
-
         if command_name == "settings":
             command = self._device.settings_command({parameter_name: value})
             await command.send()
