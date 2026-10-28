@@ -209,6 +209,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.get("statistics.programsCounter") is not None:
             appliances.extend([HonBaseProgramsCounter(hass, coordinator, entry, appliance)])
 
+        # Hood: current suction (fan) speed, 0 = off .. 5 = max
+        if device.appliance_type == "HO" and device.has("windSpeed"):
+            appliances.extend([HonBaseInt(hass, coordinator, entry, appliance, "windSpeed", "Wind speed")])
+
        # Induction Hob (HAISJ64MC) settings
         for i in range(1, 5):
             if device.has(f"powerZ{i}"):
