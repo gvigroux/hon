@@ -149,6 +149,18 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
             await coordinator.async_request_refresh()
 
+        if (("settings" in device.commands)
+            and (device.get("lightStatus", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="lightStatus",
+                name="Light",
+                icon="mdi:lightbulb",
+                translation_key="light_status",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
 
     async_add_entities(appliances)
 
