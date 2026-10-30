@@ -23,6 +23,7 @@ from homeassistant.const import (
 )
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, APPLIANCE_TYPE
 from .base import HonBaseCoordinator, HonBaseSensorEntity
@@ -179,6 +180,20 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("totalWorkTime"):
             appliances.extend([HonBaseWorkTime(hass, coordinator, entry, appliance)])
 
+        # HW (heat pump water heater) additional sensors
+        if device.has("remainingWaterLevel"):
+            appliances.extend([HonBaseWaterLevel(hass, coordinator, entry, appliance)])
+        for key, name, monthly in (
+            ("energyConsumptionYearCp", "Compressor energy this year", False),
+            ("energyConsumptionMonthCp", "Compressor energy this month", True),
+            ("energyConsumptionYearEc", "Electric heater energy this year", False),
+            ("energyConsumptionMonthEc", "Electric heater energy this month", True),
+            ("accumulatedHeatYear", "Heat produced this year", False),
+            ("accumulatedHeatMonth", "Heat produced this month", True),
+        ):
+            if device.has(key):
+                appliances.extend([HonBaseEnergyList(hass, coordinator, entry, appliance, key, name, monthly)])
+
         # WM additional sensors
         if device.has("currentWashCycle"):
             appliances.extend([HonBaseCurrentWashCycle(hass, coordinator, entry, appliance)])
@@ -253,6 +268,10 @@ class HonBaseMode(HonBaseSensorEntity):
 
         if( self._type_id == APPLIANCE_TYPE.WATER_HEATER ):
             self.translation_key    = "water_heater_mode"
+            self._attr_icon         = "mdi:water-boiler"
+
+        if( self._type_id == APPLIANCE_TYPE.HW_WATER_HEATER ):
+            self.translation_key    = "hw_water_heater_mode"
             self._attr_icon         = "mdi:water-boiler"
 
 
@@ -830,3 +849,43 @@ class HonHobZoneCompositeTimer(HonBaseSensorEntity):
         # Adds hours and minutes (HH * 60 + MM)
         self._attr_native_value = (hours * 60) + minutes
 
+
+class HonBaseWaterLevel(HonBaseSensorEntity):
+    """Hot water level in display bars (0-12 on the HP150M8-9), relative to the setpoint."""
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "remainingWaterLevel", "Hot water level")
+
+        # Named relative to the device, so it does not depend on the appliance nickname.
+        self._attr_has_entity_name = True
+        self._attr_name = "Hot water level"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:water-percent"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("remainingWaterLevel")
+
+
+class HonBaseEnergyList(HonBaseSensorEntity):
+    """kWh from a semicolon separated list reported by HW water heaters.
+
+    Yearly lists end with the current year. Monthly lists have one entry per
+    calendar month (January first).
+    """
+    def __init__(self, hass, coordinator, entry, appliance, key, name, monthly) -> None:
+        self._monthly = monthly
+        super().__init__(coordinator, appliance, key, name)
+
+        # Named relative to the device, so it does not depend on the appliance nickname.
+        self._attr_has_entity_name = True
+        self._attr_name = name
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+
+    def coordinator_update(self):
+        values = str(self._device.get(self._key) or "").split(";")
+        try:
+            value = values[dt_util.now().month - 1] if self._monthly else values[-1]
+            self._attr_native_value = float(value)
+        except (IndexError, ValueError):
+            self._attr_native_value = None
