@@ -34,7 +34,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         appliances.extend([HonBaseOnOff(hass, coordinator, entry, appliance)])
 
         if device.has("doorStatus"):
-            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "doorStatus", "Door status", BinarySensorDeviceClass.DOOR)])
+            if appliance["applianceTypeId"] == APPLIANCE_TYPE.DISH_WASHER:
+                appliances.extend([HonBaseDishWasherDoorStatus(hass, coordinator, entry, appliance)])
+            else:
+                appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "doorStatus", "Door status", BinarySensorDeviceClass.DOOR)])
         if device.has("defrostStatus"):
             appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "defrostStatus", "Defrost status", BinarySensorDeviceClass.RUNNING)])
 
@@ -129,6 +132,21 @@ class HonBaseOnOff(HonBaseBinarySensorEntity):
             self._attr_is_on = self._device.get("onOffStatus") == "1"
         else:
             self._attr_is_on = self._device.get("attributes.lastConnEvent.category") == "CONNECTED"
+
+class HonBaseDishWasherDoorStatus(HonBaseBinarySensorEntity):
+    # With automatic door opening the dish washer opens the door at the end of the program and powers down a few
+    # minutes later. The cloud keeps the last doorStatus ("1" = open) until the next power on, so the door looked
+    # open long after it was closed. Report the door only while the appliance is connected.
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "doorStatus", "Door status")
+        self._attr_device_class = BinarySensorDeviceClass.DOOR
+
+    @property
+    def available(self):
+        return super().available and self._device.get("attributes.lastConnEvent.category") != "DISCONNECTED"
+
+    def coordinator_update(self):
+        self._attr_is_on = self._device.get("doorStatus") == "1"
 
 class HonBaseDoorStatus(HonBaseBinarySensorEntity):
     def __init__(self, hass, coordinator, entry, appliance, zone, zone_name) -> None:
