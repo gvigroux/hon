@@ -35,6 +35,7 @@ This integration has been tested with the following devices.
 - AS35TEDHRA(M1) and AS25TEDHRA(M1) in 2x1 configuration with one outdoor unit
 - AS50S2SF2FA-1/1U50S2SJ2FA
 - AS68RDAHRA-4
+- AS50PCTHRA
 
 ### Oven
 - Candy Oven - FCT825XL WIFI Model
@@ -45,6 +46,7 @@ This integration has been tested with the following devices.
 - hoover HWPDQ 49AMBC/1-S
 - HW80-B14959TU1DE
 - HW110-B14979U1
+- HWPS41074DAB7-11
 
 ### Wine Cooler
 - HWS42GDAU1
