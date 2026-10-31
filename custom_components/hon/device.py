@@ -254,7 +254,9 @@ class HonDevice(CoordinatorEntity):
             command.set_program(program)
         # Return the new default command
         command = self._commands.get("startProgram")
-        self.update_command(command, self.attributes.get("parameters", {}))
+        current_parameters = dict(self.attributes.get("parameters", {}))
+        current_parameters.pop("program", None)
+        self.update_command(command, current_parameters)
         self.update_command(command, parameters)
     
         # Update for next command (in case no refresh happens yet)
