@@ -50,10 +50,20 @@ def update_sensor(hass, device_id, mac, sensor_name, state):
             hass.states.async_set(entry.entity_id, state, inputStateObject.attributes)
 
 def get_parameters(call):
-    parameters_str = call.data.get("parameters", "{}")
-    if type(parameters_str) != str:
-        parameters_str = str(parameters_str)
-    return ast.literal_eval(parameters_str)
+    parameters = call.data.get("parameters", {})
+    if isinstance(parameters, str):
+        try:
+            parameters = ast.literal_eval(parameters)
+        except (SyntaxError, ValueError) as err:
+            raise HomeAssistantError(
+                "Invalid parameters: use a YAML mapping or a dictionary such as "
+                "{'lightStatus': 1}. Check quotes and closing braces."
+            ) from err
+    if not isinstance(parameters, dict) or not all(
+        isinstance(key, str) for key in parameters
+    ):
+        raise HomeAssistantError("Parameters must be a mapping with string keys")
+    return dict(parameters)
 
 
 def _minutes_until(target: datetime, now: datetime) -> int:

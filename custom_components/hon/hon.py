@@ -274,7 +274,7 @@ class HonConnection:
         return False
 
 
-    async def send_command(self, device, command, parameters, ancillary_parameters):
+    async def send_command(self, device, command, parameters, ancillary_parameters, program_name=""):
 
         await self._ensure_session()
 
@@ -304,8 +304,10 @@ class HonConnection:
         
         program = parameters.get("program") or ancillary_parameters.get("program")
 
-        if command["commandName"] == "startProgram" and program:
-            if device.appliance_type in ["WM", "WD"]:
+        if command["commandName"] == "startProgram":
+            if program_name:
+                command["programName"] = program_name.upper()
+            elif program and device.appliance_type in ["WM", "WD"]:
                 command["programName"] = (
                     f"PROGRAMS.WM_WD.{program.upper()}"
                 )

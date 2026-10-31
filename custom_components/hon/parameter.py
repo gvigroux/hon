@@ -136,6 +136,7 @@ class HonParameterEnum(HonParameter):
 
     @value.setter
     def value(self, value):
+        value = str(value)
         if value in self.values:
             self._value = value
         else:
