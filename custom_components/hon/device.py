@@ -8,6 +8,14 @@ from .parameter import HonParameterFixed, HonParameterEnum
 
 _LOGGER = logging.getLogger(__name__)
 
+# Parameters whose value reported by the hOn cloud is unreliable: the appliance
+# accepts the new value, but the cloud keeps reporting the old/invalid one
+# (see issue #268 for echoStatus). Because every command re-sends the full
+# parameter set from the last cloud state, the stale value would be sent again
+# with the next command. For these keys the value chosen in Home Assistant is
+# kept locally and wins over the cloud value.
+STICKY_PARAMETERS = ("echoStatus",)
+
 class HonDevice(CoordinatorEntity):
     def __init__(self, hon, coordinator, appliance) -> None:
         super().__init__(coordinator)
@@ -30,6 +38,7 @@ class HonDevice(CoordinatorEntity):
         self._appliance_model       = {}
         self._attributes            = {}
         self._statistics            = {}
+        self._sticky_parameters     = {}
 
 
     def __getitem__(self, item):
@@ -48,7 +57,27 @@ class HonDevice(CoordinatorEntity):
                 return self.attributes["parameters"].get(item)
             return self.appliance[item]
 
+    def set_sticky(self, item, value):
+        """Remember a locally chosen value for a parameter the cloud reports unreliably."""
+        if item not in STICKY_PARAMETERS or value is None:
+            return
+        value = str(value)
+        self._sticky_parameters[item] = value
+        self._attributes.setdefault("parameters", {})[item] = value
+
+    def _remember_sticky(self, parameters):
+        for key in STICKY_PARAMETERS:
+            if key in parameters:
+                self.set_sticky(key, parameters[key])
+
+    def _apply_sticky(self):
+        if self._sticky_parameters:
+            self._attributes.setdefault("parameters", {}).update(self._sticky_parameters)
+
     def set(self, item, value):
+        if item in STICKY_PARAMETERS:
+            self.set_sticky(item, value)
+            return
         if item in self.data:
             self.data[item] = value
         elif item in self.attributes["parameters"]:
@@ -139,6 +168,8 @@ class HonDevice(CoordinatorEntity):
 
         for name, values in parameters.items():
             self._attributes.setdefault("parameters", {})[name] = values.get("parNewVal")
+
+        self._apply_sticky()
             
     @property
     def data(self):
@@ -238,6 +269,7 @@ class HonDevice(CoordinatorEntity):
             raise ValueError("No command to update settings of the device")
         command = self._commands.get("settings")
         self.update_command(command, self.attributes.get("parameters", {}))
+        self._remember_sticky(parameters)
         self.update_command(command, parameters)
 
         # Update for next command (in case no refresh happens yet)
@@ -255,6 +287,7 @@ class HonDevice(CoordinatorEntity):
         # Return the new default command
         command = self._commands.get("startProgram")
         self.update_command(command, self.attributes.get("parameters", {}))
+        self._remember_sticky(parameters)
         self.update_command(command, parameters)
     
         # Update for next command (in case no refresh happens yet)
