@@ -24,6 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 # localizes the *standard* water_heater states, so custom modes must already be
 # nicely cased). Each maps to (machMode value, startProgram program key).
 WH_MODES = {
+    "Normal": ("0", "normal"),
     "Eco": ("1", "eco"),
     "Max": ("2", "max"),
     "BPS": ("3", "bps"),
@@ -60,7 +61,7 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         self._watcher       = None
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_operation_list = [STATE_OFF, *WH_MODES.keys()]
+        self._attr_operation_list = [STATE_OFF, *self._supported_modes()]
         self._attr_supported_features = (
             WaterHeaterEntityFeature.TARGET_TEMPERATURE
             | WaterHeaterEntityFeature.OPERATION_MODE
@@ -87,6 +88,18 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
 
     def _is_on(self) -> bool:
         return self._device.get("onOffStatus") == "1"
+
+    def _supported_modes(self) -> list[str]:
+        """Modes whose program this appliance offers; every mode if unknown."""
+        command = self._device.commands.get("startProgram")
+        programs = (command.get_programs() or {}) if command else {}
+        modes = [mode for mode, (_, program) in WH_MODES.items() if program in programs]
+        return modes or list(WH_MODES)
+
+    async def _start_mode(self, mode: str) -> None:
+        # startProgram with the machMode set directly: the program route and the
+        # settings command leave machMode unchanged on a running ES80V-VH3W.
+        await self._coordinator.async_set({"onOffStatus": "1", "machMode": WH_MODES[mode][0]})
 
     def start_watcher(self, delay=timedelta(seconds=8)):
         """Suppress coordinator overwrites briefly so optimistic state sticks."""
@@ -140,20 +153,14 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         if operation_mode == STATE_OFF:
             await self._device.stop_command().send()
         else:
-            machmode, program = WH_MODES[operation_mode]
-            if self._is_on():
-                # Live mode change keeps the current target temperature
-                await self._device.settings_command({"machMode": machmode}).send()
-            else:
-                # Powered off: (re)start with the matching program
-                await self._device.start_command(program).send()
+            await self._start_mode(operation_mode)
         self._attr_current_operation = operation_mode
         self.start_watcher()
         self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs) -> None:
         mode = MACHMODE_TO_MODE.get(str(self._device.get("machMode")), "Eco")
-        await self._device.start_command(WH_MODES[mode][1]).send()
+        await self._start_mode(mode)
         self._attr_current_operation = mode
         self.start_watcher()
         self.async_write_ha_state()
