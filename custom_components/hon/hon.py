@@ -66,7 +66,7 @@ class HonConnection:
         self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
-        self._session = aiohttp.ClientSession(headers=self._header, connector=aiohttp.TCPConnector(ssl=False))
+        self._session = aiohttp.ClientSession(headers=self._header)
         self._appliances = []
 
     async def async_close(self):
