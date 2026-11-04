@@ -18,7 +18,9 @@
         },
         "error": {
             "reconfigure_successful" : "You need to restart HA",
-            "auth_error": "Your login attempt has failed. Make sure the username and password are correct."
+            "auth_error": "Your login attempt has failed. Make sure the username and password are correct.",
+            "password_change_required": "Your credentials are correct, but hOn requires you to set a new password before the account can be used here. Open the hOn mobile app (or https://account2.hon-smarthome.com/), change your password, then try again with the new one.",
+            "cannot_connect": "Could not reach the hOn cloud service. Please check your internet connection and try again."
         }
     },
     "entity": {
