@@ -76,6 +76,7 @@ This integration has been tested with the following devices.
 - HLEH10A2TCEX-17
 - HD90-A3Q979U1-S
 - Candy ROE H9A3TCEX-S
+- Haier HD90-C367GU1-FR
 
 ### Air Purifier
 - hoover HHP30C011 (Air Purifier 300)

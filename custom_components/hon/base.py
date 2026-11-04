@@ -9,6 +9,7 @@ from homeassistant.components.switch import SwitchEntityDescription, SwitchEntit
 
 
 from homeassistant.core import callback
+from homeassistant.helpers.debounce import Debouncer
 import logging
 import re
 from datetime import timedelta
@@ -16,6 +17,12 @@ from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
 from .command import HonCommand
 
 _LOGGER = logging.getLogger(__name__)
+
+# Cooldown between two refresh requests (e.g. right after a command).
+# Home Assistant's default is 10 s, which makes state feedback after a
+# command feel very slow. 1.5 s still coalesces bursts of requests while
+# giving near-immediate feedback.
+REQUEST_REFRESH_COOLDOWN = 1.5
 
 class HonBaseCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, hon, appliance):
@@ -25,6 +32,9 @@ class HonBaseCoordinator(DataUpdateCoordinator):
             _LOGGER,
             name="hOn Device",
             update_interval=timedelta(seconds=60),
+            request_refresh_debouncer=Debouncer(
+                hass, _LOGGER, cooldown=REQUEST_REFRESH_COOLDOWN, immediate=True
+            ),
         )
         self._hon       = hon
         self._device    = None

@@ -66,7 +66,7 @@ class HonConnection:
         self._header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
         }
-        self._session = aiohttp.ClientSession(headers=self._header, connector=aiohttp.TCPConnector(ssl=False))
+        self._session = aiohttp.ClientSession(headers=self._header)
         self._appliances = []
 
     async def async_close(self):
@@ -170,12 +170,28 @@ class HonConnection:
             "fwVersion": appliance["fwVersion"],
             "os": OS,
             "appVersion": APP_VERSION,
-            "series": appliance["series"],
+            "series": appliance.get("series", ""),
         }
         url = f"{API_URL}/commands/v1/retrieve"
         async with self._session.get(url, params=params, headers=self._headers) as resp:
+            if resp.status != 200:
+                _LOGGER.warning(
+                    "Command retrieve failed for %s (HTTP %s)",
+                    appliance.get("macAddress"), resp.status,
+                )
+                return {}
             result = (await resp.json()).get("payload", {})
-            if not result or result.pop("resultCode") != "0":
+            if not result:
+                # Appliance without a command set (e.g. a TV): the cloud returns
+                # an empty payload. This is expected, so stay quiet here and let
+                # the caller skip command setup.
+                return {}
+            result_code = result.pop("resultCode", None)
+            if result_code != "0":
+                _LOGGER.warning(
+                    "Command retrieve returned resultCode %s for %s",
+                    result_code, appliance.get("macAddress"),
+                )
                 return {}
             _LOGGER.debug(f"Commands: {result}")
             return result
@@ -242,6 +258,7 @@ class HonConnection:
         command["parameters"] = parameters
         command["timestamp"] = timestamp
         command["transactionId"] = mac + "_" + command["timestamp"]
+        
         _LOGGER.debug((f"Command sent (async_set): {command}"))
 
         async with self._session.post(f"{API_URL}/commands/v1/send",headers=self._headers,json=command,) as resp:
@@ -284,6 +301,15 @@ class HonConnection:
             "parameters": parameters,
             "applianceType": device.appliance_type
         }
+        
+        program = parameters.get("program") or ancillary_parameters.get("program")
+
+        if command["commandName"] == "startProgram" and program:
+            if device.appliance_type in ["WM", "WD"]:
+                command["programName"] = (
+                    f"PROGRAMS.WM_WD.{program.upper()}"
+                )
+            
         _LOGGER.debug((f"Command sent (send_command): {command}"))
 
         url = f"{API_URL}/commands/v1/send"
