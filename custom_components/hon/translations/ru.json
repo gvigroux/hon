@@ -71,6 +71,13 @@
                     "7": "Законченно"
                 }
             },
+            "water_heater_mode" : {
+                "state": {
+                    "1": "Eco",
+                    "2": "Max",
+                    "3": "BPS"
+                }
+            },
             "dry_level" : {
                 "state": {
                     "3": "Cupboard dry",

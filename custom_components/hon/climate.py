@@ -56,7 +56,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher   import async_dispatcher_connect
-from homeassistant.helpers.event        import async_track_time_interval
+from homeassistant.helpers.event        import async_call_later
 from homeassistant.helpers              import config_validation as cv, entity_platform
 from .const import(
     DOMAIN, 
@@ -82,7 +82,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if appliance['applianceTypeId'] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
-            appliances.append(HonClimateEntity(hass, coordinator, entry, appliance))
+            try:
+                appliances.append(HonClimateEntity(hass, coordinator, entry, appliance))
+            except Exception:
+                # One appliance that cannot be set up must not take the whole
+                # climate platform down with it: without this, a single
+                # disconnected unit leaves every other air conditioner of the
+                # account without a climate entity, and the only clue is one
+                # line in the log.
+                _LOGGER.exception(
+                    "Could not set up climate entity for %s, skipping it",
+                    appliance.get('nickName') or appliance.get('macAddress'))
 
     async_add_entities(appliances)
 
@@ -257,7 +267,9 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         await self._device.settings_command(parameters).send()
 
     def start_watcher(self, timedelta=timedelta(seconds=8)):
-        self._watcher = async_track_time_interval(self._hass, self.async_update_after_state_change, timedelta)
+        if self._watcher is not None:
+            self._watcher()
+        self._watcher = async_call_later(self._hass, timedelta, self.async_update_after_state_change)
         self.async_write_ha_state()
 
     async def async_update_after_state_change(self, now: Optional[datetime] = None) -> None:
@@ -271,8 +283,14 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
             return
 
 
-        self._attr_target_temperature   = int(float(self._device.get('tempSel')))
-        self._attr_current_temperature  = float(self._device.get('tempIndoor'))
+        # An appliance that is offline reports these as None. float(None) raises
+        # TypeError, and when that happens in __init__ it aborts the setup of
+        # the whole platform. None is also the honest value here: Home Assistant
+        # shows it as unknown, where a 0 would read as a real measurement.
+        temp_sel = self._device.get('tempSel')
+        self._attr_target_temperature   = int(float(temp_sel)) if temp_sel is not None else None
+        temp_indoor = self._device.get('tempIndoor')
+        self._attr_current_temperature  = float(temp_indoor) if temp_indoor is not None else None
 
         self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_modes[0])
 
@@ -350,6 +368,8 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return False
         await self._device.settings_command({'tempSel': temperature}).send()
+        self._attr_target_temperature = int(float(temperature))
+        self.start_watcher()
 
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
@@ -386,6 +406,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
     async def async_set_fan_mode(self, fan_mode: str):
         self._attr_fan_mode = fan_mode
         await self._device.settings_command({'windSpeed':CLIMATE_FAN_MODE.get(fan_mode, CLIMATE_FAN_MODE.get(FAN_MEDIUM))}).send()
+        self.start_watcher()
 
 
     async def async_set_swing_mode(self, swing_mode: str):
@@ -414,10 +435,12 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
 
         self._attr_swing_mode = swing_mode
         await self._device.settings_command(parameters).send()
+        self.start_watcher()
 
 
     async def async_will_remove_from_hass(self):
         """When entity will be removed from hass."""
-        if self._watcher != None:
+        if self._watcher is not None:
+            self._watcher()
             self._watcher = None
 

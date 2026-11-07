@@ -23,7 +23,8 @@ CONF_REFRESH_TOKEN = "refresh_token"
 CONF_FRAMEWORK = "framework"
 
 PLATFORMS = [
-    "climate", 
+    "climate",
+    "water_heater",
     "sensor",
     "binary_sensor",
     "button",
@@ -36,7 +37,7 @@ PLATFORMS = [
 
 AUTH_API        = "https://account2.hon-smarthome.com/SmartHome"
 API_URL         = "https://api-iot.he.services"
-APP_VERSION     = "2.0.10"
+APP_VERSION     = "2.27.9"
 OS_VERSION      = 31
 OS              = "android"
 DEVICE_MODEL    = "exynos9820"
@@ -47,6 +48,7 @@ class APPLIANCE_TYPE(IntEnum):
     WASHING_MACHINE = 1,
     WASH_DRYER      = 2,
     OVEN            = 4,
+    WATER_HEATER    = 10,
     WINE_COOLER     = 6,
     PURIFIER        = 7,
     TUMBLE_DRYER    = 8,
@@ -67,6 +69,7 @@ APPLIANCE_DEFAULT_NAME = {
     "1": "Washing Machine",
     "2": "Wash Dryer",
     "4": "Oven",
+    "10": "Water Heater",
     "6": "Wine Cooler",
     "7": "Purifier",
     "8": "Tumble Dryer",

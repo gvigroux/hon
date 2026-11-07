@@ -4,12 +4,14 @@ from typing import Any
 
 
 from .const import DOMAIN
-from .device import HonDevice
+from .device import HonDevice, STICKY_PARAMETERS
 from .parameter import HonParameter, HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
 from .base import HonBaseCoordinator, HonBaseSwitchEntity
 
 
 from homeassistant.core import callback
+from homeassistant.const import STATE_ON, STATE_OFF
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.switch import SwitchEntityDescription, SwitchEntity
 
@@ -125,6 +127,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
             await coordinator.async_request_refresh()
 
+        if (("settings" in device.commands) 
+            and (device.get("ecoMode", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="turboMode",
+                name="Turbo Mode",
+                icon="mdi:rocket-launch",
+                translation_key="turbo_mode",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
 
         if (("settings" in device.commands) 
             and (device.get("healthMode", "N/A") != "N/A")):
@@ -138,18 +151,45 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
             await coordinator.async_request_refresh()
 
+        if (("settings" in device.commands)
+            and (device.get("lightStatus", "N/A") != "N/A")):
+
+            description = HonSwitchEntityDescription(
+                key="lightStatus",
+                name="Light",
+                icon="mdi:lightbulb",
+                translation_key="light_status",
+            )
+            appliances.extend([HonSwitchEntity(hass, coordinator, entry, appliance, description)])
+            await coordinator.async_request_refresh()
+
 
     async_add_entities(appliances)
 
 
 
 
-class HonSwitchEntity(HonBaseSwitchEntity):
+class HonSwitchEntity(HonBaseSwitchEntity, RestoreEntity):
     entity_description: HonSwitchEntityDescription
 
     def __init__(self, hass, coordinator, entry, appliance, entity_description, invert = False) -> None:
         super().__init__(coordinator, appliance, entity_description)
         self.invert = invert
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        # The cloud reports an unreliable value for some parameters (e.g. echoStatus,
+        # issue #268). Restore the last state chosen in Home Assistant so it survives
+        # a restart and is sent with the next command, instead of the cloud value.
+        if self.entity_description.key not in STICKY_PARAMETERS:
+            return
+        last_state = await self.async_get_last_state()
+        if last_state is None or last_state.state not in (STATE_ON, STATE_OFF):
+            return
+        self._device.set_sticky(self.entity_description.key,
+                                self._target_value(last_state.state == STATE_ON))
+        self._attr_is_on = self.is_on
+        self.async_write_ha_state()
 
     def _setting_key(self) -> str:
         return f"settings.{self.entity_description.key}"
