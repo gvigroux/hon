@@ -1,0 +1,3 @@
+homeassistant
+pytest
+pytest-asyncio

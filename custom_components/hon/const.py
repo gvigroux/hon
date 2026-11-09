@@ -56,6 +56,7 @@ class APPLIANCE_TYPE(IntEnum):
     CLIMATE         = 11,
     FRIDGE          = 14,
     TV              = 25,
+    HW_WATER_HEATER = 26,
     AIR_TO_WATER    = 27
 
 APPLIANCE_DEFAULT_NAME = {
@@ -70,6 +71,7 @@ APPLIANCE_DEFAULT_NAME = {
     "11": "Climate",
     "14": "Fridge",
     "25": "TV",
+    "26": "Water Heater",
     "27": "Air to Water",
 }
 

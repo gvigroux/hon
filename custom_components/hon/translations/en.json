@@ -173,6 +173,14 @@
                     "3": "BPS"
                 }
             },
+            "hw_water_heater_mode" : {
+                "state": {
+                    "1": "Auto",
+                    "2": "Eco",
+                    "3": "Electric",
+                    "4": "Vacation"
+                }
+            },
             "voc" : {
                 "state": {
                     "1": "Good",
