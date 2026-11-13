@@ -81,6 +81,26 @@ def get_device_ids(hass, call):
     return list(device_ids)
 
 
+PROGRAM_CONTROL_COMMANDS = ("pauseProgram", "resumeProgram", "stopProgram")
+
+
+async def async_send_program_command(device, command_name):
+    """Send a program control command (pause / resume / stop) to a device.
+
+    stopProgram is built with device.stop_command() so it carries the current parameters,
+    pauseProgram and resumeProgram have no parameters and are sent as loaded from the appliance."""
+    if command_name not in device.commands:
+        keys = ", ".join(device.commands)
+        raise HomeAssistantError(f"Device does not support [{command_name}], available commands [{keys}]")
+    if command_name == "stopProgram":
+        command = device.stop_command()
+    else:
+        command = device.commands[command_name]
+    if not await command.send():
+        raise HomeAssistantError(f"hOn rejected the [{command_name}] command")
+    await device.coordinator.async_request_refresh()
+
+
 async def async_get_device_ids(hass, call):
     device_ids = set(call.data.get("device_id", []))
     entity_ids = call.data.get("entity_id", [])
@@ -397,6 +417,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             parameters  = get_parameters(call)
             await device.start_command(program, parameters).send()
 
+    async def _handle_program_command(call, command_name):
+        for device_id in get_device_ids(hass, call):
+            device = hon.get_device(hass, device_id)
+            if device is None:
+                raise HomeAssistantError(f"Unable to find the hOn device [{device_id}]")
+            await async_send_program_command(device, command_name)
+
+    async def handle_pause_program(call):
+        await _handle_program_command(call, "pauseProgram")
+
+    async def handle_resume_program(call):
+        await _handle_program_command(call, "resumeProgram")
+
+    async def handle_stop_program(call):
+        await _handle_program_command(call, "stopProgram")
+
 
     async def handle_custom_request(call):
         #device_id   = call.data.get("device")
@@ -463,6 +499,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         "climate_turn_health_mode_on": handle_health_mode_on,
         "climate_turn_health_mode_off": handle_health_mode_off,
         "start_program": handle_start_program,
+        "pause_program": handle_pause_program,
+        "resume_program": handle_resume_program,
+        "stop_program": handle_stop_program,
         "update_settings": handle_update_settings,
         "get_setting": async_get_setting,
     }

@@ -692,6 +692,27 @@ start_program:
       selector:
         text:
 
+pause_program:
+  name: Pause the running program of a hOn device
+  description: Sends the hOn pauseProgram command (e.g. washing machines, washer-dryers, tumble dryers)
+  target:
+    entity:
+      integration: hon
+
+resume_program:
+  name: Resume the paused program of a hOn device
+  description: Sends the hOn resumeProgram command (e.g. washing machines, washer-dryers, tumble dryers)
+  target:
+    entity:
+      integration: hon
+
+stop_program:
+  name: Stop the program of a hOn device
+  description: Sends the hOn stopProgram command (cancels a running, paused or scheduled program)
+  target:
+    entity:
+      integration: hon
+
 update_settings:
   name: Update any settings of a hOn device
   description: You can get all the details to start a program by clicking on the button inside the device

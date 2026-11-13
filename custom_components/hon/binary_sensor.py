@@ -89,6 +89,16 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "steamStatus", "Steam", BinarySensorDeviceClass.RUNNING)])
         if device.has("energySavingStatus"):
             appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "energySavingStatus", "Energy saving", BinarySensorDeviceClass.RUNNING)])
+        # Auto-dosing tanks: "0" means the tank is fine (hOn app shows FULL), "1" asks to refill
+        if device.has("detWarn"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "detWarn", "Detergent warning", BinarySensorDeviceClass.PROBLEM)])
+        if device.has("softWarn"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "softWarn", "Softener warning", BinarySensorDeviceClass.PROBLEM)])
+        # Auto-dosing enabled for the running program (the appliance reports "0" while idle)
+        if device.has("autoDetergentStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "autoDetergentStatus", "Auto detergent dosing", None)])
+        if device.has("autoSoftenerStatus"):
+            appliances.extend([HonBaseGenericStatus(hass, coordinator, entry, appliance, "autoSoftenerStatus", "Auto softener dosing", None)])
 
         # DW additional binary sensors
         if device.has("extraDry"):
