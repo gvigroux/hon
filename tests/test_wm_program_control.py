@@ -136,3 +136,23 @@ async def test_dosing_sensors_only_when_the_keys_exist():
     sensors = _generic(await _setup(await _device({"onOffStatus": "1"})))
     for key in ("detWarn", "softWarn", "autoDetergentStatus", "autoSoftenerStatus"):
         assert key not in sensors
+
+
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        ({"entity_id": "sensor.washer_mode"}, {"dev-1"}),
+        ({"entity_id": ["sensor.washer_mode"]}, {"dev-1"}),
+        ({"device_id": "dev-2"}, {"dev-2"}),
+        ({"device_id": ["dev-2"], "entity_id": "sensor.washer_mode"}, {"dev-1", "dev-2"}),
+    ],
+)
+def test_get_device_ids_accepts_a_single_string_target(monkeypatch, data, expected):
+    import custom_components.hon as hon_init
+
+    registry = MagicMock()
+    registry.async_get = lambda entity_id: MagicMock(device_id="dev-1") if entity_id == "sensor.washer_mode" else None
+    monkeypatch.setattr(hon_init.er, "async_get", lambda hass: registry)
+    call = MagicMock()
+    call.data = data
+    assert set(hon_init.get_device_ids(MagicMock(), call)) == expected

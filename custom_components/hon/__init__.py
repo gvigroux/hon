@@ -68,8 +68,9 @@ def _minutes_until(target: datetime, now: datetime) -> int:
     #return list(dict.fromkeys(device_ids))
 
 def get_device_ids(hass, call):
-    device_ids = set(call.data.get("device_id", []))
-    entity_ids = call.data.get("entity_id", [])
+    # The services have no schema, a single target can arrive as a plain string
+    device_ids = set(cv.ensure_list(call.data.get("device_id", [])))
+    entity_ids = cv.ensure_list(call.data.get("entity_id", []))
 
     ent_reg = er.async_get(hass)
 
