@@ -268,7 +268,7 @@ class HonConnection:
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False
-            if data["payload"]["resultCode"] == "0":
+            if data.get("payload", {}).get("resultCode") == "0":
                 return True
             _LOGGER.error("hOn command has been rejected. Error message ["+ str(data) + "] sent command ["+ str(command)+ "]")
         return False
@@ -320,7 +320,7 @@ class HonConnection:
             except json.JSONDecodeError:
                 _LOGGER.error("hOn Invalid Data ["+ str(resp.text()) + "] after sending command ["+ str(command)+ "]")
                 return False
-            if data["payload"]["resultCode"] == "0":
+            if data.get("payload", {}).get("resultCode") == "0":
                 return True
             _LOGGER.error("hOn command has been rejected. Error message ["+ str(data) + "] sent data ["+ str(command)+ "]")
         return False
