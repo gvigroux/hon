@@ -161,8 +161,13 @@ class HonConnection:
 
 
     async def load_commands(self, appliance):
+        # The AC command catalog uses the type name instead of the numeric ID.
+        appliance_type = appliance["applianceTypeId"]
+        if appliance_type == 11:
+            appliance_type = appliance.get("applianceTypeName") or appliance_type
+
         params = {
-            "applianceType": appliance["applianceTypeId"],
+            "applianceType": appliance_type,
             "code": appliance["code"],
             "applianceModelId": appliance["applianceModelId"],
             "firmwareId": appliance["eepromId"],
