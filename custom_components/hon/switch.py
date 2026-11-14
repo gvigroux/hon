@@ -224,10 +224,12 @@ class HonSwitchEntity(HonBaseSwitchEntity, RestoreEntity):
             if type(setting) == HonParameter:
                 return
             if self.invert:
-                setting.value = setting.min if isinstance(setting, HonParameterRange) else 0
+                target = setting.min if isinstance(setting, HonParameterRange) else 0
             else:
-                setting.value = setting.max if isinstance(setting, HonParameterRange) else 1
-            await self._device.commands["settings"].send()
+                target = setting.max if isinstance(setting, HonParameterRange) else 1
+            # settings_command() resyncs the other parameters from the device state
+            # first, so stale cached values (e.g. machMode) are not sent back.
+            await self._device.settings_command({self.entity_description.key: target}).send()
             value = str(setting.value)
         else:
             value = self._target_value(True)
@@ -251,10 +253,10 @@ class HonSwitchEntity(HonBaseSwitchEntity, RestoreEntity):
             if type(setting) == HonParameter:
                 return
             if self.invert:
-                setting.value = setting.max if isinstance(setting, HonParameterRange) else 1
+                target = setting.max if isinstance(setting, HonParameterRange) else 1
             else:
-                setting.value = setting.min if isinstance(setting, HonParameterRange) else 0
-            await self._device.commands["settings"].send()
+                target = setting.min if isinstance(setting, HonParameterRange) else 0
+            await self._device.settings_command({self.entity_description.key: target}).send()
             value = str(setting.value)
         else:
             value = self._target_value(False)
