@@ -1,8 +1,8 @@
 import logging
 import re
 from .device import HonDevice
-from .const import DOMAIN, APPLIANCE_DEFAULT_NAME
-from .parameter import HonParameterFixed, HonParameterEnum, HonParameterRange, HonParameterProgram
+from .const import DOMAIN, APPLIANCE_DEFAULT_NAME, PROGRAM_HELPER_APPLIANCE_TYPES
+from .parameter import HonParameterRange
 
 from homeassistant.core import callback
 from homeassistant.const import UnitOfTemperature, UnitOfTime
@@ -51,33 +51,16 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     appliances = []
     for appliance in hon.appliances:
         coordinator = await hon.async_get_coordinator(appliance)
-        device = coordinator.device
-
-        #command = device.settings_command()
-
-        for key in coordinator.device.settings:
-            parameter = coordinator.device.settings[key]
-            if(isinstance(parameter, HonParameterRange)
-            and key.startswith("startProgram.")):
-
-                default_value = default_values.get(parameter.key, {})
-                translation_key = coordinator.device.appliance_type.lower() + '_' + parameter.key.lower()
-                
-                #name=translations.get(f"component.hon.entity.number.{translation_key}.name", parameter.key),
-
-                description = NumberEntityDescription(
-                    key=key,
-                    name=f"{parameter.key}",
-                    entity_category=EntityCategory.CONFIG,
-                    #entity_category=None,
-                    translation_key = translation_key,
-                    icon=default_value.get("icon", None),
-                    unit_of_measurement=default_value.get("unit_of_measurement", None),
-                )
-                appliances.extend([HonNumber(hon, coordinator, appliance, description)])
+        program_helpers_allowed = (
+            appliance["applianceTypeId"] in PROGRAM_HELPER_APPLIANCE_TYPES
+        )
 
         for key, parameter in coordinator.device.settings.items():
             if not isinstance(parameter, HonParameterRange):
+                continue
+            if not key.startswith("startProgram."):
+                continue
+            if not program_helpers_allowed:
                 continue
 
             default_value = default_values.get(parameter.key, {})
@@ -181,10 +164,7 @@ class HonNumber(HonBaseNumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         command_name, parameter_name = self.entity_description.key.split(".", 1)
-        if command_name == "settings":
-            command = self._device.settings_command({parameter_name: value})
-            await command.send()
-            await self.coordinator.async_request_refresh()
+        if command_name != "startProgram":
             return
 
         self._device.start_command(parameters={parameter_name: value})

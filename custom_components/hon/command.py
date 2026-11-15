@@ -9,7 +9,8 @@ class HonCommand:
         self._connector = connector
         self._device = device
         self._name = name
-        self._multi = multi or {}
+        self._is_multi = multi is not None
+        self._multi = multi if multi is not None else {}
         self._program = program
         self._description = attributes.get("description", "")
         self._parameters = self._create_parameters(attributes.get("parameters", {}))
@@ -28,7 +29,7 @@ class HonCommand:
                     result[parameter] = HonParameterEnum(parameter, attributes)
                 case "fixed":
                     result[parameter] = HonParameterFixed(parameter, attributes)
-        if self._multi:
+        if self._is_multi:
             result["program"] = HonParameterProgram("program", self)
         return result
 
@@ -63,7 +64,7 @@ class HonCommand:
 
     @property
     def setting_keys(self):
-        if not self._multi:
+        if not self._is_multi:
             return self._get_settings_keys()
         result = [key for cmd in self._multi.values() for key in self._get_settings_keys(cmd)]
         return list(set(result + ["program"]))
@@ -71,7 +72,7 @@ class HonCommand:
     @property
     def settings(self):
         """Parameters with typology enum and range"""
-        if not self._multi:
+        if not self._is_multi:
             return {
                 key: parameter
                 for key, parameter in self._parameters.items()
