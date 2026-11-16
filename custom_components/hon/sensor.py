@@ -375,6 +375,15 @@ class HonBaseRemainingTime(HonBaseSensorEntity):
                 time = delay + remainingTime
             self._attr_native_value = time
 
+        # TUMBLE_DRYER: in Ready (1) remainingTimeMM is the selected program's full
+        # length, not a time left, and it stays there after the dryer switches itself
+        # off. Ready and Finished (7) have no cycle to time, so both read 0 (#393)
+        elif( self._type_id == APPLIANCE_TYPE.TUMBLE_DRYER ):
+            if mach_mode in (1,7):
+                self._attr_native_value = 0
+            else:
+                self._attr_native_value = delay + remainingTime
+
         else:
             self._attr_native_value = delay + remainingTime
 
