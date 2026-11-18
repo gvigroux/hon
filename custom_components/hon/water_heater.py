@@ -51,6 +51,12 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
 
 class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
+    if not hasattr(WaterHeaterEntity, "native_temperature_unit"):
+        # Home Assistant before 2026.11 reads the old names
+        temperature_unit    = property(lambda self: self._attr_native_temperature_unit)
+        current_temperature = property(lambda self: self._attr_native_current_temperature)
+        target_temperature  = property(lambda self: self._attr_native_target_temperature)
+
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator)
         self._coordinator   = coordinator
@@ -65,7 +71,7 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         self._device        = coordinator.device
         self._watcher       = None
 
-        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_native_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_operation_list = [STATE_OFF, *self._supported_modes()]
         self._attr_supported_features = (
             WaterHeaterEntityFeature.TARGET_TEMPERATURE
@@ -121,8 +127,8 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         await self._coordinator.async_request_refresh()
 
     def _update_from_device(self, write=True):
-        self._attr_current_temperature = float(self._device.get("temp") or 0)
-        self._attr_target_temperature = float(self._device.get("tempSel") or 0)
+        self._attr_native_current_temperature = float(self._device.get("temp") or 0)
+        self._attr_native_target_temperature = float(self._device.get("tempSel") or 0)
 
         if not self._is_on():
             self._attr_current_operation = STATE_OFF
@@ -150,7 +156,7 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
         await self._device.settings_command({"tempSel": int(temperature)}).send()
-        self._attr_target_temperature = int(temperature)
+        self._attr_native_target_temperature = int(temperature)
         self.start_watcher()
         self.async_write_ha_state()
 
@@ -245,8 +251,8 @@ class HonHwWaterHeaterEntity(HonWaterHeaterEntity):
         return str(self._device.get("onOffStatus")) == "1"
 
     def _update_from_device(self, write=True):
-        self._attr_current_temperature = float(self._device.get("temp") or 0)
-        self._attr_target_temperature = float(self._device.get("tempSel") or 0)
+        self._attr_native_current_temperature = float(self._device.get("temp") or 0)
+        self._attr_native_target_temperature = float(self._device.get("tempSel") or 0)
         # No operation modes: the state only tells whether the unit is on.
         self._attr_current_operation = STATE_ON if self._is_on() else STATE_OFF
         if write:
@@ -257,6 +263,6 @@ class HonHwWaterHeaterEntity(HonWaterHeaterEntity):
             return
         program = self._setpoint_program()
         await self._device.start_command(program, {"tempSel": int(temperature)}).send()
-        self._attr_target_temperature = int(temperature)
+        self._attr_native_target_temperature = int(temperature)
         self.start_watcher()
         self.async_write_ha_state()

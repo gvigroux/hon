@@ -97,8 +97,8 @@ def test_hw_type_id_is_26():
 async def test_state_and_range_from_device():
     dev, _ = await _device()
     ent = _entity(dev)
-    assert ent._attr_current_temperature == 47.0
-    assert ent._attr_target_temperature == 60.0
+    assert ent._attr_native_current_temperature == 47.0
+    assert ent._attr_native_target_temperature == 60.0
     assert (ent._attr_min_temp, ent._attr_max_temp) == (35, 75)
     assert ent._attr_target_temperature_step == 1
     assert ent._attr_supported_features == WaterHeaterEntityFeature.TARGET_TEMPERATURE
@@ -125,7 +125,7 @@ async def test_set_temperature_sends_start_program_auto():
     assert name == "startProgram"
     assert params["tempSel"] == 55
     assert params["program"] == "auto"
-    assert ent._attr_target_temperature == 55
+    assert ent._attr_native_target_temperature == 55
 
 
 @pytest.mark.asyncio
@@ -207,8 +207,8 @@ async def test_failed_send_does_not_change_displayed_target():
     dev, hon = await _device()
     ent = _entity(dev)
     hon.send_command.side_effect = RuntimeError("cloud down")
-    before = ent._attr_target_temperature
+    before = ent._attr_native_target_temperature
     with pytest.raises(RuntimeError):
         await ent.async_set_temperature(temperature=55)
-    assert ent._attr_target_temperature == before
+    assert ent._attr_native_target_temperature == before
     ent.async_write_ha_state.assert_not_called()

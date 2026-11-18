@@ -174,6 +174,12 @@ def get_key(dictionary,val,default):
 
 
 class HonClimateEntity(CoordinatorEntity, ClimateEntity):
+    if not hasattr(ClimateEntity, "native_temperature_unit"):
+        # Home Assistant before 2026.11 reads the old names
+        temperature_unit    = property(lambda self: self._attr_native_temperature_unit)
+        current_temperature = property(lambda self: self._attr_native_current_temperature)
+        target_temperature  = property(lambda self: self._attr_native_target_temperature)
+
     def __init__(self,hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator)
         self._coordinator   = coordinator
@@ -195,7 +201,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         self._device        = coordinator.device
 
         #Not working for Farenheit
-        self._attr_temperature_unit         = UnitOfTemperature.CELSIUS # 'tempUnit': '0'
+        self._attr_native_temperature_unit  = UnitOfTemperature.CELSIUS # 'tempUnit': '0'
 
         self._enable_turn_on_off_backwards_compatibility = False
         self._attr_fan_modes            = [] #[FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
@@ -288,9 +294,9 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         # the whole platform. None is also the honest value here: Home Assistant
         # shows it as unknown, where a 0 would read as a real measurement.
         temp_sel = self._device.get('tempSel')
-        self._attr_target_temperature   = int(float(temp_sel)) if temp_sel is not None else None
+        self._attr_native_target_temperature   = int(float(temp_sel)) if temp_sel is not None else None
         temp_indoor = self._device.get('tempIndoor')
-        self._attr_current_temperature  = float(temp_indoor) if temp_indoor is not None else None
+        self._attr_native_current_temperature  = float(temp_indoor) if temp_indoor is not None else None
 
         self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_modes[0])
 
@@ -368,7 +374,7 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return False
         await self._device.settings_command({'tempSel': temperature}).send()
-        self._attr_target_temperature = int(float(temperature))
+        self._attr_native_target_temperature = int(float(temperature))
         self.start_watcher()
 
 
