@@ -128,7 +128,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             await coordinator.async_request_refresh()
 
         if (("settings" in device.commands) 
-            and (device.get("ecoMode", "N/A") != "N/A")):
+            and (device.get("turboMode", "N/A") != "N/A")):
 
             description = HonSwitchEntityDescription(
                 key="turboMode",
