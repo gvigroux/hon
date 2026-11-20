@@ -83,7 +83,7 @@ This integration has been tested with the following devices.
 - hoover HHP50CA011 (Air Purifier 500)
 
 ### Heat Pump Water Heater
-- Haier HP150M8-9 (only programs are working)
+- Haier HP150M8-9 (water heater entity with current and target temperature, the target is set with a program because `update_settings` does not reach the unit; sensors for hot water level, the mode name, and compressor, electric heater and heat energy for this year and this month)
 
 ### Air to Water Heat Pump
 - Haier Monobloc GT R290

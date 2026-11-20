@@ -211,6 +211,14 @@ class HonSwitchEntity(HonBaseSwitchEntity, RestoreEntity):
         return self._device.get(self.entity_description.key, "0") == "1"
 
     async def async_turn_on(self, **kwargs: Any) -> None:
+        if self.entity_description.key == "lightStatus":
+            value = self._target_value(True)
+            await self.coordinator.async_set({"lightStatus": value})
+            self._device.set("lightStatus", value)
+            self.async_write_ha_state()
+            self.coordinator.async_set_updated_data({})
+            return
+
         setting = self._setting()
         if setting is not None:
             if type(setting) == HonParameter:
@@ -230,6 +238,14 @@ class HonSwitchEntity(HonBaseSwitchEntity, RestoreEntity):
         self.coordinator.async_set_updated_data({})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
+        if self.entity_description.key == "lightStatus":
+            value = self._target_value(False)
+            await self.coordinator.async_set({"lightStatus": value})
+            self._device.set("lightStatus", value)
+            self.async_write_ha_state()
+            self.coordinator.async_set_updated_data({})
+            return
+
         setting = self._setting()
         if setting is not None:
             if type(setting) == HonParameter:

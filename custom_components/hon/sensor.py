@@ -23,6 +23,7 @@ from homeassistant.const import (
 )
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, APPLIANCE_TYPE
 from .base import HonBaseCoordinator, HonBaseSensorEntity
@@ -153,6 +154,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseCurrentWaterUsed(hass, coordinator, entry, appliance)])
         if device.has("errors"):
             appliances.extend([HonBaseError(hass, coordinator, entry, appliance)])
+        elif device.has("error"):
+            appliances.extend([HonBaseError(hass, coordinator, entry, appliance, "error")])
         if device.has("currentElectricityUsed"):
             appliances.extend([HonBaseCurrentElectricityUsed(hass, coordinator, entry, appliance)])
         if device.has("spinSpeed"):
@@ -179,6 +182,20 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if device.has("totalWorkTime"):
             appliances.extend([HonBaseWorkTime(hass, coordinator, entry, appliance)])
 
+        # HW (heat pump water heater) additional sensors
+        if device.has("remainingWaterLevel"):
+            appliances.extend([HonBaseWaterLevel(hass, coordinator, entry, appliance)])
+        for key, name, monthly in (
+            ("energyConsumptionYearCp", "Compressor energy this year", False),
+            ("energyConsumptionMonthCp", "Compressor energy this month", True),
+            ("energyConsumptionYearEc", "Electric heater energy this year", False),
+            ("energyConsumptionMonthEc", "Electric heater energy this month", True),
+            ("accumulatedHeatYear", "Heat produced this year", False),
+            ("accumulatedHeatMonth", "Heat produced this month", True),
+        ):
+            if device.has(key):
+                appliances.extend([HonBaseEnergyList(hass, coordinator, entry, appliance, key, name, monthly)])
+
         # WM additional sensors
         if device.has("currentWashCycle"):
             appliances.extend([HonBaseCurrentWashCycle(hass, coordinator, entry, appliance)])
@@ -192,6 +209,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
             appliances.extend([HonBaseDetergentWeight(hass, coordinator, entry, appliance, "haier_SoftenerWeight", "Softener weight")])
         if device.has("weight") and not device.has("actualWeight"):
             appliances.extend([HonBaseWeight(hass, coordinator, entry, appliance)])
+        if device.has("dirtyLevel"):
+            appliances.extend([HonBaseRawLevel(hass, coordinator, entry, appliance, "dirtyLevel", "Soil level", "mdi:liquid-spot")])
+        if device.has("steamLevel"):
+            appliances.extend([HonBaseRawLevel(hass, coordinator, entry, appliance, "steamLevel", "Steam level", "mdi:weather-fog")])
+        for key, name in (
+            ("temp0to30", "Washes up to 30°C"),
+            ("temp40", "Washes at 40°C"),
+            ("temp60to90", "Washes at 60-90°C"),
+        ):
+            if device.has(key):
+                appliances.extend([HonBaseTemperatureCounter(hass, coordinator, entry, appliance, key, name)])
 
         # DW additional sensors
         if device.has("waterHard"):
@@ -253,6 +281,10 @@ class HonBaseMode(HonBaseSensorEntity):
 
         if( self._type_id == APPLIANCE_TYPE.WATER_HEATER ):
             self.translation_key    = "water_heater_mode"
+            self._attr_icon         = "mdi:water-boiler"
+
+        if( self._type_id == APPLIANCE_TYPE.HW_WATER_HEATER ):
+            self.translation_key    = "hw_water_heater_mode"
             self._attr_icon         = "mdi:water-boiler"
 
 
@@ -486,6 +518,16 @@ class HonBaseDryLevel(HonBaseSensorEntity):
         self._attr_native_value = f"{drylevel}"
 
 
+class HonBaseRawLevel(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name, icon) -> None:
+        super().__init__(coordinator, appliance, key, name)
+
+        self._attr_icon = icon
+
+    def coordinator_update(self):
+        self._attr_native_value = f"{self._device.get(self._key)}"
+
+
 class HonBaseStart(HonBaseSensorEntity):
     def __init__(self, hass, coordinator, entry, appliance) -> None:
         super().__init__(coordinator, appliance, "", "Start time")
@@ -638,8 +680,8 @@ class HonBaseCurrentWaterUsed(HonBaseSensorEntity):
 
 
 class HonBaseError(HonBaseSensorEntity):
-    def __init__(self, hass, coordinator, entry, appliance) -> None:
-        super().__init__(coordinator, appliance, "errors", "Error")
+    def __init__(self, hass, coordinator, entry, appliance, key="errors") -> None:
+        super().__init__(coordinator, appliance, key, "Error")
 
         self.translation_key    = "error"
 
@@ -648,7 +690,7 @@ class HonBaseError(HonBaseSensorEntity):
             self.translation_key    = "washingmachine_error"
 
     def coordinator_update(self):
-        error = self._device.get("errors")
+        error = self._device.get(self._key)
         self._attr_native_value = f"{error}"
 
 
@@ -719,6 +761,20 @@ class HonBaseProgramsCounter(HonBaseSensorEntity):
         value = self._device.get("statistics.programsCounter")
         if value is not None:
             self._attr_native_value = int(value)
+
+
+class HonBaseTemperatureCounter(HonBaseSensorEntity):
+    def __init__(self, hass, coordinator, entry, appliance, key, name) -> None:
+        super().__init__(coordinator, appliance, key, name)
+
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self._attr_icon = "mdi:counter"
+
+    def coordinator_update(self):
+        try:
+            self._attr_native_value = int(self._device.get(self._key))
+        except (TypeError, ValueError):
+            self._attr_native_value = None
 
 
 class HonBaseCurrentWashCycle(HonBaseSensorEntity):
@@ -830,3 +886,43 @@ class HonHobZoneCompositeTimer(HonBaseSensorEntity):
         # Adds hours and minutes (HH * 60 + MM)
         self._attr_native_value = (hours * 60) + minutes
 
+
+class HonBaseWaterLevel(HonBaseSensorEntity):
+    """Hot water level in display bars (0-12 on the HP150M8-9), relative to the setpoint."""
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(coordinator, appliance, "remainingWaterLevel", "Hot water level")
+
+        # Named relative to the device, so it does not depend on the appliance nickname.
+        self._attr_has_entity_name = True
+        self._attr_name = "Hot water level"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:water-percent"
+
+    def coordinator_update(self):
+        self._attr_native_value = self._device.getInt("remainingWaterLevel")
+
+
+class HonBaseEnergyList(HonBaseSensorEntity):
+    """kWh from a semicolon separated list reported by HW water heaters.
+
+    Yearly lists end with the current year. Monthly lists have one entry per
+    calendar month (January first).
+    """
+    def __init__(self, hass, coordinator, entry, appliance, key, name, monthly) -> None:
+        self._monthly = monthly
+        super().__init__(coordinator, appliance, key, name)
+
+        # Named relative to the device, so it does not depend on the appliance nickname.
+        self._attr_has_entity_name = True
+        self._attr_name = name
+        self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+        self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+
+    def coordinator_update(self):
+        values = str(self._device.get(self._key) or "").split(";")
+        try:
+            value = values[dt_util.now().month - 1] if self._monthly else values[-1]
+            self._attr_native_value = float(value)
+        except (IndexError, ValueError):
+            self._attr_native_value = None

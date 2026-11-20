@@ -82,7 +82,17 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
         if appliance['applianceTypeId'] == 11:
             coordinator = await hon.async_get_coordinator(appliance)
             await coordinator.async_config_entry_first_refresh()
-            appliances.append(HonClimateEntity(hass, coordinator, entry, appliance))
+            try:
+                appliances.append(HonClimateEntity(hass, coordinator, entry, appliance))
+            except Exception:
+                # One appliance that cannot be set up must not take the whole
+                # climate platform down with it: without this, a single
+                # disconnected unit leaves every other air conditioner of the
+                # account without a climate entity, and the only clue is one
+                # line in the log.
+                _LOGGER.exception(
+                    "Could not set up climate entity for %s, skipping it",
+                    appliance.get('nickName') or appliance.get('macAddress'))
 
     async_add_entities(appliances)
 
@@ -273,8 +283,14 @@ class HonClimateEntity(CoordinatorEntity, ClimateEntity):
             return
 
 
-        self._attr_target_temperature   = int(float(self._device.get('tempSel')))
-        self._attr_current_temperature  = float(self._device.get('tempIndoor'))
+        # An appliance that is offline reports these as None. float(None) raises
+        # TypeError, and when that happens in __init__ it aborts the setup of
+        # the whole platform. None is also the honest value here: Home Assistant
+        # shows it as unknown, where a 0 would read as a real measurement.
+        temp_sel = self._device.get('tempSel')
+        self._attr_target_temperature   = int(float(temp_sel)) if temp_sel is not None else None
+        temp_indoor = self._device.get('tempIndoor')
+        self._attr_current_temperature  = float(temp_indoor) if temp_indoor is not None else None
 
         self._attr_fan_mode = get_key(CLIMATE_FAN_MODE, self._device.get('windSpeed'), self._attr_fan_modes[0])
 

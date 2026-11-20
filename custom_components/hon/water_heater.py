@@ -4,8 +4,9 @@ from typing import Optional
 from datetime import datetime
 
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, STATE_OFF, UnitOfTemperature, PRECISION_WHOLE
+from homeassistant.const import ATTR_TEMPERATURE, STATE_OFF, STATE_ON, UnitOfTemperature, PRECISION_WHOLE
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -24,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 # localizes the *standard* water_heater states, so custom modes must already be
 # nicely cased). Each maps to (machMode value, startProgram program key).
 WH_MODES = {
+    "Normal": ("0", "normal"),
     "Eco": ("1", "eco"),
     "Max": ("2", "max"),
     "BPS": ("3", "bps"),
@@ -37,9 +39,13 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
 
     appliances = []
     for appliance in hon.appliances:
-        if appliance["applianceTypeId"] == APPLIANCE_TYPE.WATER_HEATER:
+        type_id = appliance["applianceTypeId"]
+        if type_id == APPLIANCE_TYPE.WATER_HEATER:
             coordinator = await hon.async_get_coordinator(appliance)
             appliances.append(HonWaterHeaterEntity(hass, coordinator, entry, appliance))
+        elif type_id == APPLIANCE_TYPE.HW_WATER_HEATER:
+            coordinator = await hon.async_get_coordinator(appliance)
+            appliances.append(HonHwWaterHeaterEntity(hass, coordinator, entry, appliance))
 
     async_add_entities(appliances)
 
@@ -60,7 +66,7 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         self._watcher       = None
 
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_operation_list = [STATE_OFF, *WH_MODES.keys()]
+        self._attr_operation_list = [STATE_OFF, *self._supported_modes()]
         self._attr_supported_features = (
             WaterHeaterEntityFeature.TARGET_TEMPERATURE
             | WaterHeaterEntityFeature.OPERATION_MODE
@@ -87,6 +93,18 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
 
     def _is_on(self) -> bool:
         return self._device.get("onOffStatus") == "1"
+
+    def _supported_modes(self) -> list[str]:
+        """Modes whose program this appliance offers; every mode if unknown."""
+        command = self._device.commands.get("startProgram")
+        programs = (command.get_programs() or {}) if command else {}
+        modes = [mode for mode, (_, program) in WH_MODES.items() if program in programs]
+        return modes or list(WH_MODES)
+
+    async def _start_mode(self, mode: str) -> None:
+        # startProgram with the machMode set directly: the program route and the
+        # settings command leave machMode unchanged on a running ES80V-VH3W.
+        await self._coordinator.async_set({"onOffStatus": "1", "machMode": WH_MODES[mode][0]})
 
     def start_watcher(self, delay=timedelta(seconds=8)):
         """Suppress coordinator overwrites briefly so optimistic state sticks."""
@@ -140,20 +158,14 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
         if operation_mode == STATE_OFF:
             await self._device.stop_command().send()
         else:
-            machmode, program = WH_MODES[operation_mode]
-            if self._is_on():
-                # Live mode change keeps the current target temperature
-                await self._device.settings_command({"machMode": machmode}).send()
-            else:
-                # Powered off: (re)start with the matching program
-                await self._device.start_command(program).send()
+            await self._start_mode(operation_mode)
         self._attr_current_operation = operation_mode
         self.start_watcher()
         self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs) -> None:
         mode = MACHMODE_TO_MODE.get(str(self._device.get("machMode")), "Eco")
-        await self._device.start_command(WH_MODES[mode][1]).send()
+        await self._start_mode(mode)
         self._attr_current_operation = mode
         self.start_watcher()
         self.async_write_ha_state()
@@ -188,3 +200,63 @@ class HonWaterHeaterEntity(CoordinatorEntity, WaterHeaterEntity):
             "model": self._model,
             "sw_version": self._fw_version,
         }
+
+
+class HonHwWaterHeaterEntity(HonWaterHeaterEntity):
+    """Haier heat pump water heater (applianceTypeName HW, e.g. HP150M8-9).
+
+    update_settings does not reach these units, so the target temperature is
+    sent with the startProgram "auto" program. Other programs are never used:
+    vac does not heat and elec bypasses the heat pump (per the M8 manual), so
+    guessing one could leave the tank cold or on the element. Starting "auto"
+    puts the unit in AUTO mode. There are no operation modes: this entity only
+    reports temperatures and sets the target.
+    """
+
+    def __init__(self, hass, coordinator, entry, appliance) -> None:
+        super().__init__(hass, coordinator, entry, appliance)
+        self._attr_operation_list = None
+        self._attr_supported_features = WaterHeaterEntityFeature.TARGET_TEMPERATURE
+
+        try:
+            program = self._setpoint_program()
+            temp_range = self._device.commands["startProgram"].get_programs()[program].parameters.get("tempSel")
+            if isinstance(temp_range, HonParameterRange):
+                self._attr_min_temp = temp_range.min
+                self._attr_max_temp = temp_range.max
+                self._attr_target_temperature_step = temp_range.step
+        except Exception as e:  # pragma: no cover - keep entity alive
+            _LOGGER.warning("HW: unable to read tempSel range: %s", e)
+
+    def _setpoint_program(self) -> str:
+        """Name of the startProgram program used to set tempSel (always auto)."""
+        command = self._device.commands.get("startProgram")
+        programs = command.get_programs() if command else {}
+        auto = programs.get("auto")
+        if auto is not None and "tempSel" in auto.parameters:
+            return "auto"
+        raise HomeAssistantError(
+            f"{self._name}: no startProgram program 'auto' with a tempSel parameter, cannot set the temperature"
+        )
+
+    def _is_on(self) -> bool:
+        # settings_command() (called in the parent constructor) writes typed
+        # values back into the parameters, so "1" may now be the int 1.
+        return str(self._device.get("onOffStatus")) == "1"
+
+    def _update_from_device(self, write=True):
+        self._attr_current_temperature = float(self._device.get("temp") or 0)
+        self._attr_target_temperature = float(self._device.get("tempSel") or 0)
+        # No operation modes: the state only tells whether the unit is on.
+        self._attr_current_operation = STATE_ON if self._is_on() else STATE_OFF
+        if write:
+            self.async_write_ha_state()
+
+    async def async_set_temperature(self, **kwargs) -> None:
+        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
+            return
+        program = self._setpoint_program()
+        await self._device.start_command(program, {"tempSel": int(temperature)}).send()
+        self._attr_target_temperature = int(temperature)
+        self.start_watcher()
+        self.async_write_ha_state()

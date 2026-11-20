@@ -54,9 +54,9 @@ class HonParameterRange(HonParameter):
     def __init__(self, key, attributes):
         super().__init__(key, attributes)
         try:
-            self._min = int(attributes["minimumValue"])
-            self._max = int(attributes["maximumValue"])
-            self._step = int(attributes["incrementValue"])
+            self._min = int(attributes.get("minimumValue", 0))
+            self._max = int(attributes.get("maximumValue", self._min))
+            self._step = int(attributes.get("incrementValue", 1)) or 1
             self._default = int(attributes.get("defaultValue", self._min))
         except (TypeError, ValueError):
             self._min = float(attributes["minimumValue"].replace(",","."))
